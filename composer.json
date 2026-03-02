@@ -42,8 +42,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Z3d0X\\FilamentLogger\\": "src",
-            "Z3d0X\\FilamentLogger\\Database\\Factories\\": "database/factories"
+            "MrAdder\\FilamentLogger\\": "src",
+            "MrAdder\\FilamentLogger\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {

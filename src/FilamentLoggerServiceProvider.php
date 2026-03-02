@@ -1,6 +1,6 @@
 <?php
 
-namespace Z3d0X\FilamentLogger;
+namespace MrAdder\FilamentLogger;
 
 use Filament\Facades\Filament;
 use Filament\Panel;

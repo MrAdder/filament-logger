@@ -1,7 +1,9 @@
+Maintained fork for Z3d0X
+
 # Activity logger for filament
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mradder/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
-[![Total Downloads](https://img.shields.io/packagist/dt/z3d0x/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/z3d0x/filament-logger)
+[![Total Downloads](https://img.shields.io/packagist/dt/mradder/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
 
 <p align="center" class="filament-hidden">
   <img alt="logger banner" src="https://raw.githubusercontent.com/mradder/filament-logger/main/art/banner.jpeg" />
