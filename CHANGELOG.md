@@ -2,19 +2,6 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
-## v0.8.2 - 2026-03-02
-
-### What's Changed
-
-* Bump stefanzweifel/git-auto-commit-action from 5 to 7 by @dependabot[bot] in https://github.com/MrAdder/filament-logger/pull/2
-* Bump actions/checkout from 4 to 6 by @dependabot[bot] in https://github.com/MrAdder/filament-logger/pull/1
-
-### New Contributors
-
-* @dependabot[bot] made their first contribution in https://github.com/MrAdder/filament-logger/pull/2
-
-**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v0.8.1...v0.8.2
-
 ## v0.8.1 - 2026-03-02
 
 **Full Changelog**: https://github.com/MrAdder/filament-logger/commits/v0.8.1
