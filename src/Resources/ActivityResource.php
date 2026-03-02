@@ -1,6 +1,6 @@
 <?php
 
-namespace Z3d0X\FilamentLogger\Resources;
+namespace MrAdder\FilamentLogger\Resources;
 
 use Filament\Forms\Form;
 use Filament\Tables\Table;
@@ -22,7 +22,7 @@ use Filament\Forms\Components\Placeholder;
 use Spatie\Activitylog\Contracts\Activity;
 use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\Activitylog\Models\Activity as ActivityModel;
-use Z3d0X\FilamentLogger\Resources\ActivityResource\Pages;
+use MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
 
 class ActivityResource extends Resource
 {

@@ -1,17 +1,23 @@
 {
-    "name": "z3d0x/filament-logger",
+    "name": "mradder/filament-logger",
     "description": "Activity logger for filament",
     "keywords": [
         "Z3d0X",
         "laravel",
-        "filament-logger"
+        "filament-logger",
+        "mradder"
     ],
-    "homepage": "https://github.com/z3d0x/filament-logger",
+    "homepage": "https://github.com/mradder/filament-logger",
     "license": "MIT",
     "authors": [
         {
             "name": "Ziyaan Hassan",
             "email": "ziyaan2010@gmail.com",
+            "role": "Developer"
+        },
+        {
+            "name": "Daniel Green",
+            "email": "dgreen03@gmail.com",
             "role": "Developer"
         }
     ],
@@ -42,7 +48,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Z3d0X\\FilamentLogger\\Tests\\": "tests"
+            "MrAdder\\FilamentLogger\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -60,10 +66,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Z3d0X\\FilamentLogger\\FilamentLoggerServiceProvider"
+                "MrAdder\\FilamentLogger\\FilamentLoggerServiceProvider"
             ],
             "aliases": {
-                "FilamentLogger": "Z3d0X\\FilamentLogger\\Facades\\FilamentLogger"
+                "FilamentLogger": "MrAdder\\FilamentLogger\\Facades\\FilamentLogger"
             }
         }
     },

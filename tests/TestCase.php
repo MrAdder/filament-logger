@@ -1,12 +1,12 @@
 <?php
 
-namespace Z3d0X\FilamentLogger\Tests;
+namespace MrAdder\FilamentLogger\Tests;
 
 use Filament\FilamentServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
-use Z3d0X\FilamentLogger\FilamentLoggerServiceProvider;
+use MrAdder\FilamentLogger\FilamentLoggerServiceProvider;
 
 class TestCase extends Orchestra
 {

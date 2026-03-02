@@ -1,14 +1,10 @@
-> [!WARNING]
-> This package is no longer maintained.  
-> If you’re interested in taking over maintenance, feel free to fork the repository.
-
 # Activity logger for filament
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/z3d0x/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/z3d0x/filament-logger)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/mradder/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
 [![Total Downloads](https://img.shields.io/packagist/dt/z3d0x/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/z3d0x/filament-logger)
 
 <p align="center" class="filament-hidden">
-  <img alt="logger banner" src="https://raw.githubusercontent.com/z3d0x/filament-logger/main/art/banner.jpeg" />
+  <img alt="logger banner" src="https://raw.githubusercontent.com/mradder/filament-logger/main/art/banner.jpeg" />
 </p>
 
 Configurable activity logger for filament.
@@ -36,7 +32,7 @@ This package uses [spatie/laravel-activitylog](https://spatie.be/docs/laravel-ac
 You can install the package via composer:
 
 ```bash
-composer require z3d0x/filament-logger
+composer require mradder/filament-logger
 ```
 After that run the install command:
 
@@ -88,9 +84,9 @@ php artisan vendor:publish --tag="filament-logger-translations"
 The main `Activity` class being used by the Filament Resource instance will be resolved by Spatie's service provider, which loads the model defined by the configuration key found at `activitylog.activity_model` in `config/activitylog.php`.
 
 ## Screenshots
-<img alt="logger-index" src="https://raw.githubusercontent.com/z3d0x/filament-logger/main/art/list-screenshot.png">
-<img alt="logger-detail-1" src="https://raw.githubusercontent.com/z3d0x/filament-logger/main/art/view-screenshot-1.png">
-<img alt="logger-detail-2" src="https://raw.githubusercontent.com/z3d0x/filament-logger/main/art/view-screenshot-2.png">
+<img alt="logger-index" src="https://raw.githubusercontent.com/mradder/filament-logger/main/art/list-screenshot.png">
+<img alt="logger-detail-1" src="https://raw.githubusercontent.com/mradder/filament-logger/main/art/view-screenshot-1.png">
+<img alt="logger-detail-2" src="https://raw.githubusercontent.com/mradder/filament-logger/main/art/view-screenshot-2.png">
 
 ## Changelog
 
@@ -106,7 +102,8 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [Ziyaan Hassan](https://github.com/Z3d0X)
+- [Ziyaan Hassan](https://github.com/Z3d0X) - Original Developer
+- [Daniel 'MrAdder' Green](https://github.com/MrAdder)
 - [Spatie Activitylog Contributors](https://github.com/spatie/laravel-activitylog#credits) 
 - [All Contributors](../../contributors)
 
