@@ -1,5 +1,7 @@
 Maintained fork for Z3d0X
 
+`composer require mradder/filament-logger`
+
 # Activity logger for filament
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mradder/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
