@@ -50,7 +50,7 @@ export default defineConfig({
       {
         text: 'Project',
         items: [
-          { text: 'Releasing', link: '/releasing' }
+          { text: 'Roadmap', link: '/roadmap' }
         ]
       }
     ]

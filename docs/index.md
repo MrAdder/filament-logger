@@ -27,7 +27,7 @@ features:
 
 # Documentation
 
-This site contains the package guides that power setup, security review, audit workflows, and release operations.
+This site contains the package guides that power setup, security review, audit workflows, and project direction.
 
 ## Guides
 
@@ -36,7 +36,7 @@ This site contains the package guides that power setup, security review, audit w
 - [Configuration Guide](configuration.md)
 - [Activity Review UI](activity-review.md)
 - [Custom Events and Alerts](custom-events.md)
-- [Releasing](releasing.md)
+- [Roadmap](roadmap.md)
 
 ## Suggested Reading Order
 
@@ -45,4 +45,4 @@ This site contains the package guides that power setup, security review, audit w
 3. Use [Configuration Guide](configuration.md) to tailor logging behavior.
 4. Use [Activity Review UI](activity-review.md) for exports, dashboards, filters, and pruning.
 5. Use [Custom Events and Alerts](custom-events.md) for domain-specific events and notifications.
-6. Use [Releasing](releasing.md) to cut and publish versions consistently.
+6. Use [Roadmap](roadmap.md) to see what is planned for the `1.x` series.

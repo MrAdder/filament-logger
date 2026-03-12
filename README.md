@@ -74,7 +74,7 @@ public function panel(Panel $panel): Panel
 - [Configuration Guide](https://mradder.github.io/filament-logger/configuration)
 - [Activity Review UI](https://mradder.github.io/filament-logger/activity-review)
 - [Custom Events and Alerts](https://mradder.github.io/filament-logger/custom-events)
-- [Releasing](https://mradder.github.io/filament-logger/releasing)
+- [Roadmap](https://mradder.github.io/filament-logger/roadmap)
 
 ## Screenshots
 
