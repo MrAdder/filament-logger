@@ -10,11 +10,6 @@ on:
       - 'package-lock.json'
       - '.github/workflows/deploy-docs.yml'
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
   group: docs-${{ github.ref }}
   cancel-in-progress: true
@@ -23,6 +18,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -51,6 +48,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      id-token: write
+      pages: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
