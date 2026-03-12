@@ -2,6 +2,18 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.0.1 - 2026-03-12
+
+## Summary
+
+- docs: add community guidelines, roadmap docs, and issue planning artifacts by @MrAdder in #23
+
+## Contributors
+
+@MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.0.0...v1.0.1
+
 ## v1.1.0 - Unreleased
 
 ### Highlights
