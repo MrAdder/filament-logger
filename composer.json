@@ -66,6 +66,24 @@
             "MrAdder\\FilamentLogger\\Tests\\": "tests"
         }
     },
+    "archive": {
+        "exclude": [
+            "/.github",
+            "/.gitattributes",
+            "/.gitignore",
+            "/bootstrap",
+            "/build",
+            "/composer.lock",
+            "/docs",
+            "/package.json",
+            "/package-lock.json",
+            "/phpstan-baseline.neon",
+            "/phpstan.neon.dist",
+            "/phpunit.xml.dist",
+            "/testbench.yaml",
+            "/tests"
+        ]
+    },
     "scripts": {
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest",
