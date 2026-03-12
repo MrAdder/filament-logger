@@ -88,7 +88,7 @@ See [CHANGELOG](CHANGELOG.md) for recent changes.
 
 ## Contributing
 
-See [CONTRIBUTING](https://github.com/spatie/.github/blob/main/CONTRIBUTING.md) for contribution guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations.
 
 ## Security
 
