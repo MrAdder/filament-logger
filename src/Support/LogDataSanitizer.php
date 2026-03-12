@@ -8,7 +8,11 @@ use Symfony\Component\HttpFoundation\IpUtils;
 
 class LogDataSanitizer
 {
-    public static function sanitizeProperties(mixed $properties): array
+    /**
+     * @param  array{preserve_sensitive_data?: bool, redact_ip_addresses?: bool}  $options
+     * @return array<string, mixed>
+     */
+    public static function sanitizeProperties(mixed $properties, array $options = []): array
     {
         if ($properties instanceof Arrayable) {
             $properties = $properties->toArray();
@@ -18,7 +22,7 @@ class LogDataSanitizer
             return [];
         }
 
-        return self::sanitizeArray($properties);
+        return self::sanitizeArray($properties, self::sanitizeOptions($options));
     }
 
     public static function sanitizeNotificationRecipient(?string $recipient): ?string
@@ -38,25 +42,29 @@ class LogDataSanitizer
         };
     }
 
-    protected static function sanitizeArray(array $properties): array
+    /**
+     * @param  array{preserve_sensitive_data: bool, redact_ip_addresses: bool}  $options
+     * @return array<string, mixed>
+     */
+    protected static function sanitizeArray(array $properties, array $options): array
     {
         $sanitized = [];
 
         foreach ($properties as $key => $value) {
-            if (self::shouldRedactKey($key)) {
+            if (! $options['preserve_sensitive_data'] && self::shouldRedactKey($key)) {
                 $sanitized[$key] = config('filament-logger.redacted_placeholder', '[REDACTED]');
 
                 continue;
             }
 
             if (self::isIpKey($key)) {
-                $sanitized[$key] = self::sanitizeIp($value);
+                $sanitized[$key] = self::sanitizeIp($value, $options);
 
                 continue;
             }
 
             if (self::isUserAgentKey($key)) {
-                $sanitized[$key] = self::sanitizeUserAgent($value);
+                $sanitized[$key] = self::sanitizeUserAgent($value, $options);
 
                 continue;
             }
@@ -65,7 +73,7 @@ class LogDataSanitizer
                 $value = $value->toArray();
             }
 
-            $sanitized[$key] = is_array($value) ? self::sanitizeArray($value) : $value;
+            $sanitized[$key] = is_array($value) ? self::sanitizeArray($value, $options) : $value;
         }
 
         return $sanitized;
@@ -112,26 +120,38 @@ class LogDataSanitizer
             );
     }
 
-    protected static function sanitizeIp(mixed $value): mixed
+    /**
+     * @param  array{preserve_sensitive_data: bool, redact_ip_addresses: bool}  $options
+     */
+    protected static function sanitizeIp(mixed $value, array $options): mixed
     {
         if (! is_string($value) || blank($value) || ! config('filament-logger.access.store_ip', true)) {
             return null;
         }
 
-        if (! config('filament-logger.access.anonymize_ip', true)) {
-            return $value;
+        $sanitized = $value;
+
+        if ($options['redact_ip_addresses']) {
+            $sanitized = config('filament-logger.redacted_placeholder', '[REDACTED]');
+        } elseif (! $options['preserve_sensitive_data'] && config('filament-logger.access.anonymize_ip', true)) {
+            $sanitized = IpUtils::anonymize($value);
         }
 
-        return IpUtils::anonymize($value);
+        return $sanitized;
     }
 
-    protected static function sanitizeUserAgent(mixed $value): mixed
+    /**
+     * @param  array{preserve_sensitive_data: bool, redact_ip_addresses: bool}  $options
+     */
+    protected static function sanitizeUserAgent(mixed $value, array $options): mixed
     {
         if (! is_string($value) || blank($value) || ! config('filament-logger.access.store_user_agent', true)) {
             return null;
         }
 
-        return Str::limit($value, (int) config('filament-logger.access.user_agent_max_length', 255), '');
+        return $options['preserve_sensitive_data']
+            ? $value
+            : Str::limit($value, (int) config('filament-logger.access.user_agent_max_length', 255), '');
     }
 
     protected static function isIpKey(mixed $key): bool
@@ -150,6 +170,18 @@ class LogDataSanitizer
             ->replace(['-', ' '], '_')
             ->snake()
             ->lower();
+    }
+
+    /**
+     * @param  array{preserve_sensitive_data?: bool, redact_ip_addresses?: bool}  $options
+     * @return array{preserve_sensitive_data: bool, redact_ip_addresses: bool}
+     */
+    protected static function sanitizeOptions(array $options): array
+    {
+        return [
+            'preserve_sensitive_data' => (bool) ($options['preserve_sensitive_data'] ?? false),
+            'redact_ip_addresses' => (bool) ($options['redact_ip_addresses'] ?? false),
+        ];
     }
 
     protected static function maskDigits(string $value, int $visibleDigits = 2): string

@@ -63,6 +63,43 @@ Auth event logging is configurable per event:
 
 The 2FA recovery event is only registered when the Fortify event class is available.
 
+You can also redact stored IP addresses at view/export time for users who do not pass the sensitive-data policy ability:
+
+```php
+'authorization' => [
+    'sensitive_ability' => 'viewSensitiveData',
+],
+
+'access' => [
+    'store_ip' => true,
+    'anonymize_ip' => false,
+    'redact_ip_for_unauthorized_viewers' => true,
+],
+```
+
+This is useful when security reviewers need full IP addresses but most admin users should only see `[REDACTED]`.
+
+## Sensitive Key Redaction
+
+You can extend the list of redactable keys in config.
+
+This applies recursively across `old`, `attributes`, metadata, exports, and the activity detail view.
+
+```php
+'redacted_placeholder' => '[REDACTED]',
+
+'sensitive_keys' => [
+    'password',
+    'api_token',
+    'client_secret',
+    'webhook_url',
+    'authorization',
+    'ip_address',
+],
+```
+
+The matcher normalizes key names, so values like `request_authorization`, `client-secret`, and nested `profile.ip_address` payloads will also be caught.
+
 ## Diff Formatting
 
 The activity detail page renders old and new values using a structured diff view. You can adjust how large values are displayed:

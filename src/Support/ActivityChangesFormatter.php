@@ -20,7 +20,7 @@ class ActivityChangesFormatter
             ];
         }
 
-        $properties = LogDataSanitizer::sanitizeProperties($activity->properties ?? []);
+        $properties = ActivityViewerPrivacy::sanitizeProperties($activity->properties ?? [], $activity);
         $old = self::normalizeSection($properties['old'] ?? []);
         $attributes = self::normalizeSection($properties['attributes'] ?? []);
         $metadata = self::normalizeSection(collect($properties)->except(['old', 'attributes'])->all());

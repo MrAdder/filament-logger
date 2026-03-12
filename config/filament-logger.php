@@ -7,6 +7,7 @@ return [
 
     'authorization' => [
         'strict' => true,
+        'sensitive_ability' => 'viewSensitiveData',
     ],
 
     'sensitive_keys' => [
@@ -192,6 +193,7 @@ return [
         'log_name' => 'Access',
         'store_ip' => true,
         'anonymize_ip' => true,
+        'redact_ip_for_unauthorized_viewers' => false,
         'store_user_agent' => true,
         'user_agent_max_length' => 255,
         'identifier_keys' => [

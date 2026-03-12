@@ -81,7 +81,7 @@ class ActivityExporter
      */
     protected function formatRow(mixed $activity): array
     {
-        $properties = LogDataSanitizer::sanitizeProperties($activity->properties?->toArray() ?? []);
+        $properties = ActivityViewerPrivacy::sanitizeProperties($activity->properties?->toArray() ?? [], $activity);
 
         return [
             'id' => $activity->getKey(),

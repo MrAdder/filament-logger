@@ -4,7 +4,7 @@ namespace MrAdder\FilamentLogger\Resources\ActivityResource\Support;
 
 use Filament\Forms\Components\KeyValue;
 use Illuminate\Database\Eloquent\Model;
-use MrAdder\FilamentLogger\Support\LogDataSanitizer;
+use MrAdder\FilamentLogger\Support\ActivityViewerPrivacy;
 use Spatie\Activitylog\Contracts\Activity;
 use Spatie\Activitylog\Models\Activity as ActivityModel;
 
@@ -25,9 +25,9 @@ final class ActivityResourceFormSchema
         }
 
         /** @var Activity&ActivityModel $record */
-        $properties = LogDataSanitizer::sanitizeProperties(
+        $properties = ActivityViewerPrivacy::sanitizeProperties(
             $record->properties->except(['attributes', 'old'])
-        );
+        , $record);
 
         $schema = [];
 
@@ -38,13 +38,13 @@ final class ActivityResourceFormSchema
                 ->columnSpan('full');
         }
 
-        if ($old = LogDataSanitizer::sanitizeProperties($record->properties->get('old') ?? [])) {
+        if ($old = ActivityViewerPrivacy::sanitizeProperties($record->properties->get('old') ?? [], $record)) {
             $schema[] = KeyValue::make('old')
                 ->afterStateHydrated(fn (KeyValue $component) => $component->state($old))
                 ->label(__('filament-logger::filament-logger.resource.label.old'));
         }
 
-        if ($attributes = LogDataSanitizer::sanitizeProperties($record->properties->get('attributes') ?? [])) {
+        if ($attributes = ActivityViewerPrivacy::sanitizeProperties($record->properties->get('attributes') ?? [], $record)) {
             $schema[] = KeyValue::make('attributes')
                 ->afterStateHydrated(fn (KeyValue $component) => $component->state($attributes))
                 ->label(__('filament-logger::filament-logger.resource.label.new'));
