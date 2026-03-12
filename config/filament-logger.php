@@ -116,6 +116,7 @@ return [
 
     'alerts' => [
         'enabled' => false,
+        'cache_store' => null,
         'default_channels' => ['mail'],
         'mail' => [
             'to' => [],

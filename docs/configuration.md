@@ -98,6 +98,24 @@ High-risk activity can be tagged automatically based on specific events or chang
 ],
 ```
 
+## Alert Throttling
+
+Sensitive activity alerts can be throttled per rule to reduce noise from repeated matching events:
+
+```php
+'alerts' => [
+    'cache_store' => 'redis',
+    'rules' => [
+        'destructive_activity' => [
+            'events' => ['Deleted', 'Force Deleted'],
+            'cooldown_minutes' => 10,
+        ],
+    ],
+],
+```
+
+Cooldown keys are stored in the default cache store unless you set `alerts.cache_store`.
+
 ## Custom Log Names
 
 You can define your own log names and colors:
