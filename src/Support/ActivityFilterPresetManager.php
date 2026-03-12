@@ -76,40 +76,34 @@ class ActivityFilterPresetManager
      */
     public static function matches(ActivityContract $activity, array $rule): bool
     {
-        if ($logNames = data_get($rule, 'log_names')) {
-            if (! in_array(data_get($activity, 'log_name'), (array) $logNames, true)) {
-                return false;
-            }
+        if (($logNames = data_get($rule, 'log_names'))
+            && ! in_array(data_get($activity, 'log_name'), (array) $logNames, true)) {
+            return false;
         }
 
-        if ($events = data_get($rule, 'events')) {
-            if (! in_array(data_get($activity, 'event'), (array) $events, true)) {
-                return false;
-            }
+        if (($events = data_get($rule, 'events'))
+            && ! in_array(data_get($activity, 'event'), (array) $events, true)) {
+            return false;
         }
 
-        if ($subjectTypes = data_get($rule, 'subject_types')) {
-            if (! in_array(data_get($activity, 'subject_type'), (array) $subjectTypes, true)) {
-                return false;
-            }
+        if (($subjectTypes = data_get($rule, 'subject_types'))
+            && ! in_array(data_get($activity, 'subject_type'), (array) $subjectTypes, true)) {
+            return false;
         }
 
-        if ($risk = data_get($rule, 'risk')) {
-            if (! in_array(data_get($activity, 'properties.risk'), (array) $risk, true)) {
-                return false;
-            }
+        if (($risk = data_get($rule, 'risk'))
+            && ! in_array(data_get($activity, 'properties.risk'), (array) $risk, true)) {
+            return false;
         }
 
-        if ($reasons = data_get($rule, 'risk_reasons')) {
-            if (array_intersect((array) data_get($activity, 'properties.risk_reasons', []), (array) $reasons) === []) {
-                return false;
-            }
+        if (($reasons = data_get($rule, 'risk_reasons'))
+            && array_intersect((array) data_get($activity, 'properties.risk_reasons', []), (array) $reasons) === []) {
+            return false;
         }
 
-        if ($tags = data_get($rule, 'tags')) {
-            if (array_intersect((array) data_get($activity, 'properties.tags', []), (array) $tags) === []) {
-                return false;
-            }
+        if (($tags = data_get($rule, 'tags'))
+            && array_intersect((array) data_get($activity, 'properties.tags', []), (array) $tags) === []) {
+            return false;
         }
 
         if ($descriptionContains = data_get($rule, 'description_contains')) {

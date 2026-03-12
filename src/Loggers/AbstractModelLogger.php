@@ -15,7 +15,7 @@ use MrAdder\FilamentLogger\Support\ReplicationContextStore;
 
 abstract class AbstractModelLogger
 {
-    protected abstract function getLogName(): string;
+    abstract protected function getLogName(): string;
 
     protected function getUserName(?Authenticatable $user): string
     {

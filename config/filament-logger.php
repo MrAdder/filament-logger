@@ -157,15 +157,15 @@ return [
     ],
 
     'activity_resource' => \MrAdder\FilamentLogger\Resources\ActivityResource::class,
-	'scoped_to_tenant' => true,
-	'navigation_sort' => null,
+    'scoped_to_tenant' => true,
+    'navigation_sort' => null,
 
     'resources' => [
         'enabled' => true,
         'log_name' => 'Resource',
         'logger' => \MrAdder\FilamentLogger\Loggers\ResourceLogger::class,
         'color' => 'success',
-		
+        
         'exclude' => [
             //App\Filament\Resources\UserResource::class,
         ],

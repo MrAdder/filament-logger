@@ -36,6 +36,8 @@ use Throwable;
 
 class ActivityResource extends Resource
 {
+    private const DEFAULT_DATETIME_FORMAT = 'd/m/Y H:i:s';
+
     protected static ?string $label = 'Activity Log';
     protected static ?string $slug = 'activity-logs';
 
@@ -109,7 +111,7 @@ class ActivityResource extends Resource
 
                         TextEntry::make('created_at')
                             ->label(__('filament-logger::filament-logger.resource.label.logged_at'))
-                            ->dateTime(config('filament-logger.datetime_format', 'd/m/Y H:i:s'), config('app.timezone')),
+                            ->dateTime(config('filament-logger.datetime_format', self::DEFAULT_DATETIME_FORMAT), config('app.timezone')),
                     ]),
 
                 InfolistSection::make(__('Changes'))
@@ -172,54 +174,59 @@ class ActivityResource extends Resource
                             ->label(__('filament-logger::filament-logger.resource.label.logged_at'))
                             ->content(function (?Model $record): string {
                                 /** @var Activity&ActivityModel $record */
-                                return $record->created_at ? "{$record->created_at->format(config('filament-logger.datetime_format', 'd/m/Y H:i:s'))}" : '-';
+                                return $record->created_at ? "{$record->created_at->format(config('filament-logger.datetime_format', self::DEFAULT_DATETIME_FORMAT))}" : '-';
                             }),
                     ])
                 ]),
                 Section::make()
                     ->columns()
-                    ->visible(function (?Model $record): bool {
-                        if (! $record instanceof ActivityModel) {
-                            return false;
-                        }
-
-                        return $record->properties->count() > 0;
-                    })
-                    ->schema(function (?Model $record) {
-                        if (! $record instanceof ActivityModel) {
-                            return [];
-                        }
-
-                        /** @var Activity&ActivityModel $record */
-                        $properties = LogDataSanitizer::sanitizeProperties(
-                            $record->properties->except(['attributes', 'old'])
-                        );
-
-                        $schema = [];
-
-                        if (count($properties) > 0) {
-                            $schema[] = KeyValue::make('properties')
-                                ->afterStateHydrated(fn (KeyValue $component) => $component->state($properties))
-                                ->label(__('filament-logger::filament-logger.resource.label.properties'))
-                                ->columnSpan('full');
-                        }
-
-                        if ($old = LogDataSanitizer::sanitizeProperties($record->properties->get('old') ?? [])) {
-                            $schema[] = KeyValue::make('old')
-                                ->afterStateHydrated(fn (KeyValue $component) => $component->state($old))
-                                ->label(__('filament-logger::filament-logger.resource.label.old'));
-                        }
-
-                        if ($attributes = LogDataSanitizer::sanitizeProperties($record->properties->get('attributes') ?? [])) {
-                            $schema[] = KeyValue::make('attributes')
-                                ->afterStateHydrated(fn (KeyValue $component) => $component->state($attributes))
-                                ->label(__('filament-logger::filament-logger.resource.label.new'));
-                        }
-
-                        return $schema;
-                    }),
+                    ->visible(fn (?Model $record): bool => static::hasPropertySection($record))
+                    ->schema(fn (?Model $record): array => static::getPropertySectionSchema($record)),
             ])
             ->columns(['sm' => 4, 'lg' => null]);
+    }
+
+    protected static function hasPropertySection(?Model $record): bool
+    {
+        return $record instanceof ActivityModel && $record->properties->count() > 0;
+    }
+
+    /**
+     * @return array<int, KeyValue>
+     */
+    protected static function getPropertySectionSchema(?Model $record): array
+    {
+        if (! $record instanceof ActivityModel) {
+            return [];
+        }
+
+        /** @var Activity&ActivityModel $record */
+        $properties = LogDataSanitizer::sanitizeProperties(
+            $record->properties->except(['attributes', 'old'])
+        );
+
+        $schema = [];
+
+        if (count($properties) > 0) {
+            $schema[] = KeyValue::make('properties')
+                ->afterStateHydrated(fn (KeyValue $component) => $component->state($properties))
+                ->label(__('filament-logger::filament-logger.resource.label.properties'))
+                ->columnSpan('full');
+        }
+
+        if ($old = LogDataSanitizer::sanitizeProperties($record->properties->get('old') ?? [])) {
+            $schema[] = KeyValue::make('old')
+                ->afterStateHydrated(fn (KeyValue $component) => $component->state($old))
+                ->label(__('filament-logger::filament-logger.resource.label.old'));
+        }
+
+        if ($attributes = LogDataSanitizer::sanitizeProperties($record->properties->get('attributes') ?? [])) {
+            $schema[] = KeyValue::make('attributes')
+                ->afterStateHydrated(fn (KeyValue $component) => $component->state($attributes))
+                ->label(__('filament-logger::filament-logger.resource.label.new'));
+        }
+
+        return $schema;
     }
 
     public static function table(Table $table): Table
@@ -269,7 +276,7 @@ class ActivityResource extends Resource
 
                 TextColumn::make('created_at')
                     ->label(__('filament-logger::filament-logger.resource.label.logged_at'))
-                    ->dateTime(config('filament-logger.datetime_format', 'd/m/Y H:i:s'), config('app.timezone'))
+                    ->dateTime(config('filament-logger.datetime_format', self::DEFAULT_DATETIME_FORMAT), config('app.timezone'))
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
@@ -302,46 +309,46 @@ class ActivityResource extends Resource
                     }),
 
                 Filter::make('properties->old')
-					->indicateUsing(function (array $data): ?string {
-						if (! ($data['old'] ?? null)) {
-							return null;
-						}
+                    ->indicateUsing(function (array $data): ?string {
+                        if (! ($data['old'] ?? null)) {
+                            return null;
+                        }
 
-						return __('filament-logger::filament-logger.resource.label.old_attributes') . $data['old'];
-					})
-					->form([
-						TextInput::make('old')
+                        return __('filament-logger::filament-logger.resource.label.old_attributes') . $data['old'];
+                    })
+                    ->form([
+                        TextInput::make('old')
                             ->label(__('filament-logger::filament-logger.resource.label.old'))
                             ->hint(__('filament-logger::filament-logger.resource.label.properties_hint')),
-					])
-					->query(function (Builder $query, array $data): Builder {
-						if (! ($data['old'] ?? null)) {
-							return $query;
-						}
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (! ($data['old'] ?? null)) {
+                            return $query;
+                        }
 
-						return $query->where('properties->old', 'like', "%{$data['old']}%");
-					}),
+                        return $query->where('properties->old', 'like', "%{$data['old']}%");
+                    }),
 
-				Filter::make('properties->attributes')
-					->indicateUsing(function (array $data): ?string {
-						if (! ($data['new'] ?? null)) {
-							return null;
-						}
+                Filter::make('properties->attributes')
+                    ->indicateUsing(function (array $data): ?string {
+                        if (! ($data['new'] ?? null)) {
+                            return null;
+                        }
 
-						return __('filament-logger::filament-logger.resource.label.new_attributes') . $data['new'];
-					})
-					->form([
-						TextInput::make('new')
+                        return __('filament-logger::filament-logger.resource.label.new_attributes') . $data['new'];
+                    })
+                    ->form([
+                        TextInput::make('new')
                             ->label(__('filament-logger::filament-logger.resource.label.new'))
                             ->hint(__('filament-logger::filament-logger.resource.label.properties_hint')),
-					])
-					->query(function (Builder $query, array $data): Builder {
-						if (! ($data['new'] ?? null)) {
-							return $query;
-						}
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (! ($data['new'] ?? null)) {
+                            return $query;
+                        }
 
-						return $query->where('properties->attributes', 'like', "%{$data['new']}%");
-					}),
+                        return $query->where('properties->attributes', 'like', "%{$data['new']}%");
+                    }),
 
                 Filter::make('created_at')
                     ->form([
@@ -513,15 +520,15 @@ class ActivityResource extends Resource
         return __('filament-logger::filament-logger.nav.log.icon');
     }
 
-	public static function isScopedToTenant(): bool
+    public static function isScopedToTenant(): bool
     {
-		return config('filament-logger.scoped_to_tenant', true);
+        return config('filament-logger.scoped_to_tenant', true);
     }
 
-	public static function getNavigationSort(): ?int
-	{
-		return config('filament-logger.navigation_sort', null);
-	}
+    public static function getNavigationSort(): ?int
+    {
+        return config('filament-logger.navigation_sort', null);
+    }
 
     protected static function hasRequiredPolicyAbility(string $ability): bool
     {
