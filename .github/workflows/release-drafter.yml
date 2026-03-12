@@ -1,0 +1,25 @@
+name: Release Drafter
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release-drafter-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update_release_draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Update release draft
+        uses: release-drafter/release-drafter@67e173cadb2fbd3de94f4a861e0c48c913b462ae
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
