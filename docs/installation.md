@@ -4,8 +4,8 @@
 
 | Package | Version |
 |---|---|
-| PHP | `^8.4` |
-| Filament | `^3.0` |
+| PHP | `^8.2` |
+| Filament | `^3.0`, `^4.0`, or `^5.0` |
 | Laravel contracts | `^11.0` or `^12.0` |
 
 ## Install the Package

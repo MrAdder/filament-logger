@@ -17,9 +17,9 @@
         "security",
         "spatie-activitylog"
     ],
-    "homepage": "https://github.com/mradder/filament-logger",
+    "homepage": "https://mradder.github.io/filament-logger/",
     "support": {
-        "docs": "https://github.com/MrAdder/filament-logger/tree/main/docs",
+        "docs": "https://mradder.github.io/filament-logger/",
         "issues": "https://github.com/MrAdder/filament-logger/issues",
         "source": "https://github.com/MrAdder/filament-logger"
     },
@@ -37,8 +37,8 @@
         }
     ],
     "require": {
-        "php": "^8.4",
-        "filament/filament": "^3.0",
+        "php": "^8.2",
+        "filament/filament": "^3.0 || ^4.0 || ^5.0",
         "illuminate/contracts": "^11.0 | ^12.0",
         "spatie/laravel-activitylog": "^4.5",
         "spatie/laravel-package-tools": "^1.13.5"

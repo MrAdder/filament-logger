@@ -4,7 +4,6 @@ namespace MrAdder\FilamentLogger;
 
 use Filament\Facades\Filament;
 use Filament\Panel;
-use Filament\Tables\Actions\ReplicateAction;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Auth\Events\Login;
@@ -82,11 +81,7 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
             Event::listen(NotificationFailed::class, config('filament-logger.notifications.logger'));
         }
 
-        ReplicateAction::configureUsing(function (ReplicateAction $action): void {
-            $action->beforeReplicaSaved(function (Model $record, Model $replica): void {
-                ReplicationContextStore::remember($replica, $record);
-            });
-        });
+        $this->configureReplicateAction();
     }
 
     public function packageBooted(): void
@@ -151,5 +146,37 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
         }
 
         return $logger;
+    }
+
+    protected function configureReplicateAction(): void
+    {
+        $replicateActionClass = $this->resolveReplicateActionClass();
+
+        if ($replicateActionClass === null || ! method_exists($replicateActionClass, 'configureUsing')) {
+            return;
+        }
+
+        $replicateActionClass::configureUsing(function (object $action): void {
+            if (! method_exists($action, 'beforeReplicaSaved')) {
+                return;
+            }
+
+            $action->beforeReplicaSaved(function (Model $record, Model $replica): void {
+                ReplicationContextStore::remember($replica, $record);
+            });
+        });
+    }
+
+    protected function resolveReplicateActionClass(): ?string
+    {
+        if (class_exists(\Filament\Tables\Actions\ReplicateAction::class)) {
+            return \Filament\Tables\Actions\ReplicateAction::class;
+        }
+
+        if (class_exists(\Filament\Actions\ReplicateAction::class)) {
+            return \Filament\Actions\ReplicateAction::class;
+        }
+
+        return null;
     }
 }

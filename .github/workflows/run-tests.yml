@@ -32,7 +32,7 @@ env:
 
 jobs:
   test:
-    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }} / ${{ matrix.stability }} / ${{ matrix.os }}
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }} / Filament ${{ matrix.filament }} / ${{ matrix.stability }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
 
@@ -41,34 +41,58 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            php: '8.4'
+            php: '8.2'
             laravel: '11.*'
             testbench: '9.*'
-            stability: prefer-lowest
-          - os: ubuntu-latest
-            php: '8.4'
-            laravel: '11.*'
-            testbench: '9.*'
+            filament: '3.*'
             stability: prefer-stable
           - os: ubuntu-latest
-            php: '8.4'
-            laravel: '12.*'
-            testbench: '10.*'
+            php: '8.2'
+            laravel: '11.*'
+            testbench: '9.*'
+            filament: '4.*'
             stability: prefer-lowest
           - os: ubuntu-latest
-            php: '8.4'
+            php: '8.2'
+            laravel: '11.*'
+            testbench: '9.*'
+            filament: '4.*'
+            stability: prefer-stable
+          - os: ubuntu-latest
+            php: '8.2'
+            laravel: '11.*'
+            testbench: '9.*'
+            filament: '5.*'
+            stability: prefer-stable
+          - os: ubuntu-latest
+            php: '8.2'
             laravel: '12.*'
             testbench: '10.*'
+            filament: '4.*'
+            stability: prefer-stable
+          - os: ubuntu-latest
+            php: '8.2'
+            laravel: '12.*'
+            testbench: '10.*'
+            filament: '5.*'
+            stability: prefer-lowest
+          - os: ubuntu-latest
+            php: '8.2'
+            laravel: '12.*'
+            testbench: '10.*'
+            filament: '5.*'
             stability: prefer-stable
           - os: ubuntu-latest
             php: '8.5'
             laravel: '12.*'
             testbench: '10.*'
+            filament: '5.*'
             stability: prefer-stable
           - os: windows-latest
             php: '8.4'
             laravel: '12.*'
             testbench: '10.*'
+            filament: '5.*'
             stability: prefer-stable
 
     steps:
@@ -92,9 +116,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-testbench-${{ matrix.testbench }}-${{ matrix.stability }}-composer-${{ hashFiles('composer.json') }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-testbench-${{ matrix.testbench }}-filament-${{ matrix.filament }}-${{ matrix.stability }}-composer-${{ hashFiles('composer.json') }}
           restore-keys: |
-            ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-testbench-${{ matrix.testbench }}-${{ matrix.stability }}-composer-
+            ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-testbench-${{ matrix.testbench }}-filament-${{ matrix.filament }}-${{ matrix.stability }}-composer-
+            ${{ runner.os }}-php-${{ matrix.php }}-filament-${{ matrix.filament }}-composer-
             ${{ runner.os }}-php-${{ matrix.php }}-composer-
             ${{ runner.os }}-composer-
 
@@ -108,6 +133,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          composer require "filament/filament:${{ matrix.filament }}" --no-update
           composer require --dev "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-update
           composer update --${{ matrix.stability }} --prefer-dist --with-all-dependencies --no-progress
 

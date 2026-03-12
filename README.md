@@ -33,8 +33,8 @@ Use it when you need to:
 
 | Package | Version |
 |---|---|
-| PHP | `^8.4` |
-| Filament | `^3.0` |
+| PHP | `^8.2` |
+| Filament | `^3.0`, `^4.0`, or `^5.0` |
 | Laravel contracts | `^11.0` or `^12.0` |
 
 ## Quick Start
@@ -68,13 +68,13 @@ public function panel(Panel $panel): Panel
 
 ## Documentation
 
-- [Docs Index](docs/README.md)
-- [Installation and Setup](docs/installation.md)
-- [Security and Authorization](docs/security.md)
-- [Configuration Guide](docs/configuration.md)
-- [Activity Review UI](docs/activity-review.md)
-- [Custom Events and Alerts](docs/custom-events.md)
-- [Releasing](docs/releasing.md)
+- [Documentation Site](https://mradder.github.io/filament-logger/)
+- [Installation and Setup](https://mradder.github.io/filament-logger/installation)
+- [Security and Authorization](https://mradder.github.io/filament-logger/security)
+- [Configuration Guide](https://mradder.github.io/filament-logger/configuration)
+- [Activity Review UI](https://mradder.github.io/filament-logger/activity-review)
+- [Custom Events and Alerts](https://mradder.github.io/filament-logger/custom-events)
+- [Releasing](https://mradder.github.io/filament-logger/releasing)
 
 ## Screenshots
 
