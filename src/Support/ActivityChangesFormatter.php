@@ -105,16 +105,17 @@ class ActivityChangesFormatter
 
         if (is_scalar($value)) {
             $stringValue = (string) $value;
+            $prettyPrinted = $stringValue;
 
             if (config('filament-logger.diff.pretty_print_json', true)) {
                 $decoded = json_decode($stringValue, true);
 
                 if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                    return self::encodeJson($decoded);
+                    $prettyPrinted = self::encodeJson($decoded);
                 }
             }
 
-            return $stringValue;
+            return $prettyPrinted;
         }
 
         return self::encodeJson($value);

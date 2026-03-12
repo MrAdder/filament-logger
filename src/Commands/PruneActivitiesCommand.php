@@ -52,19 +52,13 @@ class PruneActivitiesCommand extends Command
 
         if ($count === 0) {
             $this->components->info('No activity records matched the pruning rules.');
-
-            return self::SUCCESS;
-        }
-
-        if ($this->option('dry-run')) {
+        } elseif ($this->option('dry-run')) {
             $this->components->info("{$count} activity record(s) would be pruned.");
+        } else {
+            $deleted = $query->delete();
 
-            return self::SUCCESS;
+            $this->components->info("Pruned {$deleted} activity record(s).");
         }
-
-        $deleted = $query->delete();
-
-        $this->components->info("Pruned {$deleted} activity record(s).");
 
         return self::SUCCESS;
     }

@@ -11,14 +11,15 @@ Filament Logger gives you a ready-made activity resource plus automatic audit lo
 
 ## Highlights
 
-- Filament activity log resource with filters, structured diffs, saved review tabs, and date presets
+- Filament activity log resource with searchable filters, structured diffs, saved review tabs, and date presets
 - CSV and JSON exports for filtered audit data
-- Dashboard widgets for top users, top events, spikes, and high-risk actions
-- Resource and model lifecycle logging, including restore, force-delete, and replicate flows
+- Dashboard widgets for top users, top events, activity spikes, and high-risk actions
+- Resource and model lifecycle logging, including create, update, delete, restore, force-delete, and replicate flows
 - Auth event logging for login, logout, failed login, lockout, password reset, and 2FA recovery usage
-- Alerting hooks for mail, Slack, and Discord webhooks
-- Custom event API for domain-specific audit entries
+- Notification logging plus alerting hooks for mail, Slack, and Discord webhooks
+- Custom event API for domain-specific audit events
 - Sensitive data redaction, anonymized IP logging, and stricter authorization defaults
+- Configurable ignored fields per model and per resource
 - Built-in pruning command for retention by age and log name
 
 ## Requirements

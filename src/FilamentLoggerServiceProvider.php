@@ -14,8 +14,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
+use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Commands\PruneActivitiesCommand;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
+use MrAdder\FilamentLogger\Support\ActivityAlertDispatcher;
+use MrAdder\FilamentLogger\Support\ActivityAnalytics;
+use MrAdder\FilamentLogger\Support\ActivityExporter;
+use MrAdder\FilamentLogger\Support\ActivityRiskResolver;
 use MrAdder\FilamentLogger\Support\ObserverRegistrar;
 use MrAdder\FilamentLogger\Support\ReplicationContextStore;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
@@ -51,6 +56,17 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
                         ]);
                     });
             });
+    }
+
+    public function packageRegistered(): void
+    {
+        parent::packageRegistered();
+
+        $this->app->singleton(ActivityRiskResolver::class);
+        $this->app->singleton(ActivityAlertDispatcher::class);
+        $this->app->singleton(ActivityExporter::class);
+        $this->app->singleton(ActivityAnalytics::class);
+        $this->app->singleton(FilamentLoggerManager::class);
     }
 
     public function bootingPackage(): void

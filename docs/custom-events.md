@@ -10,15 +10,17 @@ use MrAdder\FilamentLogger\Facades\FilamentLogger;
 FilamentLogger::log(
     event: 'Role Escalated',
     description: 'Elevated user privileges for incident response',
-    logName: 'Security',
-    causer: auth()->user(),
-    subject: $user,
-    properties: [
-        'old' => ['role' => 'editor'],
-        'attributes' => ['role' => 'admin'],
-        'ticket' => 'SEC-42',
+    options: [
+        'logName' => 'Security',
+        'causer' => auth()->user(),
+        'subject' => $user,
+        'properties' => [
+            'old' => ['role' => 'editor'],
+            'attributes' => ['role' => 'admin'],
+            'ticket' => 'SEC-42',
+        ],
+        'tags' => ['security', 'roles'],
     ],
-    tags: ['security', 'roles'],
 );
 ```
 
