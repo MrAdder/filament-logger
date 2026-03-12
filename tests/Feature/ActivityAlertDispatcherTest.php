@@ -9,6 +9,9 @@ use MrAdder\FilamentLogger\Notifications\SensitiveActivityAlertNotification;
 use MrAdder\FilamentLogger\Tests\Fixtures\Models\TestRecord;
 use MrAdder\FilamentLogger\Tests\Fixtures\Models\TestUser;
 
+const ALERT_TEST_NOW = '2026-03-12 12:00:00';
+const FAILED_LOGIN_EVENT = 'Failed Login';
+
 function configureAlerts(array $rules, array $config = []): void
 {
     config()->set('filament-logger.alerts.enabled', true);
@@ -45,7 +48,7 @@ function logFailedLoginAttempts(string $descriptionPrefix, int $attempts, Carbon
 {
     foreach (range(1, $attempts) as $attempt) {
         app(FilamentLogger::class)->log(
-            event: 'Failed Login',
+            event: FAILED_LOGIN_EVENT,
             description: "{$descriptionPrefix} {$attempt}",
             options: [
                 'logName' => 'Access',
@@ -91,7 +94,7 @@ it('alerts once when a failed login spike reaches the configured threshold', fun
             'type' => 'threshold',
             'channels' => ['mail'],
             'log_names' => ['Access'],
-            'events' => ['Failed Login'],
+            'events' => [FAILED_LOGIN_EVENT],
             'threshold' => 5,
             'window_minutes' => 10,
         ],
@@ -107,7 +110,7 @@ it('alerts once when a failed login spike reaches the configured threshold', fun
 });
 
 it('suppresses duplicate alerts inside the cooldown window', function () {
-    Carbon::setTestNow('2026-03-12 12:00:00');
+    Carbon::setTestNow(ALERT_TEST_NOW);
 
     configureAlerts([
         'destructive_activity' => [
@@ -130,7 +133,7 @@ it('suppresses duplicate alerts inside the cooldown window', function () {
 });
 
 it('allows alerts again after the cooldown expires', function () {
-    Carbon::setTestNow('2026-03-12 12:00:00');
+    Carbon::setTestNow(ALERT_TEST_NOW);
 
     configureAlerts([
         'destructive_activity' => [
@@ -155,7 +158,7 @@ it('allows alerts again after the cooldown expires', function () {
 });
 
 it('suppresses repeated threshold alerts during the cooldown window', function () {
-    Carbon::setTestNow('2026-03-12 12:00:00');
+    Carbon::setTestNow(ALERT_TEST_NOW);
 
     configureAlerts([
         'failed_login_spike' => [
@@ -163,7 +166,7 @@ it('suppresses repeated threshold alerts during the cooldown window', function (
             'type' => 'threshold',
             'channels' => ['mail'],
             'log_names' => ['Access'],
-            'events' => ['Failed Login'],
+            'events' => [FAILED_LOGIN_EVENT],
             'threshold' => 5,
             'window_minutes' => 1,
             'cooldown_minutes' => 10,
