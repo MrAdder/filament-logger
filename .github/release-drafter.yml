@@ -1,0 +1,71 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+version-template: '$MAJOR.$MINOR.$PATCH'
+change-template: '- $TITLE by @$AUTHOR in #$NUMBER'
+change-title-escapes: '\<*_&`'
+no-changes-template: '- No user-facing changes in this release.'
+template: |
+  ## Summary
+
+  $CHANGES
+
+  ## Contributors
+
+  $CONTRIBUTORS
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+
+categories:
+  - title: Features
+    labels:
+      - feature
+      - enhancement
+  - title: Fixes
+    labels:
+      - fix
+      - bug
+      - bugfix
+  - title: Security
+    labels:
+      - security
+  - title: Documentation
+    labels:
+      - documentation
+      - docs
+  - title: Testing and CI
+    labels:
+      - tests
+      - ci
+  - title: Maintenance
+    labels:
+      - chore
+      - dependencies
+      - refactor
+
+exclude-labels:
+  - skip-changelog
+
+version-resolver:
+  major:
+    labels:
+      - major
+  minor:
+    labels:
+      - minor
+      - feature
+      - enhancement
+  patch:
+    labels:
+      - patch
+      - fix
+      - bug
+      - bugfix
+      - security
+      - documentation
+      - docs
+      - tests
+      - ci
+      - chore
+      - dependencies
+      - refactor
+  default: patch

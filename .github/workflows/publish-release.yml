@@ -1,0 +1,119 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release tag to publish, for example v0.9.1'
+        required: true
+        type: string
+      target:
+        description: 'Branch to release from'
+        required: true
+        default: main
+        type: string
+      prerelease:
+        description: 'Publish this as a prerelease'
+        required: true
+        default: false
+        type: boolean
+      latest:
+        description: 'Mark the published release as latest'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+          - legacy
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: publish-release
+  cancel-in-progress: false
+
+env:
+  COMPOSER_NO_INTERACTION: 1
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.target }}
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: none, dom, mbstring, sqlite, pdo_sqlite
+          tools: composer:v2
+          coverage: none
+
+      - name: Validate release inputs
+        id: release_meta
+        shell: bash
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Version must look like v1.2.3 or v1.2.3-rc.1"
+            exit 1
+          fi
+
+          echo "version_number=${INPUT_VERSION#v}" >> "$GITHUB_OUTPUT"
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+
+      - name: Ensure tag does not already exist
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "Tag ${{ inputs.version }} already exists on origin."
+            exit 1
+          fi
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Run test suite
+        run: vendor/bin/pest --no-coverage
+
+      - name: Run static analysis
+        run: php -d memory_limit=512M vendor/bin/phpstan analyse
+
+      - name: Publish GitHub release
+        id: release
+        uses: release-drafter/release-drafter@v6
+        with:
+          publish: true
+          name: ${{ inputs.version }}
+          tag: ${{ inputs.version }}
+          version: ${{ steps.release_meta.outputs.version_number }}
+          prerelease: ${{ inputs.prerelease }}
+          latest: ${{ inputs.latest }}
+          commitish: ${{ inputs.target }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update changelog
+        uses: stefanzweifel/changelog-updater-action@v1
+        with:
+          latest-version: ${{ inputs.version }}
+          release-notes: ${{ steps.release.outputs.body }}
+
+      - name: Commit updated changelog
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          branch: ${{ inputs.target }}
+          commit_message: "docs: update changelog for ${{ inputs.version }}"
+          file_pattern: CHANGELOG.md
