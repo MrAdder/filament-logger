@@ -36,8 +36,15 @@ The publish workflow:
 - runs Pest
 - runs PHPStan
 - publishes the GitHub release from the current draft notes
-- updates `CHANGELOG.md`
+- finalizes the matching `## vX.Y.Z - Unreleased` changelog section when it exists
+- otherwise inserts a generated release section near the top of `CHANGELOG.md`
 - commits the changelog update back to the target branch
+
+## Changelog Behavior
+
+If you keep an unreleased section such as `## v1.1.0 - Unreleased` at the top of `CHANGELOG.md`, the publish workflow will rename that heading to the release date when you publish `v1.1.0`.
+
+If no matching unreleased section exists, the workflow falls back to inserting the generated release notes from Release Drafter as a new released section near the top of the changelog.
 
 ## Recommended PR Labels
 

@@ -121,11 +121,48 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Resolve release date
+        id: release_date
+        shell: bash
+        run: echo "value=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
       - name: Update changelog
-        uses: stefanzweifel/changelog-updater-action@a938690fad7edf25368f37e43a1ed1b34303eb36
-        with:
-          latest-version: ${{ inputs.version }}
-          release-notes: ${{ steps.release.outputs.body }}
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          RELEASE_DATE: ${{ steps.release_date.outputs.value }}
+          RELEASE_NOTES: ${{ steps.release.outputs.body }}
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import os
+          import re
+
+          path = Path("CHANGELOG.md")
+          version = os.environ["INPUT_VERSION"]
+          release_date = os.environ["RELEASE_DATE"]
+          release_notes = os.environ["RELEASE_NOTES"].strip()
+          content = path.read_text(encoding="utf-8")
+
+          unreleased_heading = f"## {version} - Unreleased"
+          released_heading = f"## {version} - {release_date}"
+
+          if unreleased_heading in content:
+              content = content.replace(unreleased_heading, released_heading, 1)
+          elif re.search(rf"^## {re.escape(version)} - ", content, flags=re.MULTILINE):
+              pass
+          else:
+              marker = "All notable changes to `filament-logger` will be documented in this file.\n"
+
+              if marker not in content:
+                  raise SystemExit("Unable to locate changelog introduction marker.")
+
+              insertion = f"\n## {version} - {release_date}\n\n{release_notes}\n"
+              marker_index = content.index(marker) + len(marker)
+              content = content[:marker_index] + insertion + content[marker_index:]
+
+          path.write_text(content, encoding="utf-8")
+          PY
 
       - name: Commit updated changelog
         uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9
