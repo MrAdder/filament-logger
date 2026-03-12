@@ -3,6 +3,10 @@
 namespace MrAdder\FilamentLogger\Resources;
 
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
+use Filament\Infolists\Infolist;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 use Filament\Facades\Filament;
@@ -23,6 +27,7 @@ use Spatie\Activitylog\Contracts\Activity;
 use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\Activitylog\Models\Activity as ActivityModel;
 use Illuminate\Support\Facades\Gate;
+use MrAdder\FilamentLogger\Support\ActivityChangesFormatter;
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
 use MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
 
@@ -60,6 +65,59 @@ class ActivityResource extends Resource
         }
 
         return parent::canView($record);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                InfolistSection::make(__('filament-logger::filament-logger.resource.label.log'))
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('causer.name')
+                            ->label(__('filament-logger::filament-logger.resource.label.user'))
+                            ->placeholder('-'),
+
+                        TextEntry::make('subject_type')
+                            ->label(__('filament-logger::filament-logger.resource.label.subject'))
+                            ->formatStateUsing(function ($state, ActivityModel $record): string {
+                                if (! $state) {
+                                    return '-';
+                                }
+
+                                return Str::of($state)->afterLast('\\')->headline().' # '.$record->subject_id;
+                            }),
+
+                        TextEntry::make('description')
+                            ->label(__('filament-logger::filament-logger.resource.label.description'))
+                            ->columnSpanFull()
+                            ->copyable()
+                            ->prose(),
+
+                        TextEntry::make('log_name')
+                            ->label(__('filament-logger::filament-logger.resource.label.type'))
+                            ->badge()
+                            ->formatStateUsing(fn (?string $state): string => $state ? ucwords($state) : '-'),
+
+                        TextEntry::make('event')
+                            ->label(__('filament-logger::filament-logger.resource.label.event'))
+                            ->badge()
+                            ->formatStateUsing(fn (?string $state): string => $state ? ucwords($state) : '-'),
+
+                        TextEntry::make('created_at')
+                            ->label(__('filament-logger::filament-logger.resource.label.logged_at'))
+                            ->dateTime(config('filament-logger.datetime_format', 'd/m/Y H:i:s'), config('app.timezone')),
+                    ]),
+
+                InfolistSection::make(__('Changes'))
+                    ->columnSpanFull()
+                    ->schema([
+                        ViewEntry::make('changes')
+                            ->label(__('Changes'))
+                            ->state(fn (ActivityModel $record): array => ActivityChangesFormatter::for($record))
+                            ->view('filament-logger::infolists.activity-diff'),
+                    ]),
+            ]);
     }
 
     public static function form(Form $form): Form

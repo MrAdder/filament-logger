@@ -4,10 +4,19 @@ namespace MrAdder\FilamentLogger;
 
 use Filament\Facades\Filament;
 use Filament\Panel;
+use Filament\Tables\Actions\ReplicateAction;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Lockout;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
+use MrAdder\FilamentLogger\Commands\PruneActivitiesCommand;
+use MrAdder\FilamentLogger\Loggers\ResourceLogger;
+use MrAdder\FilamentLogger\Support\ReplicationContextStore;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -28,6 +37,8 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
         $package->name(static::$name)
             ->hasTranslations()
             ->hasConfigFile()
+            ->hasViews()
+            ->hasCommand(PruneActivitiesCommand::class)
             ->hasInstallCommand(function (InstallCommand $installCommand) {
                 $installCommand
                     ->publishConfigFile()
@@ -46,13 +57,19 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
         parent::bootingPackage();
 
         if (config('filament-logger.access.enabled')) {
-            Event::listen(Login::class, config('filament-logger.access.logger'));
+            $this->registerAuthEventListeners();
         }
 
         if (config('filament-logger.notifications.enabled')) {
             Event::listen(NotificationSent::class, config('filament-logger.notifications.logger'));
             Event::listen(NotificationFailed::class, config('filament-logger.notifications.logger'));
         }
+
+        ReplicateAction::configureUsing(function (ReplicateAction $action): void {
+            $action->beforeReplicaSaved(function (Model $record, Model $replica): void {
+                ReplicationContextStore::remember($replica, $record);
+            });
+        });
     }
 
     public function packageBooted(): void
@@ -70,7 +87,7 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
                 });
 
             foreach ($loggableResources as $resource) {
-                $resource::getModel()::observe(config('filament-logger.resources.logger'));
+                $resource::getModel()::observe($this->resolveResourceObserver($resource));
             }
         }
 
@@ -79,5 +96,43 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
                 $model::observe(config('filament-logger.models.logger'));
             }
         }
+    }
+
+    protected function registerAuthEventListeners(): void
+    {
+        $logger = config('filament-logger.access.logger');
+        $events = [
+            Login::class => 'login',
+            Logout::class => 'logout',
+            Failed::class => 'failed',
+            Lockout::class => 'lockout',
+            PasswordReset::class => 'password_reset',
+        ];
+
+        foreach ($events as $eventClass => $configKey) {
+            if (config("filament-logger.access.events.{$configKey}", true)) {
+                Event::listen($eventClass, $logger);
+            }
+        }
+
+        $twoFactorRecoveryEvent = 'Laravel\\Fortify\\Events\\RecoveryCodeReplaced';
+
+        if (
+            config('filament-logger.access.events.two_factor_recovery', true) &&
+            class_exists($twoFactorRecoveryEvent)
+        ) {
+            Event::listen($twoFactorRecoveryEvent, $logger);
+        }
+    }
+
+    protected function resolveResourceObserver(string $resource): object|string
+    {
+        $logger = config('filament-logger.resources.logger');
+
+        if (is_a($logger, ResourceLogger::class, true)) {
+            return new $logger($resource);
+        }
+
+        return $logger;
     }
 }

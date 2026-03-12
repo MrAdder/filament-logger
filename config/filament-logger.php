@@ -26,6 +26,17 @@ return [
         'recovery_codes',
     ],
 
+    'diff' => [
+        'collapse_after' => 120,
+        'pretty_print_json' => true,
+    ],
+
+    'pruning' => [
+        'days' => 365,
+        'only' => [],
+        'except' => [],
+    ],
+
     'activity_resource' => \MrAdder\FilamentLogger\Resources\ActivityResource::class,
 	'scoped_to_tenant' => true,
 	'navigation_sort' => null,
@@ -38,6 +49,16 @@ return [
 		
         'exclude' => [
             //App\Filament\Resources\UserResource::class,
+        ],
+        'ignore' => [
+            'updated_at',
+            'remember_token',
+        ],
+        'ignore_for_models' => [
+            //App\Models\User::class => ['last_seen_at', 'login_count'],
+        ],
+        'ignore_for_resources' => [
+            //App\Filament\Resources\UserResource::class => ['last_seen_at', 'login_count'],
         ],
         'cluster' => null,
         'navigation_group' =>'Settings',
@@ -52,6 +73,19 @@ return [
         'anonymize_ip' => true,
         'store_user_agent' => true,
         'user_agent_max_length' => 255,
+        'identifier_keys' => [
+            'email',
+            'username',
+            'login',
+        ],
+        'events' => [
+            'login' => true,
+            'logout' => true,
+            'failed' => true,
+            'lockout' => true,
+            'password_reset' => true,
+            'two_factor_recovery' => true,
+        ],
     ],
 
     'notifications' => [
@@ -68,6 +102,13 @@ return [
         'log_name' => 'Model',
         'color' => 'warning',
         'logger' => \MrAdder\FilamentLogger\Loggers\ModelLogger::class,
+        'ignore' => [
+            'updated_at',
+            'remember_token',
+        ],
+        'ignore_for' => [
+            //App\Models\User::class => ['last_seen_at', 'login_count'],
+        ],
         'register' => [
             //App\Models\User::class,
         ],

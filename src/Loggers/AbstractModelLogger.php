@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
+use MrAdder\FilamentLogger\Support\ReplicationContextStore;
 use Spatie\Activitylog\ActivityLogger;
 use Spatie\Activitylog\ActivityLogStatus;
 
@@ -27,6 +28,22 @@ abstract class AbstractModelLogger
     protected function getModelName(Model $model)
     {
         return Str::of(class_basename($model))->headline();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function getIgnoredAttributes(Model $model): array
+    {
+        return [];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getContextProperties(Model $model): array
+    {
+        return [];
     }
 
 
@@ -55,10 +72,19 @@ abstract class AbstractModelLogger
             $values = array_diff_key($values, array_flip($model->getHidden()));
         }
 
+        $ignoredAttributes = $this->getIgnoredAttributes($model);
+
+        if ($ignoredAttributes !== []) {
+            $values = array_diff_key($values, array_flip($ignoredAttributes));
+        }
+
         return LogDataSanitizer::sanitizeProperties($values);
     }
 
-    protected function log(Model $model, string $event, ?string $description = null, mixed $attributes = null)
+    /**
+     * @param  array<string, mixed>  $properties
+     */
+    protected function log(Model $model, string $event, ?string $description = null, array $properties = [])
     {
         if(is_null($description)) {
             $description = $this->getModelName($model).' '.$event;
@@ -68,32 +94,137 @@ abstract class AbstractModelLogger
             $description .= ' by '.$this->getUserName(auth()->user());
         }
 
-        $this->activityLogger()
+        $logger = $this->activityLogger()
             ->event($event)
-            ->performedOn($model)
-            ->withProperties($this->getLoggableAttributes($model, $attributes))
-            ->log($description);
+            ->performedOn($model);
+
+        if ($properties !== []) {
+            $logger->withProperties($properties);
+        }
+
+        $logger->log($description);
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @param  array<string, mixed>  $old
+     * @param  array<string, mixed>  $extra
+     * @return array<string, mixed>
+     */
+    protected function buildProperties(Model $model, array $attributes = [], array $old = [], array $extra = []): array
+    {
+        $properties = LogDataSanitizer::sanitizeProperties($this->getContextProperties($model));
+
+        if ($old !== []) {
+            $old = $this->getLoggableAttributes($model, $old);
+
+            if ($old !== []) {
+                $properties['old'] = $old;
+            }
+        }
+
+        if ($attributes !== []) {
+            $attributes = $this->getLoggableAttributes($model, $attributes);
+
+            if ($attributes !== []) {
+                $properties['attributes'] = $attributes;
+            }
+        }
+
+        if ($extra !== []) {
+            $properties = array_merge($properties, LogDataSanitizer::sanitizeProperties($extra));
+        }
+
+        return array_filter($properties, static fn (mixed $value): bool => filled($value));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getPreviousAttributes(Model $model): array
+    {
+        return $model->getPrevious();
+    }
+
+    protected function isForceDeleting(Model $model): bool
+    {
+        return method_exists($model, 'isForceDeleting') && $model->isForceDeleting();
+    }
+
+    protected function isRestoreUpdate(Model $model, array $changes, array $previous): bool
+    {
+        if (! method_exists($model, 'getDeletedAtColumn')) {
+            return false;
+        }
+
+        $deletedAtColumn = $model->getDeletedAtColumn();
+
+        return (array_keys($changes) === [$deletedAtColumn])
+            && array_key_exists($deletedAtColumn, $previous)
+            && filled($previous[$deletedAtColumn])
+            && ($changes[$deletedAtColumn] === null);
     }
 
     public function created(Model $model)
     {
-        $this->log($model, 'Created', attributes:$model->getAttributes());
+        $replicationContext = ReplicationContextStore::get($model);
+
+        if ($replicationContext !== null) {
+            $this->log(
+                $model,
+                'Replicated',
+                properties: $this->buildProperties(
+                    $model,
+                    $model->getAttributes(),
+                    extra: ['replicated_from' => $replicationContext],
+                ),
+            );
+
+            return;
+        }
+
+        $this->log($model, 'Created', properties: $this->buildProperties($model, $model->getAttributes()));
     }
 
     public function updated(Model $model)
     {
-        $changes = $model->getChanges();
+        $changes = $this->getLoggableAttributes($model, $model->getChanges());
+        $previous = $this->getLoggableAttributes($model, $this->getPreviousAttributes($model));
 
-        //Ignore the changes to remember_token
-        if (count($changes) === 1 && array_key_exists('remember_token', $changes)) {
+        if ($changes === [] || $this->isRestoreUpdate($model, $changes, $previous)) {
             return;
         }
 
-        $this->log($model, 'Updated', attributes:$changes);
+        $this->log($model, 'Updated', properties: $this->buildProperties($model, $changes, $previous));
     }
 
     public function deleted(Model $model)
     {
-        $this->log($model, 'Deleted');
+        if ($this->isForceDeleting($model)) {
+            return;
+        }
+
+        $this->log($model, 'Deleted', properties: $this->buildProperties($model, $model->getAttributes()));
+    }
+
+    public function restored(Model $model)
+    {
+        $changes = $model->getChanges();
+        $previous = $this->getPreviousAttributes($model);
+
+        $this->log(
+            $model,
+            'Restored',
+            properties: $this->buildProperties(
+                $model,
+                $changes !== [] ? $changes : $model->getAttributes(),
+                $previous,
+            ),
+        );
+    }
+
+    public function forceDeleted(Model $model)
+    {
+        $this->log($model, 'Force Deleted', properties: $this->buildProperties($model, $model->getAttributes()));
     }
 }
