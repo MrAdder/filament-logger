@@ -1,4 +1,5 @@
 <?php
+
 return [
     'datetime_format' => 'd/m/Y H:i:s',
     'date_format' => 'd/m/Y',
@@ -35,8 +36,8 @@ return [
         'high' => [
             'events' => [
                 'Deleted',
-                'Force Deleted',
-                'Failed Login',
+                \MrAdder\FilamentLogger\Support\ActivityEvents::FORCE_DELETED,
+                \MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN,
                 'Lockout',
             ],
             'change_keys' => [
@@ -102,13 +103,13 @@ return [
             'destructive' => [
                 'label' => 'Deletes',
                 'icon' => 'heroicon-o-trash',
-                'events' => ['Deleted', 'Force Deleted'],
+                'events' => ['Deleted', \MrAdder\FilamentLogger\Support\ActivityEvents::FORCE_DELETED],
             ],
             'auth_issues' => [
                 'label' => 'Auth Issues',
                 'icon' => 'heroicon-o-lock-closed',
                 'log_names' => ['Access'],
-                'events' => ['Failed Login', 'Lockout'],
+                'events' => [\MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN, 'Lockout'],
             ],
         ],
     ],
@@ -130,7 +131,7 @@ return [
                 'enabled' => true,
                 'label' => 'Destructive activity detected',
                 'channels' => ['mail', 'slack', 'discord'],
-                'events' => ['Deleted', 'Force Deleted'],
+                'events' => ['Deleted', \MrAdder\FilamentLogger\Support\ActivityEvents::FORCE_DELETED],
             ],
             'role_changes' => [
                 'enabled' => true,
@@ -144,7 +145,7 @@ return [
                 'channels' => ['mail', 'slack', 'discord'],
                 'type' => 'threshold',
                 'log_names' => ['Access'],
-                'events' => ['Failed Login'],
+                'events' => [\MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN],
                 'threshold' => 5,
                 'window_minutes' => 10,
             ],

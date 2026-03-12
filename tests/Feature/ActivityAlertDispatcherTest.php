@@ -29,9 +29,11 @@ it('sends alerts for matching sensitive activity rules', function () {
     app(FilamentLogger::class)->log(
         event: 'Deleted',
         description: 'Record deleted during review',
-        logName: 'Resource',
-        causer: $user,
-        subject: $record,
+        options: [
+            'logName' => 'Resource',
+            'causer' => $user,
+            'subject' => $record,
+        ],
     );
 
     Notification::assertSentOnDemand(SensitiveActivityAlertNotification::class);
@@ -64,9 +66,11 @@ it('alerts once when a failed login spike reaches the configured threshold', fun
         app(FilamentLogger::class)->log(
             event: 'Failed Login',
             description: "Failed login attempt {$attempt}",
-            logName: 'Access',
-            anonymous: true,
-            createdAt: $loggedAt->copy()->addSeconds($attempt),
+            options: [
+                'logName' => 'Access',
+                'anonymous' => true,
+                'createdAt' => $loggedAt->copy()->addSeconds($attempt),
+            ],
         );
     }
 

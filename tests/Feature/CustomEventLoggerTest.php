@@ -18,15 +18,17 @@ it('logs domain specific events without a custom logger class', function () {
     FilamentLogger::log(
         event: 'Role Escalated',
         description: 'Elevated user privileges for incident response',
-        logName: 'Security',
-        causer: $user,
-        subject: $record,
-        properties: [
-            'old' => ['role' => 'editor'],
-            'attributes' => ['role' => 'admin'],
-            'ticket' => 'SEC-42',
+        options: [
+            'logName' => 'Security',
+            'causer' => $user,
+            'subject' => $record,
+            'properties' => [
+                'old' => ['role' => 'editor'],
+                'attributes' => ['role' => 'admin'],
+                'ticket' => 'SEC-42',
+            ],
+            'tags' => ['security', 'roles'],
         ],
-        tags: ['security', 'roles'],
     );
 
     $activity = Activity::query()->latest('id')->firstOrFail();

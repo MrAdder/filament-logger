@@ -10,15 +10,19 @@ it('applies saved filter presets to activity queries', function () {
     app(FilamentLogger::class)->log(
         event: 'Deleted',
         description: 'High risk deletion',
-        logName: 'Resource',
-        anonymous: true,
+        options: [
+            'logName' => 'Resource',
+            'anonymous' => true,
+        ],
     );
 
     app(FilamentLogger::class)->log(
         event: 'Created',
         description: 'Normal activity',
-        logName: 'Resource',
-        anonymous: true,
+        options: [
+            'logName' => 'Resource',
+            'anonymous' => true,
+        ],
     );
 
     $query = ActivityFilterPresetManager::apply(Activity::query(), [
@@ -34,17 +38,21 @@ it('resolves and applies date presets', function () {
     app(FilamentLogger::class)->log(
         event: 'Today Event',
         description: 'Fresh activity',
-        logName: 'Custom',
-        anonymous: true,
-        createdAt: now()->subHour(),
+        options: [
+            'logName' => 'Custom',
+            'anonymous' => true,
+            'createdAt' => now()->subHour(),
+        ],
     );
 
     app(FilamentLogger::class)->log(
         event: 'Old Event',
         description: 'Older activity',
-        logName: 'Custom',
-        anonymous: true,
-        createdAt: now()->subDays(10),
+        options: [
+            'logName' => 'Custom',
+            'anonymous' => true,
+            'createdAt' => now()->subDays(10),
+        ],
     );
 
     $query = ActivityDatePreset::apply(Activity::query(), 'last_7_days');

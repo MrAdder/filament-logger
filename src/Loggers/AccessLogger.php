@@ -72,10 +72,12 @@ class AccessLogger
         app(FilamentLoggerManager::class)->log(
             event: $eventName,
             description: $description,
-            properties: $properties,
-            logName: config('filament-logger.access.log_name'),
-            causer: ($causer instanceof Model && $causer->exists) ? $causer : null,
-            anonymous: ! ($causer instanceof Model && $causer->exists),
+            options: [
+                'properties' => $properties,
+                'logName' => config('filament-logger.access.log_name'),
+                'causer' => ($causer instanceof Model && $causer->exists) ? $causer : null,
+                'anonymous' => ! ($causer instanceof Model && $causer->exists),
+            ],
         );
     }
 

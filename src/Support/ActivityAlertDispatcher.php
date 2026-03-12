@@ -43,31 +43,27 @@ class ActivityAlertDispatcher
     protected function ruleMatches(ActivityContract $activity, array $rule): bool
     {
         $rule['risk'] ??= $this->resolveImplicitRiskFilter($rule);
+        $matches = ActivityFilterPresetManager::matches($activity, $rule);
 
-        if (! ActivityFilterPresetManager::matches($activity, $rule)) {
-            return false;
+        if ($matches && data_get($rule, 'type') === 'threshold') {
+            $threshold = (int) data_get($rule, 'threshold', 0);
+            $createdAt = data_get($activity, 'created_at');
+            $matches = $threshold > 0 && filled($createdAt) && method_exists($activity, 'newQuery');
+
+            if ($matches) {
+                $windowMinutes = (int) data_get($rule, 'window_minutes', 10);
+                /** @var \Illuminate\Database\Eloquent\Model&ActivityContract $activity */
+                $query = $activity->newQuery()
+                    ->where('created_at', '<=', $createdAt)
+                    ->where('created_at', '>=', $createdAt->copy()->subMinutes($windowMinutes));
+
+                ActivityFilterPresetManager::apply($query, $rule);
+
+                $matches = $query->count() === $threshold;
+            }
         }
 
-        if (data_get($rule, 'type') !== 'threshold') {
-            return true;
-        }
-
-        $threshold = (int) data_get($rule, 'threshold', 0);
-        $createdAt = data_get($activity, 'created_at');
-
-        if ($threshold < 1 || blank($createdAt) || ! method_exists($activity, 'newQuery')) {
-            return false;
-        }
-
-        $windowMinutes = (int) data_get($rule, 'window_minutes', 10);
-        /** @var \Illuminate\Database\Eloquent\Model&ActivityContract $activity */
-        $query = $activity->newQuery()
-            ->where('created_at', '<=', $createdAt)
-            ->where('created_at', '>=', $createdAt->copy()->subMinutes($windowMinutes));
-
-        ActivityFilterPresetManager::apply($query, $rule);
-
-        return $query->count() === $threshold;
+        return $matches;
     }
 
     /**

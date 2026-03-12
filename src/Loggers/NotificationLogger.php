@@ -37,8 +37,10 @@ class NotificationLogger
         app(FilamentLoggerManager::class)->log(
             event: (string) Str::of(class_basename($event))->headline(),
             description: $description,
-            logName: config('filament-logger.notifications.log_name'),
-            anonymous: true,
+            options: [
+                'logName' => config('filament-logger.notifications.log_name'),
+                'anonymous' => true,
+            ],
         );
     }
 

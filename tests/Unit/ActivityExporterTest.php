@@ -8,11 +8,13 @@ it('exports activity records as csv and json', function () {
     app(FilamentLogger::class)->log(
         event: 'Custom Audit Event',
         description: 'Export me',
-        logName: 'Custom',
-        anonymous: true,
-        properties: [
-            'token' => 'secret-token',
-            'tags' => ['export'],
+        options: [
+            'logName' => 'Custom',
+            'anonymous' => true,
+            'properties' => [
+                'token' => 'secret-token',
+                'tags' => ['export'],
+            ],
         ],
     );
 

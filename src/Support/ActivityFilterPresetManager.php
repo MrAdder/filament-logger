@@ -76,45 +76,34 @@ class ActivityFilterPresetManager
      */
     public static function matches(ActivityContract $activity, array $rule): bool
     {
-        if (($logNames = data_get($rule, 'log_names'))
-            && ! in_array(data_get($activity, 'log_name'), (array) $logNames, true)) {
-            return false;
+        return self::matchesExpectedValue(data_get($rule, 'log_names'), data_get($activity, 'log_name'))
+            && self::matchesExpectedValue(data_get($rule, 'events'), data_get($activity, 'event'))
+            && self::matchesExpectedValue(data_get($rule, 'subject_types'), data_get($activity, 'subject_type'))
+            && self::matchesExpectedValue(data_get($rule, 'risk'), data_get($activity, 'properties.risk'))
+            && self::matchesAnyExpectedValue(data_get($rule, 'risk_reasons'), data_get($activity, 'properties.risk_reasons', []))
+            && self::matchesAnyExpectedValue(data_get($rule, 'tags'), data_get($activity, 'properties.tags', []))
+            && self::matchesDescription(data_get($rule, 'description_contains'), (string) data_get($activity, 'description', ''));
+    }
+
+    protected static function matchesExpectedValue(mixed $expected, mixed $actual): bool
+    {
+        return ! $expected || in_array($actual, (array) $expected, true);
+    }
+
+    protected static function matchesAnyExpectedValue(mixed $expected, mixed $actual): bool
+    {
+        return ! $expected || array_intersect((array) $actual, (array) $expected) !== [];
+    }
+
+    protected static function matchesDescription(mixed $descriptionContains, string $description): bool
+    {
+        if (! $descriptionContains) {
+            return true;
         }
 
-        if (($events = data_get($rule, 'events'))
-            && ! in_array(data_get($activity, 'event'), (array) $events, true)) {
-            return false;
-        }
+        $description = mb_strtolower($description);
 
-        if (($subjectTypes = data_get($rule, 'subject_types'))
-            && ! in_array(data_get($activity, 'subject_type'), (array) $subjectTypes, true)) {
-            return false;
-        }
-
-        if (($risk = data_get($rule, 'risk'))
-            && ! in_array(data_get($activity, 'properties.risk'), (array) $risk, true)) {
-            return false;
-        }
-
-        if (($reasons = data_get($rule, 'risk_reasons'))
-            && array_intersect((array) data_get($activity, 'properties.risk_reasons', []), (array) $reasons) === []) {
-            return false;
-        }
-
-        if (($tags = data_get($rule, 'tags'))
-            && array_intersect((array) data_get($activity, 'properties.tags', []), (array) $tags) === []) {
-            return false;
-        }
-
-        if ($descriptionContains = data_get($rule, 'description_contains')) {
-            $description = mb_strtolower((string) data_get($activity, 'description', ''));
-
-            if (! collect((array) $descriptionContains)
-                ->contains(fn (string $needle): bool => str_contains($description, mb_strtolower($needle)))) {
-                return false;
-            }
-        }
-
-        return true;
+        return collect((array) $descriptionContains)
+            ->contains(fn (string $needle): bool => str_contains($description, mb_strtolower($needle)));
     }
 }

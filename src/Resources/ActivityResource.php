@@ -8,31 +8,29 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ViewEntry;
 use Filament\Infolists\Infolist;
 use Filament\Tables\Table;
-use Illuminate\Support\Str;
-use Filament\Facades\Filament;
-use Filament\Resources\Resource;
-use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Group;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Resources\Resource;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Forms\Components\Placeholder;
-use Spatie\Activitylog\Contracts\Activity;
-use Spatie\Activitylog\ActivitylogServiceProvider;
-use Spatie\Activitylog\Models\Activity as ActivityModel;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
+use MrAdder\FilamentLogger\Resources\ActivityResource\Support\ActivityResourceFormSchema;
+use MrAdder\FilamentLogger\Resources\ActivityResource\Support\ActivityResourceTableOptions;
+use MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
 use MrAdder\FilamentLogger\Support\ActivityChangesFormatter;
 use MrAdder\FilamentLogger\Support\ActivityDatePreset;
-use MrAdder\FilamentLogger\Support\LogDataSanitizer;
-use MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
-use Throwable;
+use Spatie\Activitylog\ActivitylogServiceProvider;
+use Spatie\Activitylog\Contracts\Activity;
+use Spatie\Activitylog\Models\Activity as ActivityModel;
 
 class ActivityResource extends Resource
 {
@@ -180,53 +178,10 @@ class ActivityResource extends Resource
                 ]),
                 Section::make()
                     ->columns()
-                    ->visible(fn (?Model $record): bool => static::hasPropertySection($record))
-                    ->schema(fn (?Model $record): array => static::getPropertySectionSchema($record)),
+                    ->visible(fn (?Model $record): bool => ActivityResourceFormSchema::hasPropertySection($record))
+                    ->schema(fn (?Model $record): array => ActivityResourceFormSchema::propertySection($record)),
             ])
             ->columns(['sm' => 4, 'lg' => null]);
-    }
-
-    protected static function hasPropertySection(?Model $record): bool
-    {
-        return $record instanceof ActivityModel && $record->properties->count() > 0;
-    }
-
-    /**
-     * @return array<int, KeyValue>
-     */
-    protected static function getPropertySectionSchema(?Model $record): array
-    {
-        if (! $record instanceof ActivityModel) {
-            return [];
-        }
-
-        /** @var Activity&ActivityModel $record */
-        $properties = LogDataSanitizer::sanitizeProperties(
-            $record->properties->except(['attributes', 'old'])
-        );
-
-        $schema = [];
-
-        if (count($properties) > 0) {
-            $schema[] = KeyValue::make('properties')
-                ->afterStateHydrated(fn (KeyValue $component) => $component->state($properties))
-                ->label(__('filament-logger::filament-logger.resource.label.properties'))
-                ->columnSpan('full');
-        }
-
-        if ($old = LogDataSanitizer::sanitizeProperties($record->properties->get('old') ?? [])) {
-            $schema[] = KeyValue::make('old')
-                ->afterStateHydrated(fn (KeyValue $component) => $component->state($old))
-                ->label(__('filament-logger::filament-logger.resource.label.old'));
-        }
-
-        if ($attributes = LogDataSanitizer::sanitizeProperties($record->properties->get('attributes') ?? [])) {
-            $schema[] = KeyValue::make('attributes')
-                ->afterStateHydrated(fn (KeyValue $component) => $component->state($attributes))
-                ->label(__('filament-logger::filament-logger.resource.label.new'));
-        }
-
-        return $schema;
     }
 
     public static function table(Table $table): Table
@@ -235,7 +190,7 @@ class ActivityResource extends Resource
             ->columns([
                 TextColumn::make('log_name')
                     ->badge()
-                    ->colors(static::getLogNameColors())
+                    ->colors(ActivityResourceTableOptions::logNameColors())
                     ->label(__('filament-logger::filament-logger.resource.label.type'))
                     ->formatStateUsing(fn ($state) => ucwords($state))
                     ->sortable(),
@@ -284,11 +239,11 @@ class ActivityResource extends Resource
             ->filters([
                 SelectFilter::make('log_name')
                     ->label(__('filament-logger::filament-logger.resource.label.type'))
-                    ->options(static::getLogNameList()),
+                    ->options(ActivityResourceTableOptions::logNames()),
 
                 SelectFilter::make('subject_type')
                     ->label(__('filament-logger::filament-logger.resource.label.subject_type'))
-                    ->options(static::getSubjectTypeList()),
+                    ->options(ActivityResourceTableOptions::subjectTypes()),
 
                 Filter::make('risk')
                     ->form([
@@ -381,118 +336,6 @@ class ActivityResource extends Resource
     public static function getModel(): string
     {
         return ActivitylogServiceProvider::determineActivityModel();
-    }
-
-    protected static function getSubjectTypeList(): array
-    {
-        $subjects = [];
-
-        if (config('filament-logger.resources.enabled', true)) {
-            $exceptResources = [...config('filament-logger.resources.exclude'), config('filament-logger.activity_resource')];
-            $removedExcludedResources = collect(Filament::getResources())->filter(function ($resource) use ($exceptResources) {
-                return ! in_array($resource, $exceptResources);
-            });
-            foreach ($removedExcludedResources as $resource) {
-                $model = $resource::getModel();
-                $subjects[$model] = Str::of(class_basename($model))->headline();
-            }
-        }
-
-        try {
-            static::getModel()::query()
-                ->whereNotNull('subject_type')
-                ->distinct()
-                ->pluck('subject_type')
-                ->each(function (?string $subjectType) use (&$subjects): void {
-                    if (blank($subjectType)) {
-                        return;
-                    }
-
-                    $subjects[$subjectType] ??= Str::of(class_basename($subjectType))->headline();
-                });
-        } catch (Throwable) {
-            // Ignore before the activity table exists.
-        }
-
-        return $subjects;
-    }
-
-    protected static function getLogNameList(): array
-    {
-        $customs = [];
-
-        foreach (config('filament-logger.custom') ?? [] as $custom) {
-            $customs[$custom['log_name']] = $custom['log_name'];
-        }
-
-        $customEventLogName = config('filament-logger.custom_events.default_log_name');
-
-        if (filled($customEventLogName)) {
-            $customs[$customEventLogName] = $customEventLogName;
-        }
-
-        try {
-            static::getModel()::query()
-                ->whereNotNull('log_name')
-                ->distinct()
-                ->pluck('log_name')
-                ->each(function (?string $logName) use (&$customs): void {
-                    if (blank($logName)) {
-                        return;
-                    }
-
-                    $customs[$logName] ??= $logName;
-                });
-        } catch (Throwable) {
-            // Ignore before the activity table exists.
-        }
-
-        return array_merge(
-            config('filament-logger.resources.enabled') ? [
-                config('filament-logger.resources.log_name') => config('filament-logger.resources.log_name'),
-            ] : [],
-            config('filament-logger.models.enabled') ? [
-                config('filament-logger.models.log_name') => config('filament-logger.models.log_name'),
-            ] : [],
-            config('filament-logger.access.enabled')
-                ? [config('filament-logger.access.log_name') => config('filament-logger.access.log_name')]
-                : [],
-            config('filament-logger.notifications.enabled') ? [
-                config('filament-logger.notifications.log_name') => config('filament-logger.notifications.log_name'),
-            ] : [],
-            $customs,
-        );
-    }
-
-    protected static function getLogNameColors(): array
-    {
-        $customs = [];
-
-        if (filled(config('filament-logger.custom_events.color')) && filled(config('filament-logger.custom_events.default_log_name'))) {
-            $customs[config('filament-logger.custom_events.color')] = config('filament-logger.custom_events.default_log_name');
-        }
-
-        foreach (config('filament-logger.custom') ?? [] as $custom) {
-            if (filled($custom['color'] ?? null)) {
-                $customs[$custom['color']] = $custom['log_name'];
-            }
-        }
-
-        return array_merge(
-            (config('filament-logger.resources.enabled') && config('filament-logger.resources.color')) ? [
-                config('filament-logger.resources.color') => config('filament-logger.resources.log_name'),
-            ] : [],
-            (config('filament-logger.models.enabled') && config('filament-logger.models.color')) ? [
-                config('filament-logger.models.color') => config('filament-logger.models.log_name'),
-            ] : [],
-            (config('filament-logger.access.enabled') && config('filament-logger.access.color')) ? [
-                config('filament-logger.access.color') => config('filament-logger.access.log_name'),
-            ] : [],
-            (config('filament-logger.notifications.enabled') &&  config('filament-logger.notifications.color')) ? [
-                config('filament-logger.notifications.color') => config('filament-logger.notifications.log_name'),
-            ] : [],
-            $customs,
-        );
     }
 
     public static function getLabel(): string

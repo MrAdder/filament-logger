@@ -86,9 +86,11 @@ abstract class AbstractModelLogger
         app(FilamentLoggerManager::class)->log(
             event: $event,
             description: $description,
-            properties: $properties,
-            logName: $this->getLogName(),
-            subject: $model,
+            options: [
+                'properties' => $properties,
+                'logName' => $this->getLogName(),
+                'subject' => $model,
+            ],
         );
     }
 
