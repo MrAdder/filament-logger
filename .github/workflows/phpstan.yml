@@ -41,7 +41,7 @@ jobs:
         uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
         with:
           php-version: '8.4'
-          extensions: none, curl, dom, mbstring, sqlite, pdo_sqlite, tokenizer
+          extensions: none, curl, dom, mbstring, sqlite, pdo_sqlite, tokenizer, xml
           tools: composer:v2
           coverage: none
 
@@ -49,7 +49,7 @@ jobs:
         run: composer validate --strict
 
       - name: Install composer dependencies
-        uses: ramsey/composer-install@v3
+        uses: ramsey/composer-install@a35c6ebd3d08125aaf8852dff361e686a1a67947
 
       - name: Run PHPStan
         run: ./vendor/bin/phpstan analyse --memory-limit=512M --error-format=github

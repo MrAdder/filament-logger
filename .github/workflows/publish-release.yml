@@ -54,7 +54,7 @@ jobs:
         uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
         with:
           php-version: '8.4'
-          extensions: none, curl, dom, mbstring, sqlite, pdo_sqlite, tokenizer
+          extensions: none, curl, dom, mbstring, sqlite, pdo_sqlite, tokenizer, xml
           tools: composer:v2
           coverage: none
 
@@ -85,7 +85,7 @@ jobs:
         run: composer validate --strict
 
       - name: Install composer dependencies
-        uses: ramsey/composer-install@v3
+        uses: ramsey/composer-install@a35c6ebd3d08125aaf8852dff361e686a1a67947
 
       - name: Run test suite
         run: vendor/bin/pest --no-coverage
@@ -95,7 +95,7 @@ jobs:
 
       - name: Publish GitHub release
         id: release
-        uses: release-drafter/release-drafter@v6
+        uses: release-drafter/release-drafter@67e173cadb2fbd3de94f4a861e0c48c913b462ae
         with:
           publish: true
           name: ${{ inputs.version }}
@@ -108,13 +108,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update changelog
-        uses: stefanzweifel/changelog-updater-action@v1
+        uses: stefanzweifel/changelog-updater-action@a938690fad7edf25368f37e43a1ed1b34303eb36
         with:
           latest-version: ${{ inputs.version }}
           release-notes: ${{ steps.release.outputs.body }}
 
       - name: Commit updated changelog
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9
         with:
           branch: ${{ inputs.target }}
           commit_message: "docs: update changelog for ${{ inputs.version }}"
