@@ -41,6 +41,7 @@ Sensitive activity alerts can be sent by mail or webhook when configurable rules
 ```php
 'alerts' => [
     'enabled' => true,
+    'cache_store' => 'redis',
     'mail' => [
         'to' => ['security@example.com'],
     ],
@@ -54,10 +55,12 @@ Sensitive activity alerts can be sent by mail or webhook when configurable rules
         'destructive_activity' => [
             'channels' => ['mail', 'slack', 'discord'],
             'events' => ['Deleted', 'Force Deleted'],
+            'cooldown_minutes' => 10,
         ],
         'role_changes' => [
             'channels' => ['mail'],
             'risk_reasons' => ['role_change'],
+            'cooldown_minutes' => 15,
         ],
         'failed_login_spike' => [
             'type' => 'threshold',
@@ -65,6 +68,7 @@ Sensitive activity alerts can be sent by mail or webhook when configurable rules
             'events' => ['Failed Login'],
             'threshold' => 5,
             'window_minutes' => 10,
+            'cooldown_minutes' => 15,
         ],
     ],
 ],
@@ -86,5 +90,11 @@ Threshold rules can also use:
 
 - `threshold`
 - `window_minutes`
+
+Any rule can also use:
+
+- `cooldown_minutes`
+
+When a cooldown is configured, repeated matches for the same rule and activity pattern are suppressed until the cooldown window expires. The optional `alerts.cache_store` setting lets you place those cooldown keys in a dedicated cache store.
 
 The built-in defaults cover destructive actions, role and permission changes, and repeated failed login attempts.
