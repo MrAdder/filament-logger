@@ -14,6 +14,8 @@ Filament Logger is an audit log and activity log package for Filament admin pane
 
 Built on [spatie/laravel-activitylog](https://spatie.be/docs/laravel-activitylog), it adds a ready-made Filament activity resource plus automatic logging for resources, models, auth events, notifications, and custom domain events.
 
+![Filament Logger package card](art/package-card.png)
+
 Use it when you need to:
 
 - review admin activity and security events inside Filament

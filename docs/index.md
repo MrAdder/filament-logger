@@ -29,6 +29,8 @@ features:
 
 This site contains the package guides that power setup, security review, audit workflows, and project direction.
 
+![Filament Logger package card](/art/package-card.png)
+
 ## Guides
 
 - [Installation and Setup](installation.md)
