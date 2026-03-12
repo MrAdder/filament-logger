@@ -1,6 +1,33 @@
+---
+layout: home
+
+hero:
+  name: Filament Logger
+  text: Audit visibility for Filament admin panels
+  tagline: Track resource changes, auth events, alerts, dashboards, exports, and custom audit activity from one searchable interface.
+  actions:
+    - theme: brand
+      text: Get Started
+      link: /installation
+    - theme: alt
+      text: Review the UI
+      link: /activity-review
+    - theme: alt
+      text: View on GitHub
+      link: https://github.com/MrAdder/filament-logger
+
+features:
+  - title: Audit Everything Important
+    details: Capture resource activity, model lifecycle changes, auth events, notifications, and custom domain events without building your own review layer.
+  - title: Review Faster
+    details: Use saved tabs, date presets, structured diffs, exports, and dashboards to investigate incidents or support requests quickly.
+  - title: Ship Safer Defaults
+    details: Start with strict authorization, redaction, anonymized IP logging, retention controls, and alert hooks for high-risk events.
+---
+
 # Documentation
 
-This directory contains the detailed guides that used to live in the root README.
+This site contains the package guides that power setup, security review, audit workflows, and release operations.
 
 ## Guides
 
