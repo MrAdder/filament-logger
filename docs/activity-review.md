@@ -44,9 +44,23 @@ Saved filters are configured as tabs on the list page:
 ],
 ```
 
+![High-risk activity tab](/art/activity-review-high-risk-tab.png)
+
+![Deletes review tab](/art/activity-review-deletes-tab.png)
+
+![Authentication issues tab](/art/activity-review-auth-issues-tab.png)
+
+## Structured Diff Views
+
+The activity detail page presents old and new values side by side and keeps larger metadata readable.
+
+![Structured diff view](/art/view-screenshot-1.png)
+
 ## Exporting Audit Data
 
 The activity screen includes CSV and JSON export actions that use the current table filters and sorting.
+
+![Export menu options](/art/activity-review-export-menu.png)
 
 You can customize the export columns and chunk size:
 
@@ -94,6 +108,8 @@ The current widgets cover:
 - top users
 - top events
 - high-risk actions
+
+![Activity overview dashboard widgets](/art/activity-review-dashboard-widgets.png)
 
 ## Retention and Pruning
 

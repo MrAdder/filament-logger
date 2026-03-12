@@ -89,9 +89,11 @@ public function panel(Panel $panel): Panel
 
 ## Screenshots
 
-<img alt="logger-index" src="https://raw.githubusercontent.com/mradder/filament-logger/main/art/list-screenshot.png">
-<img alt="logger-detail-1" src="https://raw.githubusercontent.com/mradder/filament-logger/main/art/view-screenshot-1.png">
-<img alt="logger-detail-2" src="https://raw.githubusercontent.com/mradder/filament-logger/main/art/view-screenshot-2.png">
+<img alt="Filament Logger dashboard widgets" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/activity-review-dashboard-widgets.png">
+<img alt="Filament Logger high risk review tab" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/activity-review-high-risk-tab.png">
+<img alt="Filament Logger auth issues review tab" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/activity-review-auth-issues-tab.png">
+<img alt="Filament Logger export menu" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/activity-review-export-menu.png">
+<img alt="Filament Logger structured diff view" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/view-screenshot-1.png">
 
 ## Changelog
 
