@@ -2,6 +2,18 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v0.11.1 - 2026-03-12
+
+### Summary
+
+- No user-facing changes in this release.
+
+### Contributors
+
+No contributors
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v0.11.0...v0.11.1
+
 ## v0.9.0 - 2026-03-12
 
 This release expands Filament Logger’s audit coverage, hardens default security behavior, improves the activity UI, and refreshes the package documentation.
