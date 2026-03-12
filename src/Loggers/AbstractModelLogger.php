@@ -7,6 +7,7 @@ use Illuminate\Auth\GenericUser;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use MrAdder\FilamentLogger\Support\LogDataSanitizer;
 use Spatie\Activitylog\ActivityLogger;
 use Spatie\Activitylog\ActivityLogStatus;
 
@@ -54,7 +55,7 @@ abstract class AbstractModelLogger
             $values = array_diff_key($values, array_flip($model->getHidden()));
         }
 
-        return $values;
+        return LogDataSanitizer::sanitizeProperties($values);
     }
 
     protected function log(Model $model, string $event, ?string $description = null, mixed $attributes = null)

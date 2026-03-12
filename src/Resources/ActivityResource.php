@@ -22,6 +22,8 @@ use Filament\Forms\Components\Placeholder;
 use Spatie\Activitylog\Contracts\Activity;
 use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\Activitylog\Models\Activity as ActivityModel;
+use Illuminate\Support\Facades\Gate;
+use MrAdder\FilamentLogger\Support\LogDataSanitizer;
 use MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
 
 class ActivityResource extends Resource
@@ -35,6 +37,29 @@ class ActivityResource extends Resource
     public static function getCluster(): ?string
     {
         return config('filament-logger.resources.cluster');
+    }
+
+    public static function canAccess(): bool
+    {
+        return static::canViewAny();
+    }
+
+    public static function canViewAny(): bool
+    {
+        if (! static::hasRequiredPolicyAbility('viewAny')) {
+            return false;
+        }
+
+        return parent::canViewAny();
+    }
+
+    public static function canView(Model $record): bool
+    {
+        if (! static::hasRequiredPolicyAbility('view')) {
+            return false;
+        }
+
+        return parent::canView($record);
     }
 
     public static function form(Form $form): Form
@@ -92,26 +117,39 @@ class ActivityResource extends Resource
                 ]),
                 Section::make()
                     ->columns()
-                    ->visible(fn ($record) => $record->properties?->count() > 0)
+                    ->visible(function (?Model $record): bool {
+                        if (! $record instanceof ActivityModel) {
+                            return false;
+                        }
+
+                        return $record->properties->count() > 0;
+                    })
                     ->schema(function (?Model $record) {
+                        if (! $record instanceof ActivityModel) {
+                            return [];
+                        }
+
                         /** @var Activity&ActivityModel $record */
-                        $properties = $record->properties->except(['attributes', 'old']);
+                        $properties = LogDataSanitizer::sanitizeProperties(
+                            $record->properties->except(['attributes', 'old'])
+                        );
 
                         $schema = [];
 
-                        if ($properties->count()) {
+                        if (count($properties) > 0) {
                             $schema[] = KeyValue::make('properties')
+                                ->afterStateHydrated(fn (KeyValue $component) => $component->state($properties))
                                 ->label(__('filament-logger::filament-logger.resource.label.properties'))
                                 ->columnSpan('full');
                         }
 
-                        if ($old = $record->properties->get('old')) {
+                        if ($old = LogDataSanitizer::sanitizeProperties($record->properties->get('old') ?? [])) {
                             $schema[] = KeyValue::make('old')
                                 ->afterStateHydrated(fn (KeyValue $component) => $component->state($old))
                                 ->label(__('filament-logger::filament-logger.resource.label.old'));
                         }
 
-                        if ($attributes = $record->properties->get('attributes')) {
+                        if ($attributes = LogDataSanitizer::sanitizeProperties($record->properties->get('attributes') ?? [])) {
                             $schema[] = KeyValue::make('attributes')
                                 ->afterStateHydrated(fn (KeyValue $component) => $component->state($attributes))
                                 ->label(__('filament-logger::filament-logger.resource.label.new'));
@@ -175,7 +213,7 @@ class ActivityResource extends Resource
 
                 Filter::make('properties->old')
 					->indicateUsing(function (array $data): ?string {
-						if (!$data['old']) {
+						if (! ($data['old'] ?? null)) {
 							return null;
 						}
 
@@ -187,7 +225,7 @@ class ActivityResource extends Resource
                             ->hint(__('filament-logger::filament-logger.resource.label.properties_hint')),
 					])
 					->query(function (Builder $query, array $data): Builder {
-						if (!$data['old']) {
+						if (! ($data['old'] ?? null)) {
 							return $query;
 						}
 
@@ -196,7 +234,7 @@ class ActivityResource extends Resource
 
 				Filter::make('properties->attributes')
 					->indicateUsing(function (array $data): ?string {
-						if (!$data['new']) {
+						if (! ($data['new'] ?? null)) {
 							return null;
 						}
 
@@ -208,7 +246,7 @@ class ActivityResource extends Resource
                             ->hint(__('filament-logger::filament-logger.resource.label.properties_hint')),
 					])
 					->query(function (Builder $query, array $data): Builder {
-						if (!$data['new']) {
+						if (! ($data['new'] ?? null)) {
 							return $query;
 						}
 
@@ -348,5 +386,14 @@ class ActivityResource extends Resource
 		return config('filament-logger.navigation_sort', null);
 	}
 
-	
+    protected static function hasRequiredPolicyAbility(string $ability): bool
+    {
+        if (! config('filament-logger.authorization.strict', true)) {
+            return true;
+        }
+
+        $policy = Gate::getPolicyFor(static::getModel());
+
+        return ($policy !== null) && method_exists($policy, $ability);
+    }
 }

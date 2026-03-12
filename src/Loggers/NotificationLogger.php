@@ -2,10 +2,9 @@
 
 namespace MrAdder\FilamentLogger\Loggers;
 
-use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
-use Illuminate\Notifications\Notifiable;
+use MrAdder\FilamentLogger\Support\LogDataSanitizer;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\ActivityLogStatus;
 use Spatie\Activitylog\ActivityLogger;
@@ -28,10 +27,12 @@ class NotificationLogger
             $description = $notification.' Notification failed';
         }
         
-        $receipent = $this->getRecipient($event->notifiable, $event->channel);
-        
-        if($receipent) {
-             $description .= ' to '.$receipent;
+        $recipient = LogDataSanitizer::sanitizeNotificationRecipient(
+            $this->getRecipient($event->notifiable, $event->channel)
+        );
+
+        if ($recipient) {
+            $description .= ' to '.$recipient;
         }
 
         app(ActivityLogger::class)
@@ -45,6 +46,7 @@ class NotificationLogger
     public function getRecipient(mixed $notifiable, string $channel): ?string
     {
         $notificationRoute = $notifiable->routeNotificationFor($channel);
+
         return is_string($notificationRoute) ? $notificationRoute : null;
     }
 }
