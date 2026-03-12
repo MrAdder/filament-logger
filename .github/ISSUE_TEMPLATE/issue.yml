@@ -1,0 +1,76 @@
+name: Issue
+description: Report a bug, request a feature, or track repository work.
+title: "[Issue]: "
+labels:
+  - triage
+body:
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of issue are you opening?
+      options:
+        - Feature request
+        - Bug report
+        - Documentation
+        - Maintenance / chore
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Give a short overview of the problem, idea, or task.
+      placeholder: Add a concise summary of the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem_or_context
+    attributes:
+      label: Problem / Context
+      description: Explain the current behavior, pain point, or reason this work is needed.
+      placeholder: Describe the current state and why this issue matters.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the expected behavior or preferred implementation direction.
+      placeholder: Outline the intended result or proposed fix.
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: List the conditions that must be true for this issue to be considered complete.
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation_notes
+    attributes:
+      label: Implementation Notes
+      description: Add technical notes, constraints, dependencies, or helpful pointers for whoever picks this up.
+      placeholder: Mention affected files, APIs, edge cases, related issues, or migration concerns.
+
+  - type: textarea
+    id: testing_notes
+    attributes:
+      label: Testing Notes
+      description: Describe how this should be validated once implemented.
+      placeholder: Note expected tests, manual verification steps, or scenarios to cover.
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Share screenshots, examples, links, or anything else that would help.
+      placeholder: Add extra context if needed.
