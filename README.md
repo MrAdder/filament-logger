@@ -5,13 +5,20 @@ Maintained fork of the original package by Z3d0X.
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/mradder/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
 [![Total Downloads](https://img.shields.io/packagist/dt/mradder/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
 
-Audit activity inside Filament using [spatie/laravel-activitylog](https://spatie.be/docs/laravel-activitylog).
+Filament Logger is an audit log and activity log package for Filament admin panels.
 
-Filament Logger gives you a ready-made activity resource plus automatic audit logging for resources, selected models, auth activity, notifications, and custom domain events.
+Built on [spatie/laravel-activitylog](https://spatie.be/docs/laravel-activitylog), it adds a ready-made Filament activity resource plus automatic logging for resources, models, auth events, notifications, and custom domain events.
+
+Use it when you need to:
+
+- review admin activity and security events inside Filament
+- export audit data for compliance, support, or incident response
+- trigger alerts for destructive or high-risk actions
+- log custom domain events without building your own audit UI
 
 ## Highlights
 
-- Filament activity log resource with searchable filters, structured diffs, saved review tabs, and date presets
+- Ready-made Filament audit log resource with searchable filters, structured diffs, saved review tabs, and date presets
 - CSV and JSON exports for filtered audit data
 - Dashboard widgets for top users, top events, activity spikes, and high-risk actions
 - Resource and model lifecycle logging, including create, update, delete, restore, force-delete, and replicate flows

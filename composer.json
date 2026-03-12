@@ -1,13 +1,28 @@
 {
     "name": "mradder/filament-logger",
-    "description": "Activity logger for filament",
+    "description": "Audit logging, activity tracking, exports, alerts, and dashboards for Filament admin panels.",
     "keywords": [
-        "Z3d0X",
-        "laravel",
+        "activity-log",
+        "activity-tracking",
+        "admin-panel",
+        "alerts",
+        "audit-log",
+        "compliance",
+        "filament",
         "filament-logger",
-        "mradder"
+        "filamentphp",
+        "exports",
+        "laravel",
+        "laravel-activitylog",
+        "security",
+        "spatie-activitylog"
     ],
     "homepage": "https://github.com/mradder/filament-logger",
+    "support": {
+        "docs": "https://github.com/MrAdder/filament-logger/tree/main/docs",
+        "issues": "https://github.com/MrAdder/filament-logger/issues",
+        "source": "https://github.com/MrAdder/filament-logger"
+    },
     "license": "MIT",
     "authors": [
         {
