@@ -2,6 +2,62 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v0.9.0 - 2026-03-12
+
+This release expands Filament Logger’s audit coverage, hardens default security behavior, improves the activity UI, and refreshes the package documentation.
+
+### Highlights
+
+- Added retention and pruning support with a new `filament-logger:prune` command.
+- Expanded auth logging to cover login, logout, failed login, lockout, password reset, and Fortify recovery-code usage when available.
+- Added ignored-field controls globally, per model, and per resource to reduce noisy or sensitive change logs.
+- Improved model lifecycle logging for restore, force-delete, replicate, and bulk-action flows.
+- Upgraded the activity detail view with a clearer side-by-side diff, pretty-printed JSON values, and collapsing for large payloads.
+- Hardened logging defaults to better protect sensitive data and reduce accidental exposure.
+- Rewrote the README and removed the temporary banner while a new one is being prepared.
+
+### Security Improvements
+
+- Activity resource access is now strict by default and requires explicit policy support.
+- Sensitive values such as passwords, tokens, secrets, and recovery codes are sanitized before being stored or displayed.
+- Access logs now anonymize IP addresses and limit stored user-agent size.
+- Notification recipient logging is disabled by default, with optional masking when enabled.
+- Existing historical records are not automatically rewritten, so older stored descriptions may still contain unsanitized values until scrubbed separately.
+
+### Audit Logging Improvements
+
+- Added structured old/new attribute logging for updates.
+- Added support for restore and force-delete lifecycle events without duplicate noise.
+- Added replicate logging with source metadata.
+- Added broader support for Filament bulk operations through lifecycle event handling.
+- Added per-model and per-resource ignore lists for fields like `updated_at`, counters, and session-related values.
+
+### UI Improvements
+
+- Added a richer activity diff viewer in the resource detail page.
+- Large payloads are now collapsible for easier inspection.
+- JSON-like values are formatted for readability.
+
+### Developer Experience
+
+- Added pruning configuration options by age and log name.
+- Improved test coverage for authorization, auth events, model lifecycle logging, pruning, and sanitization.
+- Fixed lifecycle snapshot handling so old values are captured reliably across supported Laravel versions.
+- Fixed resource observer registration so per-resource logger configuration is preserved correctly.
+- Filtered noisy PHP 8.4 PDO deprecation output during tests.
+
+### Documentation
+
+- README was overhauled to reflect the new logging, pruning, security, and configuration options.
+- The temporary README banner has been removed until it is redesigned.
+
+### Upgrade Notes
+
+- Add the `filament-logger:prune` command to your application scheduler if you want automatic cleanup.
+- If you rely on viewing the activity resource, make sure an `Activity` policy is registered or disable strict authorization explicitly.
+- Review the new config defaults for notification recipient logging and auth-event coverage.
+- Historical activity entries are not retroactively sanitized.
+
 ## v0.8.2 - 2026-03-02
 
 **Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v0.8.1...v0.8.2
