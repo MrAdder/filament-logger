@@ -58,6 +58,20 @@ jobs:
           tools: composer:v2
           coverage: none
 
+      - name: Resolve Composer cache directory
+        id: composer-cache
+        shell: bash
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-8.4-composer-${{ hashFiles('composer.json', 'composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.4-composer-
+            ${{ runner.os }}-composer-
+
       - name: Validate release inputs
         id: release_meta
         shell: bash
