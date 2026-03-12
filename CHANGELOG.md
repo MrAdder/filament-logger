@@ -2,6 +2,19 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.0.0 - Unreleased
+
+Filament Logger reaches its first stable release.
+
+This milestone marks the package as ready for long-term use across the supported Laravel and Filament versions, with the public package surface now treated as stable for the `1.x` series.
+
+### Highlights
+
+- Declares the package's public API, configuration surface, and extension points as stable going forward.
+- Future breaking changes will be reserved for `v2.0.0` rather than introduced in `1.x`.
+- Refactors the shared activity resource internals to reduce duplication and simplify ongoing maintenance.
+- Deduplicates repeated activity log labels in the Georgian, Korean, and Vietnamese locale files.
+
 ## v0.11.3 - 2026-03-12
 
 ### Summary
@@ -37,6 +50,46 @@ All notable changes to `filament-logger` will be documented in this file.
 No contributors
 
 **Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v0.11.0...v0.11.1
+
+## v0.11.0 - 2026-03-12
+
+### Summary
+
+- Added alert cooldowns so repeated sensitive activity does not keep notifying on every matching event.
+- Added the VitePress documentation site and tightened release archives to exclude non-runtime files.
+- Refreshed release and workflow setup for the maintained fork.
+
+### Highlights
+
+- Added configurable cooldown windows for alert rules, including threshold-based failed-login alerts.
+- Added dedicated package docs for installation, configuration, activity review, security, custom events, and releasing.
+- Updated packaging so docs and other development-only files are excluded from release archives.
+
+### Contributors
+
+@MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v0.10.0...v0.11.0
+
+## v0.10.0 - 2026-03-12
+
+### Summary
+
+- Added exports, alerts, dashboards, and custom audit events.
+- Refreshed docs and workflows to support the expanded feature set.
+
+### Highlights
+
+- Added CSV and JSON exports for filtered audit activity.
+- Added alert dispatching for sensitive and threshold-based activity.
+- Added dashboard widgets for activity overview, trends, top users, top events, and high-risk actions.
+- Added a custom event API for domain-specific audit logging without building a separate logger.
+
+### Contributors
+
+@MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v0.9.0...v0.10.0
 
 ## v0.9.0 - 2026-03-12
 

@@ -39,12 +39,12 @@ abstract class BaseActivityResource extends AbstractActivityResource
             TextColumn::make('log_name')
                 ->badge()
                 ->colors(ActivityResourceTableOptions::logNameColors())
-                ->label(__('filament-logger::filament-logger.resource.label.type'))
-                ->formatStateUsing(fn (?string $state): string => $state ? ucwords($state) : '-')
+                ->label(static::resourceLabel('type'))
+                ->formatStateUsing(fn (?string $state): string => static::formatTitleCaseState($state))
                 ->sortable(),
 
             TextColumn::make('event')
-                ->label(__('filament-logger::filament-logger.resource.label.event'))
+                ->label(static::resourceLabel('event'))
                 ->sortable(),
 
             TextColumn::make('properties.risk')
@@ -59,27 +59,20 @@ abstract class BaseActivityResource extends AbstractActivityResource
                 ->formatStateUsing(fn (?string $state): string => $state ? Str::headline($state) : '-'),
 
             TextColumn::make('description')
-                ->label(__('filament-logger::filament-logger.resource.label.description'))
+                ->label(static::resourceLabel('description'))
                 ->toggleable()
                 ->toggledHiddenByDefault()
                 ->wrap(),
 
             TextColumn::make('subject_type')
-                ->label(__('filament-logger::filament-logger.resource.label.subject'))
-                ->formatStateUsing(function ($state, Model $record) {
-                    /** @var Activity&ActivityModel $record */
-                    if (! $state) {
-                        return '-';
-                    }
-
-                    return Str::of($state)->afterLast('\\')->headline() . ' # ' . $record->subject_id;
-                }),
+                ->label(static::resourceLabel('subject'))
+                ->formatStateUsing(fn ($state, Model $record): string => static::formatSubjectState($state, $record)),
 
             TextColumn::make('causer.name')
-                ->label(__('filament-logger::filament-logger.resource.label.user')),
+                ->label(static::resourceLabel('user')),
 
             TextColumn::make('created_at')
-                ->label(__('filament-logger::filament-logger.resource.label.logged_at'))
+                ->label(static::resourceLabel('logged_at'))
                 ->dateTime(static::defaultDateTimeFormat(), config('app.timezone'))
                 ->sortable(),
         ];
@@ -92,11 +85,11 @@ abstract class BaseActivityResource extends AbstractActivityResource
     {
         return [
             SelectFilter::make('log_name')
-                ->label(__('filament-logger::filament-logger.resource.label.type'))
+                ->label(static::resourceLabel('type'))
                 ->options(ActivityResourceTableOptions::logNames()),
 
             SelectFilter::make('subject_type')
-                ->label(__('filament-logger::filament-logger.resource.label.subject_type'))
+                ->label(static::resourceLabel('subject_type'))
                 ->options(ActivityResourceTableOptions::subjectTypes()),
 
             static::configureFilterFields(
@@ -119,51 +112,9 @@ abstract class BaseActivityResource extends AbstractActivityResource
                 ],
             ),
 
-            static::configureFilterFields(
-                Filter::make('properties->old')
-                    ->indicateUsing(function (array $data): ?string {
-                        if (! ($data['old'] ?? null)) {
-                            return null;
-                        }
+            static::makePropertyValueFilter('properties->old', 'old', 'old', 'old_attributes'),
 
-                        return __('filament-logger::filament-logger.resource.label.old_attributes') . $data['old'];
-                    })
-                    ->query(function (Builder $query, array $data): Builder {
-                        if (! ($data['old'] ?? null)) {
-                            return $query;
-                        }
-
-                        return $query->where('properties->old', 'like', "%{$data['old']}%");
-                    }),
-                [
-                    TextInput::make('old')
-                        ->label(__('filament-logger::filament-logger.resource.label.old'))
-                        ->hint(__('filament-logger::filament-logger.resource.label.properties_hint')),
-                ],
-            ),
-
-            static::configureFilterFields(
-                Filter::make('properties->attributes')
-                    ->indicateUsing(function (array $data): ?string {
-                        if (! ($data['new'] ?? null)) {
-                            return null;
-                        }
-
-                        return __('filament-logger::filament-logger.resource.label.new_attributes') . $data['new'];
-                    })
-                    ->query(function (Builder $query, array $data): Builder {
-                        if (! ($data['new'] ?? null)) {
-                            return $query;
-                        }
-
-                        return $query->where('properties->attributes', 'like', "%{$data['new']}%");
-                    }),
-                [
-                    TextInput::make('new')
-                        ->label(__('filament-logger::filament-logger.resource.label.new'))
-                        ->hint(__('filament-logger::filament-logger.resource.label.properties_hint')),
-                ],
-            ),
+            static::makePropertyValueFilter('properties->attributes', 'new', 'new', 'new_attributes'),
 
             static::configureFilterFields(
                 Filter::make('created_at')
@@ -177,7 +128,7 @@ abstract class BaseActivityResource extends AbstractActivityResource
                     }),
                 [
                     DatePicker::make('logged_at')
-                        ->label(__('filament-logger::filament-logger.resource.label.logged_at'))
+                        ->label(static::resourceLabel('logged_at'))
                         ->displayFormat(config('filament-logger.date_format', 'd/m/Y')),
                     Select::make('preset')
                         ->label('Date Preset')
@@ -194,37 +145,25 @@ abstract class BaseActivityResource extends AbstractActivityResource
     {
         return [
             TextEntry::make('causer.name')
-                ->label(__('filament-logger::filament-logger.resource.label.user'))
+                ->label(static::resourceLabel('user'))
                 ->placeholder('-'),
 
             TextEntry::make('subject_type')
-                ->label(__('filament-logger::filament-logger.resource.label.subject'))
-                ->formatStateUsing(function ($state, ActivityModel $record): string {
-                    if (! $state) {
-                        return '-';
-                    }
-
-                    return Str::of($state)->afterLast('\\')->headline() . ' # ' . $record->subject_id;
-                }),
+                ->label(static::resourceLabel('subject'))
+                ->formatStateUsing(fn ($state, Model $record): string => static::formatSubjectState($state, $record)),
 
             TextEntry::make('description')
-                ->label(__('filament-logger::filament-logger.resource.label.description'))
+                ->label(static::resourceLabel('description'))
                 ->columnSpanFull()
                 ->copyable()
                 ->prose(),
 
-            TextEntry::make('log_name')
-                ->label(__('filament-logger::filament-logger.resource.label.type'))
-                ->badge()
-                ->formatStateUsing(fn (?string $state): string => $state ? ucwords($state) : '-'),
+            static::makeBadgeTextEntry('log_name', 'type'),
 
-            TextEntry::make('event')
-                ->label(__('filament-logger::filament-logger.resource.label.event'))
-                ->badge()
-                ->formatStateUsing(fn (?string $state): string => $state ? ucwords($state) : '-'),
+            static::makeBadgeTextEntry('event', 'event'),
 
             TextEntry::make('created_at')
-                ->label(__('filament-logger::filament-logger.resource.label.logged_at'))
+                ->label(static::resourceLabel('logged_at'))
                 ->dateTime(static::defaultDateTimeFormat(), config('app.timezone')),
         ];
     }
@@ -245,4 +184,66 @@ abstract class BaseActivityResource extends AbstractActivityResource
     abstract protected static function configureFilterFields(Filter $filter, array $fields): Filter;
 
     abstract protected static function makeInfolistSection(string $label);
+
+    protected static function makePropertyValueFilter(
+        string $propertyPath,
+        string $field,
+        string $labelKey,
+        string $indicatorKey,
+    ): Filter {
+        return static::configureFilterFields(
+            Filter::make($propertyPath)
+                ->indicateUsing(function (array $data) use ($field, $indicatorKey): ?string {
+                    $value = $data[$field] ?? null;
+
+                    if (! $value) {
+                        return null;
+                    }
+
+                    return static::resourceLabel($indicatorKey) . $value;
+                })
+                ->query(function (Builder $query, array $data) use ($field, $propertyPath): Builder {
+                    $value = $data[$field] ?? null;
+
+                    if (! $value) {
+                        return $query;
+                    }
+
+                    return $query->where($propertyPath, 'like', "%{$value}%");
+                }),
+            [
+                TextInput::make($field)
+                    ->label(static::resourceLabel($labelKey))
+                    ->hint(static::resourceLabel('properties_hint')),
+            ],
+        );
+    }
+
+    protected static function makeBadgeTextEntry(string $name, string $labelKey): TextEntry
+    {
+        return TextEntry::make($name)
+            ->label(static::resourceLabel($labelKey))
+            ->badge()
+            ->formatStateUsing(fn (?string $state): string => static::formatTitleCaseState($state));
+    }
+
+    protected static function formatSubjectState(?string $state, Model $record): string
+    {
+        /** @var Activity&ActivityModel $record */
+        if (! $state) {
+            return '-';
+        }
+
+        return Str::of($state)->afterLast('\\')->headline() . ' # ' . $record->subject_id;
+    }
+
+    protected static function formatTitleCaseState(?string $state): string
+    {
+        return $state ? ucwords($state) : '-';
+    }
+
+    protected static function resourceLabel(string $key): string
+    {
+        return __("filament-logger::filament-logger.resource.label.{$key}");
+    }
 }
