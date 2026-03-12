@@ -4,8 +4,8 @@ namespace MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Schemas\Components\Tabs\Tab;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
 use MrAdder\FilamentLogger\Support\ActivityFilterPresetManager;
 use MrAdder\FilamentLogger\Widgets\ActivityOverviewWidget;
@@ -15,7 +15,7 @@ use MrAdder\FilamentLogger\Widgets\TopEventsChartWidget;
 use MrAdder\FilamentLogger\Widgets\TopUsersChartWidget;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class ListActivities extends ListRecords
+class ListActivitiesV3 extends ListRecords
 {
     public static function getResource(): string
     {
@@ -75,7 +75,7 @@ class ListActivities extends ListRecords
         ];
     }
 
-    public function getHeaderWidgetsColumns(): int | array
+    public function getHeaderWidgetsColumns(): int | string | array
     {
         return 2;
     }

@@ -3,13 +3,12 @@
 namespace MrAdder\FilamentLogger\Widgets;
 
 use Filament\Widgets\ChartWidget;
+use Illuminate\Contracts\Support\Htmlable;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
 
 class ActivityTrendChartWidget extends ChartWidget
 {
     public int $days = 30;
-
-    protected static ?string $heading = 'Activity Trend';
 
     protected function getData(): array
     {
@@ -31,5 +30,10 @@ class ActivityTrendChartWidget extends ChartWidget
     protected function getType(): string
     {
         return 'line';
+    }
+
+    public function getHeading(): string | Htmlable | null
+    {
+        return 'Activity Trend';
     }
 }

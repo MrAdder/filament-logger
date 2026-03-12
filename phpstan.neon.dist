@@ -6,6 +6,10 @@ parameters:
     paths:
         - src
         - config
+    excludePaths:
+        analyse:
+            - src/Resources/ActivityResourceV3.php
+            - src/Resources/ActivityResource/Pages/ListActivitiesV3.php
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true

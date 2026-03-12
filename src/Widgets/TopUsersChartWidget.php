@@ -3,6 +3,7 @@
 namespace MrAdder\FilamentLogger\Widgets;
 
 use Filament\Widgets\ChartWidget;
+use Illuminate\Contracts\Support\Htmlable;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
 
 class TopUsersChartWidget extends ChartWidget
@@ -10,8 +11,6 @@ class TopUsersChartWidget extends ChartWidget
     public int $days = 30;
 
     public int $limit = 5;
-
-    protected static ?string $heading = 'Top Users';
 
     protected function getData(): array
     {
@@ -36,5 +35,10 @@ class TopUsersChartWidget extends ChartWidget
     protected function getType(): string
     {
         return 'bar';
+    }
+
+    public function getHeading(): string | Htmlable | null
+    {
+        return 'Top Users';
     }
 }
