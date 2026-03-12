@@ -235,7 +235,7 @@ class ActivityAlertDispatcher
             'risk' => $this->riskResolver->resolveForActivity($activity),
         ];
 
-        return 'filament-logger:alerts:cooldown:'.sha1((string) json_encode($pattern));
+        return 'filament-logger:alerts:cooldown:'.hash('sha256', (string) json_encode($pattern));
     }
 
     protected function cooldownCache(): CacheRepository
