@@ -39,8 +39,10 @@ Use it when you need to:
 | Package | Version |
 |---|---|
 | PHP | `^8.2` |
-| Filament | `^3.0`, `^4.0`, or `^5.0` |
+| Filament | `^3.0`, `^4.3.1`, or `^5.0` |
 | Laravel contracts | `^11.0` or `^12.0` |
+
+Filament 4 support starts at `4.3.1` because earlier `4.x` releases were affected by an upstream security issue fixed in `4.3.1`. See the [Filament security advisory](https://github.com/filamentphp/filament/security/advisories/GHSA-pvcv-q3q7-266g) and the [v4.3.1 release notes](https://github.com/filamentphp/filament/releases/tag/v4.3.1).
 
 ## Quick Start
 

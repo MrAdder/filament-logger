@@ -2,7 +2,14 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
-## v1.0.0 - Unreleased
+## v1.1.0 - Unreleased
+
+### Highlights
+
+- Raises the minimum supported Filament 4 version to `4.3.1` because earlier `4.x` releases were affected by an upstream security issue fixed in `4.3.1`.
+- Updates package constraints, CI coverage, and installation docs to reflect the new Filament 4 support floor.
+
+## v1.0.0 - 2026-03-12
 
 Filament Logger reaches its first stable release.
 
@@ -14,6 +21,8 @@ This milestone marks the package as ready for long-term use across the supported
 - Future breaking changes will be reserved for `v2.0.0` rather than introduced in `1.x`.
 - Refactors the shared activity resource internals to reduce duplication and simplify ongoing maintenance.
 - Deduplicates repeated activity log labels in the Georgian, Korean, and Vietnamese locale files.
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v0.11.3...v1.0.0
 
 ## v0.11.3 - 2026-03-12
 

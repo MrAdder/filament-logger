@@ -50,13 +50,13 @@ jobs:
             php: '8.2'
             laravel: '11.*'
             testbench: '9.*'
-            filament: '4.*'
+            filament: '^4.3.1'
             stability: prefer-lowest
           - os: ubuntu-latest
             php: '8.2'
             laravel: '11.*'
             testbench: '9.*'
-            filament: '4.*'
+            filament: '^4.3.1'
             stability: prefer-stable
           - os: ubuntu-latest
             php: '8.2'
@@ -68,7 +68,7 @@ jobs:
             php: '8.2'
             laravel: '12.*'
             testbench: '10.*'
-            filament: '4.*'
+            filament: '^4.3.1'
             stability: prefer-stable
           - os: ubuntu-latest
             php: '8.2'
