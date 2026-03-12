@@ -20,6 +20,7 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Placeholder;
@@ -28,8 +29,10 @@ use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\Activitylog\Models\Activity as ActivityModel;
 use Illuminate\Support\Facades\Gate;
 use MrAdder\FilamentLogger\Support\ActivityChangesFormatter;
+use MrAdder\FilamentLogger\Support\ActivityDatePreset;
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
 use MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
+use Throwable;
 
 class ActivityResource extends Resource
 {
@@ -230,12 +233,23 @@ class ActivityResource extends Resource
                     ->formatStateUsing(fn ($state) => ucwords($state))
                     ->sortable(),
 
-            TextColumn::make('event')
-                ->label(__('filament-logger::filament-logger.resource.label.event'))
+                TextColumn::make('event')
+                    ->label(__('filament-logger::filament-logger.resource.label.event'))
                     ->sortable(),
 
+                TextColumn::make('properties.risk')
+                    ->label('Risk')
+                    ->badge()
+                    ->toggleable()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'high' => 'danger',
+                        'medium' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => $state ? Str::headline($state) : '-'),
+
                 TextColumn::make('description')
-            ->label(__('filament-logger::filament-logger.resource.label.description'))
+                    ->label(__('filament-logger::filament-logger.resource.label.description'))
                     ->toggleable()
                     ->toggledHiddenByDefault()
                     ->wrap(),
@@ -268,6 +282,24 @@ class ActivityResource extends Resource
                 SelectFilter::make('subject_type')
                     ->label(__('filament-logger::filament-logger.resource.label.subject_type'))
                     ->options(static::getSubjectTypeList()),
+
+                Filter::make('risk')
+                    ->form([
+                        Select::make('risk')
+                            ->label('Risk')
+                            ->options([
+                                'high' => 'High',
+                                'medium' => 'Medium',
+                                'low' => 'Low',
+                            ]),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (! filled($data['risk'] ?? null)) {
+                            return $query;
+                        }
+
+                        return $query->where('properties->risk', $data['risk']);
+                    }),
 
                 Filter::make('properties->old')
 					->indicateUsing(function (array $data): ?string {
@@ -316,13 +348,17 @@ class ActivityResource extends Resource
                         DatePicker::make('logged_at')
                             ->label(__('filament-logger::filament-logger.resource.label.logged_at'))
                             ->displayFormat(config('filament-logger.date_format', 'd/m/Y')),
+                        Select::make('preset')
+                            ->label('Date Preset')
+                            ->options(ActivityDatePreset::options()),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['logged_at'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', $date),
-                            );
+                        $query->when(
+                            $data['logged_at'] ?? null,
+                            fn (Builder $query, $date): Builder => $query->whereDate('created_at', $date),
+                        );
+
+                        return ActivityDatePreset::apply($query, $data['preset'] ?? null);
                     }),
             ]);
     }
@@ -342,8 +378,9 @@ class ActivityResource extends Resource
 
     protected static function getSubjectTypeList(): array
     {
+        $subjects = [];
+
         if (config('filament-logger.resources.enabled', true)) {
-            $subjects = [];
             $exceptResources = [...config('filament-logger.resources.exclude'), config('filament-logger.activity_resource')];
             $removedExcludedResources = collect(Filament::getResources())->filter(function ($resource) use ($exceptResources) {
                 return ! in_array($resource, $exceptResources);
@@ -352,9 +389,25 @@ class ActivityResource extends Resource
                 $model = $resource::getModel();
                 $subjects[$model] = Str::of(class_basename($model))->headline();
             }
-            return $subjects;
         }
-        return [];
+
+        try {
+            static::getModel()::query()
+                ->whereNotNull('subject_type')
+                ->distinct()
+                ->pluck('subject_type')
+                ->each(function (?string $subjectType) use (&$subjects): void {
+                    if (blank($subjectType)) {
+                        return;
+                    }
+
+                    $subjects[$subjectType] ??= Str::of(class_basename($subjectType))->headline();
+                });
+        } catch (Throwable) {
+            // Ignore before the activity table exists.
+        }
+
+        return $subjects;
     }
 
     protected static function getLogNameList(): array
@@ -363,6 +416,28 @@ class ActivityResource extends Resource
 
         foreach (config('filament-logger.custom') ?? [] as $custom) {
             $customs[$custom['log_name']] = $custom['log_name'];
+        }
+
+        $customEventLogName = config('filament-logger.custom_events.default_log_name');
+
+        if (filled($customEventLogName)) {
+            $customs[$customEventLogName] = $customEventLogName;
+        }
+
+        try {
+            static::getModel()::query()
+                ->whereNotNull('log_name')
+                ->distinct()
+                ->pluck('log_name')
+                ->each(function (?string $logName) use (&$customs): void {
+                    if (blank($logName)) {
+                        return;
+                    }
+
+                    $customs[$logName] ??= $logName;
+                });
+        } catch (Throwable) {
+            // Ignore before the activity table exists.
         }
 
         return array_merge(
@@ -385,6 +460,10 @@ class ActivityResource extends Resource
     protected static function getLogNameColors(): array
     {
         $customs = [];
+
+        if (filled(config('filament-logger.custom_events.color')) && filled(config('filament-logger.custom_events.default_log_name'))) {
+            $customs[config('filament-logger.custom_events.color')] = config('filament-logger.custom_events.default_log_name');
+        }
 
         foreach (config('filament-logger.custom') ?? [] as $custom) {
             if (filled($custom['color'] ?? null)) {

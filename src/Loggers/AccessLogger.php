@@ -11,9 +11,8 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
-use Spatie\Activitylog\ActivityLogger;
-use Spatie\Activitylog\ActivityLogStatus;
 
 class AccessLogger
 {
@@ -70,22 +69,14 @@ class AccessLogger
             return;
         }
 
-        $logger = app(ActivityLogger::class)
-            ->useLog(config('filament-logger.access.log_name'))
-            ->setLogStatus(app(ActivityLogStatus::class))
-            ->event($eventName);
-
-        if ($causer instanceof Model && $causer->exists) {
-            $logger->causedBy($causer);
-        } else {
-            $logger->causedByAnonymous();
-        }
-
-        if ($properties !== []) {
-            $logger->withProperties($properties);
-        }
-
-        $logger->log($description);
+        app(FilamentLoggerManager::class)->log(
+            event: $eventName,
+            description: $description,
+            properties: $properties,
+            logName: config('filament-logger.access.log_name'),
+            causer: ($causer instanceof Model && $causer->exists) ? $causer : null,
+            anonymous: ! ($causer instanceof Model && $causer->exists),
+        );
     }
 
     /**

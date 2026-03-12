@@ -4,10 +4,9 @@ namespace MrAdder\FilamentLogger\Loggers;
 
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
+use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
 use Illuminate\Support\Str;
-use Spatie\Activitylog\ActivityLogStatus;
-use Spatie\Activitylog\ActivityLogger;
 
 class NotificationLogger
 {
@@ -35,12 +34,12 @@ class NotificationLogger
             $description .= ' to '.$recipient;
         }
 
-        app(ActivityLogger::class)
-            ->useLog(config('filament-logger.notifications.log_name'))
-            ->setLogStatus(app(ActivityLogStatus::class))
-            ->causedByAnonymous()
-            ->event(Str::of(class_basename($event))->headline())
-            ->log($description);
+        app(FilamentLoggerManager::class)->log(
+            event: (string) Str::of(class_basename($event))->headline(),
+            description: $description,
+            logName: config('filament-logger.notifications.log_name'),
+            anonymous: true,
+        );
     }
 
     public function getRecipient(mixed $notifiable, string $channel): ?string

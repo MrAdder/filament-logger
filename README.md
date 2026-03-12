@@ -12,9 +12,14 @@ This package gives you a ready-made Filament activity log resource plus automati
 ## Highlights
 
 - Filament activity log resource with searchable filters and a structured diff view
+- CSV and JSON export tools for filtered audit data
+- Dashboard widgets for top users, top events, activity spikes, and high-risk actions
 - Resource and model lifecycle logging, including create, update, delete, restore, force-delete, and replicate flows
 - Auth event logging for login, logout, failed login, lockout, password reset, and 2FA recovery usage
 - Notification logging
+- Configurable alerting hooks for mail, Slack, and Discord webhooks
+- Saved filter tabs and date presets for faster incident review
+- Custom event API for domain-specific audit events
 - Sensitive data redaction, anonymized IP logging, and stricter authorization defaults
 - Configurable ignored fields per model and per resource
 - Built-in pruning command for retention by age and log name
@@ -199,6 +204,130 @@ The activity detail page renders old/new values using a structured diff view. Yo
     'pretty_print_json' => true,
 ],
 ```
+
+### Activity Review UI
+
+The activity list includes:
+
+- saved filter tabs such as high-risk activity, deletes, and auth issues
+- date preset shortcuts like today, last 24 hours, last 7 days, and this month
+- dashboard widgets for activity volume, top users, top events, spikes, and high-risk actions
+- CSV and JSON export actions that use the current table filters and sorting
+
+You can customize the saved filters and dashboard behavior:
+
+```php
+'dashboard' => [
+    'enabled' => true,
+    'lookback_days' => 30,
+    'top_limit' => 5,
+],
+
+'activity_filters' => [
+    'date_presets' => [
+        'today' => 'Today',
+        'last_24_hours' => 'Last 24 Hours',
+        'last_7_days' => 'Last 7 Days',
+        'last_30_days' => 'Last 30 Days',
+        'this_month' => 'This Month',
+    ],
+    'saved' => [
+        'high_risk' => [
+            'label' => 'High Risk',
+            'icon' => 'heroicon-o-shield-exclamation',
+            'risk' => ['high'],
+        ],
+        'destructive' => [
+            'label' => 'Deletes',
+            'events' => ['Deleted', 'Force Deleted'],
+        ],
+    ],
+],
+
+'exports' => [
+    'enabled' => true,
+    'chunk_size' => 500,
+    'columns' => [
+        'id',
+        'log_name',
+        'event',
+        'description',
+        'risk',
+        'properties',
+        'created_at',
+    ],
+],
+```
+
+### Alerting
+
+Sensitive activity alerts can be sent by mail or webhook when configurable rules match. The package ships with defaults for destructive actions, role changes, and repeated failed login attempts.
+
+```php
+'alerts' => [
+    'enabled' => true,
+    'mail' => [
+        'to' => ['security@example.com'],
+    ],
+    'slack' => [
+        'webhook_url' => 'https://hooks.slack.com/services/...',
+    ],
+    'discord' => [
+        'webhook_url' => 'https://discord.com/api/webhooks/...',
+    ],
+    'rules' => [
+        'destructive_activity' => [
+            'channels' => ['mail', 'slack', 'discord'],
+            'events' => ['Deleted', 'Force Deleted'],
+        ],
+        'role_changes' => [
+            'channels' => ['mail'],
+            'risk_reasons' => ['role_change'],
+        ],
+        'failed_login_spike' => [
+            'type' => 'threshold',
+            'log_names' => ['Access'],
+            'events' => ['Failed Login'],
+            'threshold' => 5,
+            'window_minutes' => 10,
+        ],
+    ],
+],
+```
+
+Rule matching supports `log_names`, `events`, `subject_types`, `risk`, `risk_reasons`, `tags`, and `description_contains`.
+
+### Custom Event API
+
+You can log domain-specific events without creating a dedicated logger class:
+
+```php
+use MrAdder\FilamentLogger\Facades\FilamentLogger;
+
+FilamentLogger::log(
+    event: 'Role Escalated',
+    description: 'Elevated user privileges for incident response',
+    logName: 'Security',
+    causer: auth()->user(),
+    subject: $user,
+    properties: [
+        'old' => ['role' => 'editor'],
+        'attributes' => ['role' => 'admin'],
+        'ticket' => 'SEC-42',
+    ],
+    tags: ['security', 'roles'],
+);
+```
+
+Custom events can include:
+
+- custom log names
+- explicit subjects and causers
+- arbitrary structured properties
+- tags for downstream alert matching
+- optional explicit risk levels
+
+The default custom log name is configured under `custom_events.default_log_name`.
 
 ## Retention and Pruning
 

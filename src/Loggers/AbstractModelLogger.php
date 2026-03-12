@@ -8,11 +8,10 @@ use Illuminate\Auth\GenericUser;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
 use MrAdder\FilamentLogger\Support\PreviousAttributesStore;
 use MrAdder\FilamentLogger\Support\ReplicationContextStore;
-use Spatie\Activitylog\ActivityLogger;
-use Spatie\Activitylog\ActivityLogStatus;
 
 abstract class AbstractModelLogger
 {
@@ -46,18 +45,6 @@ abstract class AbstractModelLogger
     protected function getContextProperties(Model $model): array
     {
         return [];
-    }
-
-
-    protected function activityLogger(?string $logName = null): ActivityLogger
-    {
-        $defaultLogName = $this->getLogName();
-
-        $logStatus = app(ActivityLogStatus::class);
-
-        return app(ActivityLogger::class)
-            ->useLog($logName ?? $defaultLogName)
-            ->setLogStatus($logStatus);
     }
 
     protected function getLoggableAttributes(Model $model, mixed $values = []): array
@@ -96,15 +83,13 @@ abstract class AbstractModelLogger
             $description .= ' by '.$this->getUserName(auth()->user());
         }
 
-        $logger = $this->activityLogger()
-            ->event($event)
-            ->performedOn($model);
-
-        if ($properties !== []) {
-            $logger->withProperties($properties);
-        }
-
-        $logger->log($description);
+        app(FilamentLoggerManager::class)->log(
+            event: $event,
+            description: $description,
+            properties: $properties,
+            logName: $this->getLogName(),
+            subject: $model,
+        );
     }
 
     /**
