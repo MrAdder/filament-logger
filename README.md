@@ -46,6 +46,8 @@ Use it when you need to:
 
 Filament 4 support starts at `4.3.1` because earlier `4.x` releases were affected by an upstream security issue fixed in `4.3.1`. See the [Filament security advisory](https://github.com/filamentphp/filament/security/advisories/GHSA-pvcv-q3q7-266g) and the [v4.3.1 release notes](https://github.com/filamentphp/filament/releases/tag/v4.3.1).
 
+The package includes compatibility shims for Filament `3.x`, `4.x`, and `5.x`, and the supported range is verified against the CI matrix. If a future Filament release introduces a new breaking API change, a follow-up package update may still be required.
+
 ## Quick Start
 
 Install the package:
