@@ -76,10 +76,10 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
         with:
           php-version: ${{ matrix.php }}
-          extensions: none, dom, mbstring, sqlite, pdo_sqlite
+          extensions: none, curl, dom, mbstring, sqlite, pdo_sqlite, tokenizer
           tools: composer:v2
           coverage: none
 
@@ -93,7 +93,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer require --dev "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-update
           composer update --${{ matrix.stability }} --prefer-dist --with-all-dependencies --no-progress
 
       - name: Execute tests

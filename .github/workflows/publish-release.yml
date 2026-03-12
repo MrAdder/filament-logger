@@ -51,10 +51,10 @@ jobs:
           fetch-depth: 0
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
         with:
           php-version: '8.4'
-          extensions: none, dom, mbstring, sqlite, pdo_sqlite
+          extensions: none, curl, dom, mbstring, sqlite, pdo_sqlite, tokenizer
           tools: composer:v2
           coverage: none
 
@@ -62,7 +62,7 @@ jobs:
         id: release_meta
         shell: bash
         run: |
-          if [[ ! "${{ inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+          if [[ ! "$INPUT_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
             echo "Version must look like v1.2.3 or v1.2.3-rc.1"
             exit 1
           fi
@@ -74,10 +74,12 @@ jobs:
       - name: Ensure tag does not already exist
         shell: bash
         run: |
-          if git ls-remote --exit-code --tags origin "refs/tags/${{ inputs.version }}" >/dev/null 2>&1; then
-            echo "Tag ${{ inputs.version }} already exists on origin."
+          if git ls-remote --exit-code --tags origin "refs/tags/$INPUT_VERSION" >/dev/null 2>&1; then
+            echo "Tag $INPUT_VERSION already exists on origin."
             exit 1
           fi
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
 
       - name: Validate composer.json
         run: composer validate --strict
