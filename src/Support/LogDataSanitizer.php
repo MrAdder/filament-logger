@@ -31,17 +31,11 @@ class LogDataSanitizer
             return $recipient;
         }
 
-        if (filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
-            [$localPart, $domain] = explode('@', $recipient, 2);
-
-            return self::maskValue($localPart, 1, 0).'@'.$domain;
-        }
-
-        if (preg_match('/^\+?[\d\s\-\(\)]+$/', $recipient) === 1) {
-            return self::maskDigits($recipient, 2);
-        }
-
-        return self::maskValue($recipient, 2, 2);
+        return match (true) {
+            filter_var($recipient, FILTER_VALIDATE_EMAIL) !== false => self::maskEmailRecipient($recipient),
+            preg_match('/^\+?[\d\s\-\(\)]+$/', $recipient) === 1 => self::maskDigits($recipient, 2),
+            default => self::maskValue($recipient, 2, 2),
+        };
     }
 
     protected static function sanitizeArray(array $properties): array
@@ -87,29 +81,35 @@ class LogDataSanitizer
         $keySegments = array_values(array_filter(explode('_', $normalizedKey)));
 
         foreach (config('filament-logger.sensitive_keys', []) as $candidate) {
-            if (! is_string($candidate) || blank($candidate)) {
-                continue;
-            }
-
-            $normalizedCandidate = self::normalizeKey($candidate);
-
-            if ($normalizedKey === $normalizedCandidate) {
-                return true;
-            }
-
-            if (str_contains('_'.$normalizedKey.'_', '_'.$normalizedCandidate.'_')) {
-                return true;
-            }
-
-            if (
-                ! str_contains($normalizedCandidate, '_') &&
-                in_array($normalizedCandidate, $keySegments, true)
-            ) {
+            if (self::candidateMatchesKey($normalizedKey, $keySegments, $candidate)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    protected static function maskEmailRecipient(string $recipient): string
+    {
+        [$localPart, $domain] = explode('@', $recipient, 2);
+
+        return self::maskValue($localPart, 1, 0).'@'.$domain;
+    }
+
+    protected static function candidateMatchesKey(string $normalizedKey, array $keySegments, mixed $candidate): bool
+    {
+        if (! is_string($candidate) || blank($candidate)) {
+            return false;
+        }
+
+        $normalizedCandidate = self::normalizeKey($candidate);
+
+        return $normalizedKey === $normalizedCandidate
+            || str_contains('_'.$normalizedKey.'_', '_'.$normalizedCandidate.'_')
+            || (
+                ! str_contains($normalizedCandidate, '_')
+                && in_array($normalizedCandidate, $keySegments, true)
+            );
     }
 
     protected static function sanitizeIp(mixed $value): mixed

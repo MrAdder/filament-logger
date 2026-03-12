@@ -1,5 +1,9 @@
 <?php
 
+if (! defined('FILAMENT_LOGGER_VI_ACTIVITY_LOG')) {
+    define('FILAMENT_LOGGER_VI_ACTIVITY_LOG', 'Nhật ký hoạt động');
+}
+
 return [
 
     /*
@@ -9,10 +13,10 @@ return [
     */
 
     'nav.group' => 'Cài đặt',
-    'nav.log.label' => 'Nhật ký hoạt động',
+    'nav.log.label' => FILAMENT_LOGGER_VI_ACTIVITY_LOG,
     'nav.log.icon' => 'heroicon-o-clipboard-document-list',
-    'resource.label.log' => 'Nhật ký hoạt động',
-    'resource.label.logs' => 'Nhật ký hoạt động',
+    'resource.label.log' => FILAMENT_LOGGER_VI_ACTIVITY_LOG,
+    'resource.label.logs' => FILAMENT_LOGGER_VI_ACTIVITY_LOG,
     'resource.label.user' => 'Người dùng',
     'resource.label.subject' => 'Chủ đề',
     'resource.label.subject_type' => 'Loại chủ đề',

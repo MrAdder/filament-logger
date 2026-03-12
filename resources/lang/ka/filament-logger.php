@@ -1,5 +1,9 @@
 <?php
 
+if (! defined('FILAMENT_LOGGER_KA_ACTIVITY_LOG')) {
+    define('FILAMENT_LOGGER_KA_ACTIVITY_LOG', 'საქმიანობის ჟურნალი');
+}
+
 return [
 
     /*
@@ -9,10 +13,10 @@ return [
     */
 
     'nav.group' => 'პარამეტრები',
-    'nav.log.label' => 'საქმიანობის ჟურნალი',
+    'nav.log.label' => FILAMENT_LOGGER_KA_ACTIVITY_LOG,
     'nav.log.icon' => 'heroicon-o-clipboard-document-list',
-    'resource.label.log' => 'საქმიანობის ჟურნალი',
-    'resource.label.logs' => 'საქმიანობის ჟურნალი',
+    'resource.label.log' => FILAMENT_LOGGER_KA_ACTIVITY_LOG,
+    'resource.label.logs' => FILAMENT_LOGGER_KA_ACTIVITY_LOG,
     'resource.label.user' => 'მომხმარებელი',
     'resource.label.subject' => 'საგანი',
     'resource.label.subject_type' => 'საგნის ტიპი',

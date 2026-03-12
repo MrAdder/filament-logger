@@ -1,5 +1,9 @@
 <?php
 
+if (! defined('FILAMENT_LOGGER_KO_ACTIVITY_LOG')) {
+    define('FILAMENT_LOGGER_KO_ACTIVITY_LOG', '활동 로그');
+}
+
 return [
 
     /*
@@ -9,10 +13,10 @@ return [
     */
 
     'nav.group' => '설정',
-    'nav.log.label' => '활동 로그',
+    'nav.log.label' => FILAMENT_LOGGER_KO_ACTIVITY_LOG,
     'nav.log.icon' => 'heroicon-o-clipboard-document-list',
-    'resource.label.log' => '활동 로그',
-    'resource.label.logs' => '활동 로그',
+    'resource.label.log' => FILAMENT_LOGGER_KO_ACTIVITY_LOG,
+    'resource.label.logs' => FILAMENT_LOGGER_KO_ACTIVITY_LOG,
     'resource.label.user' => '사용자',
     'resource.label.subject' => '주제',
     'resource.label.subject_type' => '주제 유형',
