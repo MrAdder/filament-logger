@@ -52,9 +52,13 @@ Saved filters are configured as tabs on the list page:
 
 ## Structured Diff Views
 
-The activity detail page presents old and new values side by side and keeps larger metadata readable.
+The activity detail page presents old and new values side by side, keeps larger metadata readable, and makes privacy protections visible when sensitive values are redacted.
 
 ![Structured diff view](/art/view-screenshot-1.png)
+
+![Redacted structured diff view](/art/activity-review-redacted-diff.png)
+
+![Redacted changes table](/art/activity-review-redacted-changes.png)
 
 ## Exporting Audit Data
 

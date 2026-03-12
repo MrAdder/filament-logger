@@ -94,6 +94,8 @@ public function panel(Panel $panel): Panel
 <img alt="Filament Logger auth issues review tab" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/activity-review-auth-issues-tab.png">
 <img alt="Filament Logger export menu" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/activity-review-export-menu.png">
 <img alt="Filament Logger structured diff view" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/view-screenshot-1.png">
+<img alt="Filament Logger redacted activity diff view" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/activity-review-redacted-diff.png">
+<img alt="Filament Logger redacted changes table" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/activity-review-redacted-changes.png">
 
 ## Changelog
 

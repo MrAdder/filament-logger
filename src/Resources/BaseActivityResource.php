@@ -176,6 +176,7 @@ abstract class BaseActivityResource extends AbstractActivityResource
         return [
             ViewEntry::make('changes')
                 ->label(__('Changes'))
+                ->hiddenLabel()
                 ->state(fn (ActivityModel $record): array => ActivityChangesFormatter::for($record))
                 ->view('filament-logger::infolists.activity-diff'),
         ];
