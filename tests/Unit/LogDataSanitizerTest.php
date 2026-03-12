@@ -2,6 +2,9 @@
 
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
 
+const SANITIZER_SOURCE_IP = '192.168.1.22';
+const SANITIZER_SOURCE_USER_AGENT = 'Firefox/123.456';
+
 it('redacts configured sensitive keys recursively', function () {
     config()->set('filament-logger.redacted_placeholder', '[MASKED]');
     config()->set('filament-logger.access.store_ip', true);
@@ -16,8 +19,8 @@ it('redacts configured sensitive keys recursively', function () {
             'nickname' => 'Taylor',
         ],
         'tokenable_id' => 7,
-        'ip' => '192.168.1.22',
-        'user_agent' => 'Firefox/123.456',
+        'ip' => SANITIZER_SOURCE_IP,
+        'user_agent' => SANITIZER_SOURCE_USER_AGENT,
     ]);
 
     expect($sanitized['password'])->toBe('[MASKED]')
@@ -39,16 +42,16 @@ it('can preserve sensitive values for authorized viewers', function () {
         'profile' => [
             'api_token' => 'abc123',
         ],
-        'ip' => '192.168.1.22',
-        'user_agent' => 'Firefox/123.456',
+        'ip' => SANITIZER_SOURCE_IP,
+        'user_agent' => SANITIZER_SOURCE_USER_AGENT,
     ], [
         'preserve_sensitive_data' => true,
     ]);
 
     expect($sanitized['password'])->toBe('secret')
         ->and($sanitized['profile']['api_token'])->toBe('abc123')
-        ->and($sanitized['ip'])->toBe('192.168.1.22')
-        ->and($sanitized['user_agent'])->toBe('Firefox/123.456');
+        ->and($sanitized['ip'])->toBe(SANITIZER_SOURCE_IP)
+        ->and($sanitized['user_agent'])->toBe(SANITIZER_SOURCE_USER_AGENT);
 });
 
 it('can redact ip addresses for unauthorized viewers', function () {

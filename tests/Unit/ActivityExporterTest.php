@@ -77,7 +77,7 @@ it('can export stored sensitive values for authorized viewers', function () {
 
 class AllowSensitiveExportPolicy
 {
-    public function viewSensitiveData(?object $user = null, mixed $record = null): bool
+    public function viewSensitiveData(): bool
     {
         return true;
     }

@@ -38,6 +38,97 @@ Custom events can include:
 
 Sensitive activity alerts can be sent by mail or webhook when configurable rules match.
 
+Supported built-in channels:
+
+- `mail`
+- `slack`
+- `discord`
+
+## Channel Setup
+
+### Mail
+
+Filament Logger uses Laravel's normal mail configuration for delivery, so you should configure your mailer in `.env` first:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME=mailer@example.com
+MAIL_PASSWORD=secret
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS="audit@example.com"
+MAIL_FROM_NAME="Filament Logger"
+```
+
+Then set the recipients for alert emails:
+
+```php
+'alerts' => [
+    'enabled' => true,
+    'mail' => [
+        'to' => [
+            'security@example.com',
+            'ops@example.com',
+        ],
+    ],
+],
+```
+
+### Slack
+
+Create an incoming webhook in Slack and store it in `.env`:
+
+```dotenv
+FILAMENT_LOGGER_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+```
+
+Then reference it in your package config:
+
+```php
+'alerts' => [
+    'enabled' => true,
+    'slack' => [
+        'webhook_url' => env('FILAMENT_LOGGER_SLACK_WEBHOOK_URL'),
+    ],
+],
+```
+
+### Discord
+
+Create a Discord webhook and store it in `.env`:
+
+```dotenv
+FILAMENT_LOGGER_DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+```
+
+Then reference it in your package config:
+
+```php
+'alerts' => [
+    'enabled' => true,
+    'discord' => [
+        'webhook_url' => env('FILAMENT_LOGGER_DISCORD_WEBHOOK_URL'),
+    ],
+],
+```
+
+### Rule Channel Selection
+
+Each alert rule chooses its delivery channels with the `channels` key:
+
+```php
+'alerts' => [
+    'rules' => [
+        'destructive_activity' => [
+            'channels' => ['mail', 'slack', 'discord'],
+        ],
+    ],
+],
+```
+
+If a rule references a channel that is not configured, that channel will not be able to deliver notifications for the rule.
+
 ```php
 'alerts' => [
     'enabled' => true,
