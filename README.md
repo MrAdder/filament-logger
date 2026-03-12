@@ -1,9 +1,14 @@
-Maintained fork of the original package by Z3d0X.
+> **Community-maintained continuation of the original Filament Logger package by [Z3d0X](https://github.com/Z3d0X).**
 
 # Filament Logger
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/mradder/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
-[![Total Downloads](https://img.shields.io/packagist/dt/mradder/filament-logger.svg?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/mradder/filament-logger?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
+[![Total Downloads](https://img.shields.io/packagist/dt/mradder/filament-logger?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
+[![Tests](https://img.shields.io/github/actions/workflow/status/MrAdder/filament-logger/run-tests.yml?branch=main&style=for-the-badge&label=tests)](https://github.com/MrAdder/filament-logger/actions/workflows/run-tests.yml)
+[![PHPStan](https://img.shields.io/github/actions/workflow/status/MrAdder/filament-logger/phpstan.yml?branch=main&style=for-the-badge&label=phpstan)](https://github.com/MrAdder/filament-logger/actions/workflows/phpstan.yml)
+[![Docs](https://img.shields.io/github/actions/workflow/status/MrAdder/filament-logger/deploy-docs.yml?branch=main&style=for-the-badge&label=docs)](https://github.com/MrAdder/filament-logger/actions/workflows/deploy-docs.yml)
+[![Quality Gate](https://img.shields.io/sonar/quality_gate/MrAdder_filament-logger?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge&label=quality%20gate)](https://sonarcloud.io/summary/new_code?id=MrAdder_filament-logger)
+[![License](https://img.shields.io/packagist/l/mradder/filament-logger?style=for-the-badge)](https://packagist.org/packages/mradder/filament-logger)
 
 Filament Logger is an audit log and activity log package for Filament admin panels.
 
