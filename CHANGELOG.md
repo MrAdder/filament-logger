@@ -14,7 +14,7 @@ All notable changes to `filament-logger` will be documented in this file.
 
 **Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.0.0...v1.0.1
 
-## v1.1.0 - Unreleased
+## v1.1.0 - 2026-03-12
 
 ### Highlights
 
