@@ -16,6 +16,7 @@ use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
 use MrAdder\FilamentLogger\Commands\PruneActivitiesCommand;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
+use MrAdder\FilamentLogger\Support\ObserverRegistrar;
 use MrAdder\FilamentLogger\Support\ReplicationContextStore;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -87,13 +88,13 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
                 });
 
             foreach ($loggableResources as $resource) {
-                $resource::getModel()::observe($this->resolveResourceObserver($resource));
+                ObserverRegistrar::register($resource::getModel(), $this->resolveResourceObserver($resource));
             }
         }
 
         if (config('filament-logger.models.enabled', true) && ! empty(config('filament-logger.models.register'))) {
             foreach (config('filament-logger.models.register', []) as $model) {
-                $model::observe(config('filament-logger.models.logger'));
+                ObserverRegistrar::register($model, config('filament-logger.models.logger'));
             }
         }
     }

@@ -2,12 +2,14 @@
 
 namespace MrAdder\FilamentLogger\Loggers;
 
+use BadMethodCallException;
 use Filament\Facades\Filament;
 use Illuminate\Auth\GenericUser;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
+use MrAdder\FilamentLogger\Support\PreviousAttributesStore;
 use MrAdder\FilamentLogger\Support\ReplicationContextStore;
 use Spatie\Activitylog\ActivityLogger;
 use Spatie\Activitylog\ActivityLogStatus;
@@ -141,9 +143,23 @@ abstract class AbstractModelLogger
     /**
      * @return array<string, mixed>
      */
-    protected function getPreviousAttributes(Model $model): array
+    protected function getPreviousAttributes(Model $model, bool $forget = false): array
     {
-        return $model->getPrevious();
+        $storedAttributes = $forget
+            ? PreviousAttributesStore::pull($model)
+            : PreviousAttributesStore::get($model);
+
+        if ($storedAttributes !== []) {
+            return $storedAttributes;
+        }
+
+        try {
+            return $model->getPrevious();
+        } catch (BadMethodCallException) {
+            $changes = $model->getChanges();
+
+            return array_intersect_key($model->getOriginal(), $changes);
+        }
     }
 
     protected function isForceDeleting(Model $model): bool
@@ -186,6 +202,20 @@ abstract class AbstractModelLogger
         $this->log($model, 'Created', properties: $this->buildProperties($model, $model->getAttributes()));
     }
 
+    public function updating(Model $model): void
+    {
+        $dirty = $model->getDirty();
+
+        if ($dirty === []) {
+            return;
+        }
+
+        PreviousAttributesStore::remember(
+            $model,
+            array_intersect_key($model->getOriginal(), $dirty),
+        );
+    }
+
     public function updated(Model $model)
     {
         $changes = $this->getLoggableAttributes($model, $model->getChanges());
@@ -196,6 +226,7 @@ abstract class AbstractModelLogger
         }
 
         $this->log($model, 'Updated', properties: $this->buildProperties($model, $changes, $previous));
+        PreviousAttributesStore::forget($model);
     }
 
     public function deleted(Model $model)
@@ -210,7 +241,7 @@ abstract class AbstractModelLogger
     public function restored(Model $model)
     {
         $changes = $model->getChanges();
-        $previous = $this->getPreviousAttributes($model);
+        $previous = $this->getPreviousAttributes($model, true);
 
         $this->log(
             $model,

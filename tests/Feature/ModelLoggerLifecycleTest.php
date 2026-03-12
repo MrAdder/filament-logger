@@ -2,6 +2,7 @@
 
 use MrAdder\FilamentLogger\Loggers\ModelLogger;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
+use MrAdder\FilamentLogger\Support\ObserverRegistrar;
 use MrAdder\FilamentLogger\Support\ReplicationContextStore;
 use MrAdder\FilamentLogger\Tests\Fixtures\Models\TestRecord;
 use MrAdder\FilamentLogger\Tests\Fixtures\Resources\TestRecordResource;
@@ -9,19 +10,21 @@ use Spatie\Activitylog\Models\Activity;
 
 it('stores old and new values while respecting ignored model fields', function () {
     config()->set('filament-logger.models.ignore', ['updated_at', 'remember_token', 'counter']);
+    TestRecord::flushEventListeners();
+    ObserverRegistrar::register(TestRecord::class, ModelLogger::class);
 
     $record = TestRecord::query()->create([
         'name' => 'Before',
         'counter' => 1,
     ]);
 
+    Activity::query()->delete();
+
     $record->update([
         'name' => 'After',
         'counter' => 2,
         'remember_token' => 'secret-token',
     ]);
-
-    (new ModelLogger())->updated($record);
 
     $activity = Activity::query()->latest('id')->firstOrFail();
     $properties = $activity->properties->toArray();
@@ -39,18 +42,20 @@ it('supports per-resource ignored fields', function () {
     config()->set('filament-logger.resources.ignore_for_resources', [
         TestRecordResource::class => ['counter'],
     ]);
+    TestRecord::flushEventListeners();
+    ObserverRegistrar::register(TestRecord::class, new ResourceLogger(TestRecordResource::class));
 
     $record = TestRecord::query()->create([
         'name' => 'Before',
         'counter' => 1,
     ]);
 
+    Activity::query()->delete();
+
     $record->update([
         'name' => 'After',
         'counter' => 9,
     ]);
-
-    (new ResourceLogger(TestRecordResource::class))->updated($record);
 
     $activity = Activity::query()->latest('id')->firstOrFail();
     $properties = $activity->properties->toArray();
@@ -62,7 +67,7 @@ it('supports per-resource ignored fields', function () {
 
 it('logs restore and force delete without duplicate update or delete events', function () {
     TestRecord::flushEventListeners();
-    TestRecord::observe(ModelLogger::class);
+    ObserverRegistrar::register(TestRecord::class, ModelLogger::class);
 
     $record = TestRecord::query()->create([
         'name' => 'Lifecycle',
@@ -84,7 +89,7 @@ it('logs restore and force delete without duplicate update or delete events', fu
 
 it('logs replicated records with source metadata', function () {
     TestRecord::flushEventListeners();
-    TestRecord::observe(ModelLogger::class);
+    ObserverRegistrar::register(TestRecord::class, ModelLogger::class);
 
     $source = TestRecord::query()->create([
         'name' => 'Source',
