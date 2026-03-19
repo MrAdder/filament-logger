@@ -94,6 +94,8 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
     {
         parent::packageBooted();
 
+        $this->registerWidgetComponents();
+
         $this->app->booted(function (): void {
             $this->registerWidgetComponents();
         });
