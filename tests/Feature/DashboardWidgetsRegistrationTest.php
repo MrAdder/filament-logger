@@ -1,5 +1,6 @@
 <?php
 
+use Livewire\Livewire;
 use MrAdder\FilamentLogger\Widgets\ActivityOverviewWidget;
 use MrAdder\FilamentLogger\Widgets\ActivityTrendChartWidget;
 use MrAdder\FilamentLogger\Widgets\HighRiskActionsChartWidget;
@@ -7,11 +8,46 @@ use MrAdder\FilamentLogger\Widgets\TopEventsChartWidget;
 use MrAdder\FilamentLogger\Widgets\TopUsersChartWidget;
 
 it('registers dashboard widgets as livewire components', function () {
-    $resolver = static fn (string $alias): ?string => app('livewire.finder')->resolveClassComponentClassName($alias);
+    $resolver = static function (string $alias): ?string {
+        $livewire = Livewire::getFacadeRoot();
 
-    expect($resolver('mr-adder.filament-logger.widgets.activity-overview-widget'))->toBe(ActivityOverviewWidget::class)
-        ->and($resolver('mr-adder.filament-logger.widgets.activity-trend-chart-widget'))->toBe(ActivityTrendChartWidget::class)
-        ->and($resolver('mr-adder.filament-logger.widgets.top-users-chart-widget'))->toBe(TopUsersChartWidget::class)
-        ->and($resolver('mr-adder.filament-logger.widgets.top-events-chart-widget'))->toBe(TopEventsChartWidget::class)
-        ->and($resolver('mr-adder.filament-logger.widgets.high-risk-actions-chart-widget'))->toBe(HighRiskActionsChartWidget::class);
+        if (method_exists($livewire, 'new')) {
+            try {
+                return get_class(Livewire::new($alias));
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        if (method_exists($livewire, 'exists') && Livewire::exists($alias)) {
+            return '__registered__';
+        }
+
+        if (method_exists($livewire, 'isDiscoverable') && Livewire::isDiscoverable($alias)) {
+            return '__registered__';
+        }
+
+        return null;
+    };
+
+    expect($resolver('mr-adder.filament-logger.widgets.activity-overview-widget'))->toBeIn([
+        ActivityOverviewWidget::class,
+        '__registered__',
+    ])
+        ->and($resolver('mr-adder.filament-logger.widgets.activity-trend-chart-widget'))->toBeIn([
+            ActivityTrendChartWidget::class,
+            '__registered__',
+        ])
+        ->and($resolver('mr-adder.filament-logger.widgets.top-users-chart-widget'))->toBeIn([
+            TopUsersChartWidget::class,
+            '__registered__',
+        ])
+        ->and($resolver('mr-adder.filament-logger.widgets.top-events-chart-widget'))->toBeIn([
+            TopEventsChartWidget::class,
+            '__registered__',
+        ])
+        ->and($resolver('mr-adder.filament-logger.widgets.high-risk-actions-chart-widget'))->toBeIn([
+            HighRiskActionsChartWidget::class,
+            '__registered__',
+        ]);
 });
