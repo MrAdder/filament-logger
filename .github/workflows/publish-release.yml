@@ -99,7 +99,7 @@ jobs:
         run: composer validate --strict
 
       - name: Install composer dependencies
-        uses: ramsey/composer-install@a35c6ebd3d08125aaf8852dff361e686a1a67947
+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda
 
       - name: Run test suite
         run: vendor/bin/pest --no-coverage
