@@ -94,7 +94,9 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
     {
         parent::packageBooted();
 
-        $this->registerWidgetComponents();
+        $this->app->booted(function (): void {
+            $this->registerWidgetComponents();
+        });
 
         if (config('filament-logger.resources.enabled', true)) {
             $exceptResources = [...config('filament-logger.resources.exclude'), config('filament-logger.activity_resource')];
