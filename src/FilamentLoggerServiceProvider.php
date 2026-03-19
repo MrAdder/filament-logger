@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
+use Livewire\Livewire;
 use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Commands\PruneActivitiesCommand;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
@@ -22,6 +23,11 @@ use MrAdder\FilamentLogger\Support\ActivityExporter;
 use MrAdder\FilamentLogger\Support\ActivityRiskResolver;
 use MrAdder\FilamentLogger\Support\ObserverRegistrar;
 use MrAdder\FilamentLogger\Support\ReplicationContextStore;
+use MrAdder\FilamentLogger\Widgets\ActivityOverviewWidget;
+use MrAdder\FilamentLogger\Widgets\ActivityTrendChartWidget;
+use MrAdder\FilamentLogger\Widgets\HighRiskActionsChartWidget;
+use MrAdder\FilamentLogger\Widgets\TopEventsChartWidget;
+use MrAdder\FilamentLogger\Widgets\TopUsersChartWidget;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -87,6 +93,12 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
     public function packageBooted(): void
     {
         parent::packageBooted();
+
+        $this->registerWidgetComponents();
+
+        $this->app->booted(function (): void {
+            $this->registerWidgetComponents();
+        });
 
         if (config('filament-logger.resources.enabled', true)) {
             $exceptResources = [...config('filament-logger.resources.exclude'), config('filament-logger.activity_resource')];
@@ -178,5 +190,22 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
         }
 
         return null;
+    }
+
+    protected function registerWidgetComponents(): void
+    {
+        $components = [
+            'mr-adder.filament-logger.widgets.activity-overview-widget' => ActivityOverviewWidget::class,
+            'mr-adder.filament-logger.widgets.activity-trend-chart-widget' => ActivityTrendChartWidget::class,
+            'mr-adder.filament-logger.widgets.top-users-chart-widget' => TopUsersChartWidget::class,
+            'mr-adder.filament-logger.widgets.top-events-chart-widget' => TopEventsChartWidget::class,
+            'mr-adder.filament-logger.widgets.high-risk-actions-chart-widget' => HighRiskActionsChartWidget::class,
+        ];
+
+        foreach ($components as $name => $componentClass) {
+            if (class_exists($componentClass)) {
+                Livewire::component($name, $componentClass);
+            }
+        }
     }
 }
