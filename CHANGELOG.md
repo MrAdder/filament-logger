@@ -2,6 +2,26 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.1.1 - 2026-03-19
+
+## Summary
+
+- fix: register activity dashboard widgets as Livewire components by @MrAdder in #36
+
+## Maintenance
+
+- chore(deps): bump actions/cache from 4 to 5 by @[dependabot[bot]](https://github.com/apps/dependabot) in #34
+- chore(deps): bump release-drafter/release-drafter from 67e173cadb2fbd3de94f4a861e0c48c913b462ae to 6a93d829887aa2e0748befe2e808c66c0ec6e4c7 by @[dependabot[bot]](https://github.com/apps/dependabot) in #33
+- chore(deps): bump actions/upload-pages-artifact from 3 to 4 by @[dependabot[bot]](https://github.com/apps/dependabot) in #32
+- chore(deps): bump actions/setup-node from 4 to 6 by @[dependabot[bot]](https://github.com/apps/dependabot) in #31
+- chore(deps): bump ramsey/composer-install from 3.2.0 to 4.0.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #30
+
+## Contributors
+
+@MrAdder, @dependabot[bot] and [dependabot[bot]](https://github.com/apps/dependabot)
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.1.0...v1.1.1
+
 ## v1.0.1 - 2026-03-12
 
 ## Summary
