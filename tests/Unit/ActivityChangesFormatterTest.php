@@ -72,6 +72,85 @@ it('shows stored sensitive values to viewers with sensitive data access', functi
         ->and($rows['ip_address']['new']['display'])->toBe(CHANGES_FORMATTER_NEW_IP);
 });
 
+it('flattens nested change payloads into readable field paths', function () {
+    $activity = new Activity();
+    $activity->forceFill([
+        'properties' => [
+            'old' => [
+                'profile' => [
+                    'settings' => [
+                        'timezone' => 'UTC',
+                        'locale' => 'en',
+                    ],
+                ],
+            ],
+            'attributes' => [
+                'profile' => [
+                    'settings' => [
+                        'timezone' => 'Africa/Johannesburg',
+                        'locale' => 'en',
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    $formatted = ActivityChangesFormatter::for($activity);
+    $rows = collect($formatted['rows'])->keyBy('field');
+
+    expect($rows)->toHaveKeys([
+        'profile.settings.locale',
+        'profile.settings.timezone',
+    ])
+        ->and($rows['profile.settings.timezone']['is_nested'])->toBeTrue()
+        ->and($rows['profile.settings.timezone']['group'])->toBe('profile')
+        ->and($rows['profile.settings.timezone']['old']['display'])->toBe('UTC')
+        ->and($rows['profile.settings.timezone']['new']['display'])->toBe('Africa/Johannesburg');
+});
+
+it('marks large nested values as expandable with size metadata', function () {
+    config()->set('filament-logger.diff.collapse_after', 40);
+
+    $activity = new Activity();
+    $activity->forceFill([
+        'properties' => [
+            'old' => [
+                'payload' => [
+                    'tags' => [
+                        'security',
+                        'audit',
+                        'compliance',
+                        'investigation',
+                    ],
+                ],
+            ],
+            'attributes' => [
+                'payload' => [
+                    'tags' => [
+                        'security',
+                        'audit',
+                        'compliance',
+                        'investigation',
+                        'urgent',
+                    ],
+                ],
+            ],
+        ],
+    ]);
+
+    $formatted = ActivityChangesFormatter::for($activity);
+    $rows = collect($formatted['rows'])->keyBy('field');
+    $oldPayload = $rows['payload.tags']['old'];
+    $newPayload = $rows['payload.tags']['new'];
+
+    expect($oldPayload['expandable'])->toBeTrue()
+        ->and($newPayload['expandable'])->toBeTrue()
+        ->and($oldPayload['line_count'])->toBeGreaterThan(0)
+        ->and($newPayload['line_count'])->toBeGreaterThan(0)
+        ->and($newPayload['char_count'])->toBeGreaterThan($oldPayload['char_count'])
+        ->and($newPayload['summary'])->toContain('lines');
+});
+
 class AllowSensitiveActivityPolicy
 {
     public function viewSensitiveData(): bool

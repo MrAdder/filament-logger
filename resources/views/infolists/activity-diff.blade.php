@@ -1,6 +1,7 @@
 @php
     $rows = $getState()['rows'] ?? [];
     $metadata = $getState()['metadata'] ?? [];
+    $groupedRows = collect($rows)->groupBy('group');
 @endphp
 
 @once
@@ -29,6 +30,24 @@
         .fi-in-activity-diff-row {
             display: grid;
             grid-template-columns: minmax(11rem, 1fr) minmax(0, 1.4fr) minmax(0, 1.4fr);
+        }
+
+        .fi-in-activity-diff-group {
+            grid-column: 1 / -1;
+            padding: 0.65rem 1rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.16);
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: rgba(248, 250, 252, 0.75);
+        }
+
+        .dark .fi-in-activity-diff-group {
+            border-top-color: rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
+            background: rgba(15, 23, 42, 0.6);
         }
 
         .fi-in-activity-diff-row + .fi-in-activity-diff-row {
@@ -129,6 +148,12 @@
             font-size: 0.875rem;
         }
 
+        .fi-in-activity-diff-summary-meta {
+            margin-left: 0.4rem;
+            color: #94a3b8;
+            font-size: 0.75rem;
+        }
+
         .dark .fi-in-activity-diff-summary {
             color: #cbd5e1;
         }
@@ -144,6 +169,23 @@
             border-radius: 0.85rem;
             background: #0f172a;
             color: #f8fafc;
+        }
+
+        .fi-in-activity-diff-path-parent {
+            display: block;
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .fi-in-activity-diff-path-leaf {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        .dark .fi-in-activity-diff-path-parent {
+            color: #94a3b8;
         }
 
         .fi-in-activity-diff-empty-state {
@@ -257,36 +299,52 @@
                     </div>
                 </div>
 
-                @forelse ($rows as $row)
-                    <div class="fi-in-activity-diff-row">
-                        <div
-                            class="fi-in-activity-diff-cell fi-in-activity-diff-field"
-                            data-label="{{ __('Field') }}"
-                        >
-                            {{ $row['field'] }}
+                @forelse ($groupedRows as $group => $rowsInGroup)
+                    @if ($groupedRows->count() > 1)
+                        <div class="fi-in-activity-diff-group">
+                            {{ \\Illuminate\\Support\\Str::headline((string) $group) }}
                         </div>
+                    @endif
 
-                        @foreach (['old', 'new'] as $column)
-                            @php($cell = $row[$column])
-
+                    @foreach ($rowsInGroup as $row)
+                        <div class="fi-in-activity-diff-row">
                             <div
-                                class="fi-in-activity-diff-cell fi-in-activity-diff-{{ $column }} {{ $cell['empty'] ? 'fi-in-activity-diff-empty' : '' }}"
-                                data-label="{{ __('filament-logger::filament-logger.resource.label.' . $column) }}"
+                                class="fi-in-activity-diff-cell fi-in-activity-diff-field"
+                                data-label="{{ __('Field') }}"
                             >
-                                @if ($cell['expandable'])
-                                    <details>
-                                        <summary class="fi-in-activity-diff-summary">
-                                            {{ $cell['summary'] }}
-                                        </summary>
-
-                                        <pre class="fi-in-activity-diff-code">{{ $cell['display'] }}</pre>
-                                    </details>
+                                @if ($row['is_nested'] ?? false)
+                                    <span class="fi-in-activity-diff-path-parent">{{ \\Illuminate\\Support\\Str::beforeLast($row['field'], '.') }}</span>
+                                    <span class="fi-in-activity-diff-path-leaf">{{ \\Illuminate\\Support\\Str::afterLast($row['field'], '.') }}</span>
                                 @else
-                                    <pre>{{ $cell['display'] }}</pre>
+                                    {{ $row['field'] }}
                                 @endif
                             </div>
-                        @endforeach
-                    </div>
+
+                            @foreach (['old', 'new'] as $column)
+                                @php($cell = $row[$column])
+
+                                <div
+                                    class="fi-in-activity-diff-cell fi-in-activity-diff-{{ $column }} {{ $cell['empty'] ? 'fi-in-activity-diff-empty' : '' }}"
+                                    data-label="{{ __('filament-logger::filament-logger.resource.label.' . $column) }}"
+                                >
+                                    @if ($cell['expandable'])
+                                        <details>
+                                            <summary class="fi-in-activity-diff-summary">
+                                                {{ $cell['summary'] }}
+                                                <span class="fi-in-activity-diff-summary-meta">
+                                                    {{ $cell['line_count'] ?? 1 }}L · {{ $cell['char_count'] ?? 0 }}C
+                                                </span>
+                                            </summary>
+
+                                            <pre class="fi-in-activity-diff-code">{{ $cell['display'] }}</pre>
+                                        </details>
+                                    @else
+                                        <pre>{{ $cell['display'] }}</pre>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endforeach
                 @empty
                     <div class="fi-in-activity-diff-empty-state">
                         {{ __('No recorded field changes for this activity.') }}
