@@ -77,7 +77,7 @@ it('resolves and applies date presets', function () {
     Carbon::setTestNow();
 });
 
-it('applies the failed logins preset for auth anomaly review', function () {
+it('applies the failed_logins preset', function () {
     app(FilamentLogger::class)->log(
         event: ActivityEvents::FAILED_LOGIN,
         description: 'Failed login attempt for user',
