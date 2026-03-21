@@ -2,6 +2,20 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.2.0 - 2026-03-21
+
+## Summary
+
+- feat: add investigation playbooks for one-click filtered activity review by @MrAdder in #41
+- feat: add built-in review presets and dashboard drill-down links for activity investigations by @MrAdder in #39
+- feat: improve activity diff UX for large and nested payloads by @MrAdder in #40
+
+## Contributors
+
+@MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.1.2...v1.2.0
+
 ## v1.1.2 - 2026-03-21
 
 ## Summary
