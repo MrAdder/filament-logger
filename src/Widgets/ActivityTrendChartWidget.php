@@ -5,9 +5,12 @@ namespace MrAdder\FilamentLogger\Widgets;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Contracts\Support\Htmlable;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
+use MrAdder\FilamentLogger\Widgets\Concerns\HasActivityReviewDrillDownHeading;
 
 class ActivityTrendChartWidget extends ChartWidget
 {
+    use HasActivityReviewDrillDownHeading;
+
     public int $days = 30;
 
     protected function getData(): array
@@ -34,6 +37,6 @@ class ActivityTrendChartWidget extends ChartWidget
 
     public function getHeading(): string | Htmlable | null
     {
-        return 'Activity Trend';
+        return $this->activityReviewHeading('Activity Trend', 'all');
     }
 }

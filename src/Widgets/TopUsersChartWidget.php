@@ -5,9 +5,12 @@ namespace MrAdder\FilamentLogger\Widgets;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Contracts\Support\Htmlable;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
+use MrAdder\FilamentLogger\Widgets\Concerns\HasActivityReviewDrillDownHeading;
 
 class TopUsersChartWidget extends ChartWidget
 {
+    use HasActivityReviewDrillDownHeading;
+
     public int $days = 30;
 
     public int $limit = 5;
@@ -39,6 +42,6 @@ class TopUsersChartWidget extends ChartWidget
 
     public function getHeading(): string | Htmlable | null
     {
-        return 'Top Users';
+        return $this->activityReviewHeading('Top Users', 'all');
     }
 }
