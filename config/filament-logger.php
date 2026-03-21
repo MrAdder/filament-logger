@@ -83,37 +83,7 @@ return [
         'top_limit' => 5,
     ],
 
-    'activity_playbooks' => [
-        'all_activity' => [
-            'label' => 'All Activity',
-            'icon' => 'heroicon-o-bars-3-bottom-left',
-            'preset' => 'all',
-        ],
-        'high_risk_incidents' => [
-            'label' => 'High Risk Incidents',
-            'icon' => 'heroicon-o-shield-exclamation',
-            'preset' => 'high_risk',
-            'date_preset' => 'last_30_days',
-        ],
-        'auth_anomalies' => [
-            'label' => 'Auth Anomalies',
-            'icon' => 'heroicon-o-finger-print',
-            'preset' => 'auth_anomalies',
-            'date_preset' => 'last_30_days',
-        ],
-        'failed_logins' => [
-            'label' => 'Failed Logins',
-            'icon' => 'heroicon-o-exclamation-triangle',
-            'preset' => 'failed_logins',
-            'date_preset' => 'last_7_days',
-        ],
-        'destructive_actions' => [
-            'label' => 'Destructive Actions',
-            'icon' => 'heroicon-o-fire',
-            'preset' => 'destructive_recent',
-            'date_preset' => 'last_7_days',
-        ],
-    ],
+    'activity_playbooks' => \MrAdder\FilamentLogger\Support\ActivityReviewPlaybookManager::DEFAULT_PLAYBOOKS,
 
     'activity_filters' => [
         'date_presets' => [
