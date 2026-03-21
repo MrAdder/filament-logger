@@ -10,7 +10,7 @@ final class ActivityReviewLink
     {
         $resource = config('filament-logger.activity_resource');
 
-        if (! is_string($resource) || ! class_exists($resource) || ! method_exists($resource, 'getUrl')) {
+        if (! is_string($resource) || ! class_exists($resource) || ! is_callable([$resource, 'getUrl'])) {
             return null;
         }
 
@@ -23,5 +23,6 @@ final class ActivityReviewLink
 
     private function __construct()
     {
+        // This class only exposes static helpers and should not be instantiated.
     }
 }

@@ -7,10 +7,11 @@ use MrAdder\FilamentLogger\Widgets\TopEventsChartWidget;
 class ActivityReviewLinkFakeResource
 {
     /**
-     * @param  array<string, string>  $parameters
+     * @param  array<int, mixed>  $arguments
      */
-    public static function getUrl(string $name = 'index', array $parameters = []): string
+    public static function getUrl(...$arguments): string
     {
+        $parameters = is_array($arguments[1] ?? null) ? $arguments[1] : [];
         $activeTab = $parameters['activeTab'] ?? 'all';
 
         return 'https://example.test/activity?activeTab='.$activeTab;
