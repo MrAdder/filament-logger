@@ -135,6 +135,40 @@ The current widgets cover:
 
 Widget stat cards and chart headings can be used as drill-down shortcuts into the activity review page. Each shortcut opens the resource with the matching saved preset tab active.
 
+## Investigation Playbooks
+
+Playbooks provide one-click review paths by bundling a saved tab preset with an optional date preset:
+
+```php
+'activity_playbooks' => [
+    'all_activity' => [
+        'label' => 'All Activity',
+        'icon' => 'heroicon-o-bars-3-bottom-left',
+        'preset' => 'all',
+    ],
+    'high_risk_incidents' => [
+        'label' => 'High Risk Incidents',
+        'icon' => 'heroicon-o-shield-exclamation',
+        'preset' => 'high_risk',
+        'date_preset' => 'last_30_days',
+    ],
+    'auth_anomalies' => [
+        'label' => 'Auth Anomalies',
+        'icon' => 'heroicon-o-finger-print',
+        'preset' => 'auth_anomalies',
+        'date_preset' => 'last_30_days',
+    ],
+    'destructive_actions' => [
+        'label' => 'Destructive Actions',
+        'icon' => 'heroicon-o-fire',
+        'preset' => 'destructive_recent',
+        'date_preset' => 'last_7_days',
+    ],
+],
+```
+
+The Activity page header includes a **Playbooks** action group, and dashboard drill-down links use these playbooks to open coherent filtered review views.
+
 ![Activity overview dashboard widgets](/art/activity-review-dashboard-widgets.png)
 
 ## Retention and Pruning

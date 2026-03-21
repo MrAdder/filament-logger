@@ -37,6 +37,6 @@ class ActivityTrendChartWidget extends ChartWidget
 
     public function getHeading(): string | Htmlable | null
     {
-        return $this->activityReviewHeading('Activity Trend', 'all');
+        return $this->activityReviewHeadingForPlaybook('Activity Trend', 'all_activity');
     }
 }

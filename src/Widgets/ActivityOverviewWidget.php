@@ -22,32 +22,32 @@ class ActivityOverviewWidget extends StatsOverviewWidget
                 Stat::make('Total Activity', (string) $overview['total'])
                     ->description("Last {$this->days} days")
                     ->color('primary'),
-                'all',
+                'all_activity',
             ),
             $this->withDrillDown(
                 Stat::make('High Risk', (string) $overview['high_risk'])
                     ->description('High-risk actions detected')
                     ->color('danger'),
-                'high_risk',
+                'high_risk_incidents',
             ),
             $this->withDrillDown(
                 Stat::make('Failed Logins', (string) $overview['failed_logins'])
                     ->description('Authentication failures')
                     ->color('warning'),
-                'failed_logins',
+                'auth_anomalies',
             ),
             $this->withDrillDown(
                 Stat::make('Unique Actors', (string) $overview['unique_actors'])
                     ->description('Distinct causers recorded')
                     ->color('success'),
-                'all',
+                'all_activity',
             ),
         ];
     }
 
-    protected function withDrillDown(Stat $stat, string $preset): Stat
+    protected function withDrillDown(Stat $stat, string $playbook): Stat
     {
-        $url = ActivityReviewLink::toSavedPreset($preset);
+        $url = ActivityReviewLink::toPlaybook($playbook);
 
         if (! $url) {
             return $stat;

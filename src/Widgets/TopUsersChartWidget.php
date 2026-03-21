@@ -42,6 +42,6 @@ class TopUsersChartWidget extends ChartWidget
 
     public function getHeading(): string | Htmlable | null
     {
-        return $this->activityReviewHeading('Top Users', 'all');
+        return $this->activityReviewHeadingForPlaybook('Top Users', 'all_activity');
     }
 }

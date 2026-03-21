@@ -18,4 +18,15 @@ trait HasActivityReviewDrillDownHeading
 
         return new HtmlString('<a href="'.e($url).'">'.e($heading).'</a>');
     }
+
+    protected function activityReviewHeadingForPlaybook(string $heading, string $playbook): string | Htmlable | null
+    {
+        $url = ActivityReviewLink::toPlaybook($playbook);
+
+        if (! $url) {
+            return $heading;
+        }
+
+        return new HtmlString('<a href="'.e($url).'">'.e($heading).'</a>');
+    }
 }
