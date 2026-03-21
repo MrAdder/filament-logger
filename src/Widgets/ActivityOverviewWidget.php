@@ -34,7 +34,7 @@ class ActivityOverviewWidget extends StatsOverviewWidget
                 Stat::make('Failed Logins', (string) $overview['failed_logins'])
                     ->description('Authentication failures')
                     ->color('warning'),
-                'auth_anomalies',
+                'failed_logins',
             ),
             $this->withDrillDown(
                 Stat::make('Unique Actors', (string) $overview['unique_actors'])

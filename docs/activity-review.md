@@ -133,7 +133,7 @@ The current widgets cover:
 - top events
 - high-risk actions
 
-Widget stat cards and chart headings can be used as drill-down shortcuts into the activity review page. Each shortcut opens the resource with the matching saved preset tab active.
+Widget stat cards and chart headings can be used as drill-down shortcuts into the activity review page. Each shortcut opens the resource using a matching playbook, which applies the configured tab preset and optional date filter parameters.
 
 ## Investigation Playbooks
 
@@ -157,6 +157,12 @@ Playbooks provide one-click review paths by bundling a saved tab preset with an 
         'icon' => 'heroicon-o-finger-print',
         'preset' => 'auth_anomalies',
         'date_preset' => 'last_30_days',
+    ],
+    'failed_logins' => [
+        'label' => 'Failed Logins',
+        'icon' => 'heroicon-o-exclamation-triangle',
+        'preset' => 'failed_logins',
+        'date_preset' => 'last_7_days',
     ],
     'destructive_actions' => [
         'label' => 'Destructive Actions',

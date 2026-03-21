@@ -4,11 +4,12 @@ use MrAdder\FilamentLogger\Support\ActivityReviewLink;
 use MrAdder\FilamentLogger\Widgets\HighRiskActionsChartWidget;
 use MrAdder\FilamentLogger\Widgets\TopEventsChartWidget;
 
-const ACTIVITY_REVIEW_ACTIVE_TAB_HIGH_RISK = 'activeTab=high_risk';
-const ACTIVITY_REVIEW_TABLE_FILTERS = 'tableFilters';
-
 class ActivityReviewLinkFakeResource
 {
+    public const ACTIVE_TAB_HIGH_RISK = 'activeTab=high_risk';
+
+    public const TABLE_FILTERS = 'tableFilters';
+
     /**
      * @param  array<int, mixed>  $arguments
      */
@@ -28,7 +29,7 @@ it('builds activity resource links for saved presets', function () {
 
     expect($url)
         ->toBeString()
-        ->toContain(ACTIVITY_REVIEW_ACTIVE_TAB_HIGH_RISK);
+        ->toContain(ActivityReviewLinkFakeResource::ACTIVE_TAB_HIGH_RISK);
 });
 
 it('builds activity resource links for playbooks', function () {
@@ -38,8 +39,8 @@ it('builds activity resource links for playbooks', function () {
 
     expect($url)
         ->toBeString()
-        ->toContain(ACTIVITY_REVIEW_ACTIVE_TAB_HIGH_RISK)
-        ->toContain(ACTIVITY_REVIEW_TABLE_FILTERS);
+        ->toContain(ActivityReviewLinkFakeResource::ACTIVE_TAB_HIGH_RISK)
+        ->toContain(ActivityReviewLinkFakeResource::TABLE_FILTERS);
 });
 
 it('returns null when no activity resource is configured', function () {
@@ -55,7 +56,7 @@ it('renders chart headings with drill-down links', function () {
     $topEventsHeading = (string) (new TopEventsChartWidget())->getHeading();
 
     expect($highRiskHeading)
-        ->toContain(ACTIVITY_REVIEW_ACTIVE_TAB_HIGH_RISK)
+        ->toContain(ActivityReviewLinkFakeResource::ACTIVE_TAB_HIGH_RISK)
         ->and($topEventsHeading)
         ->toContain('activeTab=all');
 });

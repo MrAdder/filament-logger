@@ -9,6 +9,7 @@ it('provides built-in investigation playbooks', function () {
         'all_activity',
         'high_risk_incidents',
         'auth_anomalies',
+        'failed_logins',
         'destructive_actions',
     ]);
 });

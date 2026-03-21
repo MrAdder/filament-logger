@@ -10,19 +10,16 @@ trait HasActivityReviewDrillDownHeading
 {
     protected function activityReviewHeading(string $heading, string $preset): string | Htmlable | null
     {
-        $url = ActivityReviewLink::toSavedPreset($preset);
-
-        if (! $url) {
-            return $heading;
-        }
-
-        return new HtmlString('<a href="'.e($url).'">'.e($heading).'</a>');
+        return $this->activityReviewHeadingFromUrl($heading, ActivityReviewLink::toSavedPreset($preset));
     }
 
     protected function activityReviewHeadingForPlaybook(string $heading, string $playbook): string | Htmlable | null
     {
-        $url = ActivityReviewLink::toPlaybook($playbook);
+        return $this->activityReviewHeadingFromUrl($heading, ActivityReviewLink::toPlaybook($playbook));
+    }
 
+    protected function activityReviewHeadingFromUrl(string $heading, ?string $url): string | Htmlable | null
+    {
         if (! $url) {
             return $heading;
         }

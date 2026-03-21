@@ -101,6 +101,12 @@ return [
             'preset' => 'auth_anomalies',
             'date_preset' => 'last_30_days',
         ],
+        'failed_logins' => [
+            'label' => 'Failed Logins',
+            'icon' => 'heroicon-o-exclamation-triangle',
+            'preset' => 'failed_logins',
+            'date_preset' => 'last_7_days',
+        ],
         'destructive_actions' => [
             'label' => 'Destructive Actions',
             'icon' => 'heroicon-o-fire',
