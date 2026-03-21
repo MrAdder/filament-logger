@@ -3,8 +3,23 @@
 use Illuminate\Support\Carbon;
 use MrAdder\FilamentLogger\FilamentLogger;
 use MrAdder\FilamentLogger\Support\ActivityDatePreset;
+use MrAdder\FilamentLogger\Support\ActivityEvents;
 use MrAdder\FilamentLogger\Support\ActivityFilterPresetManager;
 use Spatie\Activitylog\Models\Activity;
+
+it('provides additional built-in saved review presets', function () {
+    $saved = ActivityFilterPresetManager::saved();
+
+    expect($saved)->toHaveKeys([
+        'all',
+        'high_risk',
+        'destructive',
+        'auth_issues',
+        'failed_logins',
+        'destructive_recent',
+        'auth_anomalies',
+    ]);
+});
 
 it('applies saved filter presets to activity queries', function () {
     app(FilamentLogger::class)->log(
@@ -60,4 +75,33 @@ it('resolves and applies date presets', function () {
     expect($query->pluck('event')->all())->toBe(['Today Event']);
 
     Carbon::setTestNow();
+});
+
+it('applies the failed logins preset for auth anomaly review', function () {
+    app(FilamentLogger::class)->log(
+        event: ActivityEvents::FAILED_LOGIN,
+        description: 'Failed login attempt for user',
+        options: [
+            'logName' => config('filament-logger.access.log_name', 'Access'),
+            'anonymous' => true,
+            'createdAt' => now()->subHour(),
+        ],
+    );
+
+    app(FilamentLogger::class)->log(
+        event: 'Login',
+        description: 'Successful login',
+        options: [
+            'logName' => config('filament-logger.access.log_name', 'Access'),
+            'anonymous' => true,
+            'createdAt' => now()->subHour(),
+        ],
+    );
+
+    $query = ActivityFilterPresetManager::apply(
+        Activity::query(),
+        ActivityFilterPresetManager::saved()['failed_logins'],
+    );
+
+    expect($query->pluck('event')->all())->toBe([ActivityEvents::FAILED_LOGIN]);
 });

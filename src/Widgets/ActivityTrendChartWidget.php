@@ -4,7 +4,9 @@ namespace MrAdder\FilamentLogger\Widgets;
 
 use Filament\Widgets\ChartWidget;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
+use MrAdder\FilamentLogger\Support\ActivityReviewLink;
 
 class ActivityTrendChartWidget extends ChartWidget
 {
@@ -34,6 +36,13 @@ class ActivityTrendChartWidget extends ChartWidget
 
     public function getHeading(): string | Htmlable | null
     {
-        return 'Activity Trend';
+        $heading = 'Activity Trend';
+        $url = ActivityReviewLink::toSavedPreset('all');
+
+        if (! $url) {
+            return $heading;
+        }
+
+        return new HtmlString('<a href="'.e($url).'">'.e($heading).'</a>');
     }
 }

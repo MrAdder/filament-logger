@@ -33,6 +33,26 @@ class ActivityFilterPresetManager
                 'log_names' => [config('filament-logger.access.log_name')],
                 'events' => ['Failed Login', 'Lockout'],
             ],
+            'failed_logins' => [
+                'label' => 'Failed Logins',
+                'icon' => 'heroicon-o-exclamation-triangle',
+                'log_names' => [config('filament-logger.access.log_name')],
+                'events' => [ActivityEvents::FAILED_LOGIN],
+                'date_preset' => 'last_7_days',
+            ],
+            'destructive_recent' => [
+                'label' => 'Recent Destructive',
+                'icon' => 'heroicon-o-fire',
+                'events' => ['Deleted', ActivityEvents::FORCE_DELETED],
+                'date_preset' => 'last_7_days',
+            ],
+            'auth_anomalies' => [
+                'label' => 'Auth Anomalies',
+                'icon' => 'heroicon-o-finger-print',
+                'log_names' => [config('filament-logger.access.log_name')],
+                'events' => [ActivityEvents::FAILED_LOGIN, 'Lockout', 'Two Factor Recovery'],
+                'date_preset' => 'last_30_days',
+            ],
         ]);
     }
 

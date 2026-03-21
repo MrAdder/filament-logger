@@ -40,6 +40,26 @@ Saved filters are configured as tabs on the list page:
             'log_names' => ['Access'],
             'events' => ['Failed Login', 'Lockout'],
         ],
+        'failed_logins' => [
+            'label' => 'Failed Logins',
+            'icon' => 'heroicon-o-exclamation-triangle',
+            'log_names' => ['Access'],
+            'events' => ['Failed Login'],
+            'date_preset' => 'last_7_days',
+        ],
+        'destructive_recent' => [
+            'label' => 'Recent Destructive',
+            'icon' => 'heroicon-o-fire',
+            'events' => ['Deleted', 'Force Deleted'],
+            'date_preset' => 'last_7_days',
+        ],
+        'auth_anomalies' => [
+            'label' => 'Auth Anomalies',
+            'icon' => 'heroicon-o-finger-print',
+            'log_names' => ['Access'],
+            'events' => ['Failed Login', 'Lockout', 'Two Factor Recovery'],
+            'date_preset' => 'last_30_days',
+        ],
     ],
 ],
 ```
@@ -112,6 +132,8 @@ The current widgets cover:
 - top users
 - top events
 - high-risk actions
+
+Widget stat cards and chart headings can be used as drill-down shortcuts into the activity review page. Each shortcut opens the resource with the matching saved preset tab active.
 
 ![Activity overview dashboard widgets](/art/activity-review-dashboard-widgets.png)
 

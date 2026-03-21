@@ -112,6 +112,26 @@ return [
                 'log_names' => ['Access'],
                 'events' => [\MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN, 'Lockout'],
             ],
+            'failed_logins' => [
+                'label' => 'Failed Logins',
+                'icon' => 'heroicon-o-exclamation-triangle',
+                'log_names' => ['Access'],
+                'events' => [\MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN],
+                'date_preset' => 'last_7_days',
+            ],
+            'destructive_recent' => [
+                'label' => 'Recent Destructive',
+                'icon' => 'heroicon-o-fire',
+                'events' => ['Deleted', \MrAdder\FilamentLogger\Support\ActivityEvents::FORCE_DELETED],
+                'date_preset' => 'last_7_days',
+            ],
+            'auth_anomalies' => [
+                'label' => 'Auth Anomalies',
+                'icon' => 'heroicon-o-finger-print',
+                'log_names' => ['Access'],
+                'events' => [\MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN, 'Lockout', 'Two Factor Recovery'],
+                'date_preset' => 'last_30_days',
+            ],
         ],
     ],
 

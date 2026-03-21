@@ -4,7 +4,9 @@ namespace MrAdder\FilamentLogger\Widgets;
 
 use Filament\Widgets\ChartWidget;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
+use MrAdder\FilamentLogger\Support\ActivityReviewLink;
 
 class HighRiskActionsChartWidget extends ChartWidget
 {
@@ -39,6 +41,13 @@ class HighRiskActionsChartWidget extends ChartWidget
 
     public function getHeading(): string | Htmlable | null
     {
-        return 'High-Risk Actions';
+        $heading = 'High-Risk Actions';
+        $url = ActivityReviewLink::toSavedPreset('high_risk');
+
+        if (! $url) {
+            return $heading;
+        }
+
+        return new HtmlString('<a href="'.e($url).'">'.e($heading).'</a>');
     }
 }
