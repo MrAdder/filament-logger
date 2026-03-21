@@ -167,6 +167,35 @@ Playbooks provide one-click review paths by bundling a saved tab preset with an 
 ],
 ```
 
+### Playbooks Quick Start
+
+1. Keep the default `activity_playbooks` config or add your own keys.
+2. Open the Activity resource and use the **Playbooks** header action.
+3. Click a playbook to open the matching review tab and date scope automatically.
+
+### Custom Playbook Example
+
+You can add a custom playbook for your own workflow:
+
+```php
+'activity_playbooks' => [
+    'sensitive_changes_last_24h' => [
+        'label' => 'Sensitive Changes (24h)',
+        'icon' => 'heroicon-o-key',
+        'preset' => 'high_risk',
+        'date_preset' => 'last_24_hours',
+    ],
+],
+```
+
+### Deep-Link Example
+
+Playbook links are resolved to Activity resource query parameters. Equivalent deep links can be built directly:
+
+```text
+/admin/activity-logs?activeTab=high_risk&tableFilters[created_at][preset]=last_30_days
+```
+
 The Activity page header includes a **Playbooks** action group, and dashboard drill-down links use these playbooks to open coherent filtered review views.
 
 ![Activity overview dashboard widgets](/art/activity-review-dashboard-widgets.png)
