@@ -10,24 +10,22 @@ use MrAdder\FilamentLogger\Widgets\TopUsersChartWidget;
 it('registers dashboard widgets as livewire components', function () {
     $resolver = static function (string $alias): ?string {
         $livewire = Livewire::getFacadeRoot();
+        $resolved = null;
 
         if (method_exists($livewire, 'new')) {
             try {
-                return get_class(Livewire::new($alias));
+                $resolved = get_class(Livewire::new($alias));
             } catch (\Throwable) {
-                return null;
+                $resolved = null;
             }
+        } elseif (
+            (method_exists($livewire, 'exists') && Livewire::exists($alias))
+            || (method_exists($livewire, 'isDiscoverable') && Livewire::isDiscoverable($alias))
+        ) {
+            $resolved = '__registered__';
         }
 
-        if (method_exists($livewire, 'exists') && Livewire::exists($alias)) {
-            return '__registered__';
-        }
-
-        if (method_exists($livewire, 'isDiscoverable') && Livewire::isDiscoverable($alias)) {
-            return '__registered__';
-        }
-
-        return null;
+        return $resolved;
     };
 
     expect($resolver('mr-adder.filament-logger.widgets.activity-overview-widget'))->toBeIn([
