@@ -2,6 +2,18 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.1.2 - 2026-03-21
+
+## Summary
+
+- feat: add Laravel 13 support across package constraints, CI, and docs by @MrAdder in #38
+
+## Contributors
+
+@MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.1.1...v1.1.2
+
 ## v1.1.1 - 2026-03-19
 
 ## Summary
