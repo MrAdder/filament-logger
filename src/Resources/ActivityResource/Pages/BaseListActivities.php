@@ -7,6 +7,8 @@ use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\ListRecords;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
 use MrAdder\FilamentLogger\Support\ActivityFilterPresetManager;
+use MrAdder\FilamentLogger\Support\ActivityReviewLink;
+use MrAdder\FilamentLogger\Support\ActivityReviewPlaybookManager;
 use MrAdder\FilamentLogger\Widgets\ActivityOverviewWidget;
 use MrAdder\FilamentLogger\Widgets\ActivityTrendChartWidget;
 use MrAdder\FilamentLogger\Widgets\HighRiskActionsChartWidget;
@@ -23,12 +25,36 @@ abstract class BaseListActivities extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        if (! config('filament-logger.exports.enabled', true)) {
-            return [];
+        $actions = [];
+
+        $playbookActions = collect(ActivityReviewPlaybookManager::all())
+            ->map(function (array $playbook, string $key): ?Action {
+                $url = ActivityReviewLink::toPlaybook($key);
+
+                if (! $url) {
+                    return null;
+                }
+
+                return Action::make('playbook_'.$key)
+                    ->label((string) data_get($playbook, 'label', ActivityReviewPlaybookManager::label($key)))
+                    ->icon(data_get($playbook, 'icon'))
+                    ->url($url);
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        if ($playbookActions !== []) {
+            $actions[] = ActionGroup::make($playbookActions)
+                ->label('Playbooks')
+                ->icon('heroicon-o-book-open');
         }
 
-        return [
-            ActionGroup::make([
+        if (! config('filament-logger.exports.enabled', true)) {
+            return $actions;
+        }
+
+        $actions[] = ActionGroup::make([
                 Action::make('exportCsv')
                     ->label('Export CSV')
                     ->icon('heroicon-o-table-cells')
@@ -38,9 +64,10 @@ abstract class BaseListActivities extends ListRecords
                     ->icon('heroicon-o-code-bracket')
                     ->action(fn (): StreamedResponse => $this->exportJson()),
             ])
-                ->label('Export')
-                ->icon('heroicon-o-arrow-down-tray'),
-        ];
+            ->label('Export')
+            ->icon('heroicon-o-arrow-down-tray');
+
+        return $actions;
     }
 
     public function getTabs(): array

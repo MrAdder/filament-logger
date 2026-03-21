@@ -8,6 +8,27 @@ final class ActivityReviewLink
 {
     public static function toSavedPreset(string $preset): ?string
     {
+        return self::toUrl([
+            'activeTab' => $preset,
+        ]);
+    }
+
+    public static function toPlaybook(string $playbook): ?string
+    {
+        $parameters = ActivityReviewPlaybookManager::toUrlParameters($playbook);
+
+        if ($parameters === []) {
+            return null;
+        }
+
+        return self::toUrl($parameters);
+    }
+
+    /**
+     * @param  array<string, mixed>  $parameters
+     */
+    protected static function toUrl(array $parameters): ?string
+    {
         $resource = config('filament-logger.activity_resource');
 
         if (! is_string($resource) || ! class_exists($resource) || ! is_callable([$resource, 'getUrl'])) {
@@ -15,7 +36,7 @@ final class ActivityReviewLink
         }
 
         try {
-            return $resource::getUrl('index', ['activeTab' => $preset]);
+            return $resource::getUrl('index', $parameters);
         } catch (Throwable) {
             return null;
         }

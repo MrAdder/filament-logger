@@ -42,6 +42,6 @@ class HighRiskActionsChartWidget extends ChartWidget
 
     public function getHeading(): string | Htmlable | null
     {
-        return $this->activityReviewHeading('High-Risk Actions', 'high_risk');
+        return $this->activityReviewHeadingForPlaybook('High-Risk Actions', 'high_risk_incidents');
     }
 }

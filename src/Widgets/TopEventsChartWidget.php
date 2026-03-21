@@ -42,6 +42,6 @@ class TopEventsChartWidget extends ChartWidget
 
     public function getHeading(): string | Htmlable | null
     {
-        return $this->activityReviewHeading('Top Events', 'all');
+        return $this->activityReviewHeadingForPlaybook('Top Events', 'all_activity');
     }
 }

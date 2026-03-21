@@ -83,6 +83,8 @@ return [
         'top_limit' => 5,
     ],
 
+    'activity_playbooks' => \MrAdder\FilamentLogger\Support\ActivityReviewPlaybookManager::DEFAULT_PLAYBOOKS,
+
     'activity_filters' => [
         'date_presets' => [
             'today' => 'Today',

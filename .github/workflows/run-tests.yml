@@ -19,9 +19,6 @@ on:
       - 'art/**'
       - 'docs/**'
 
-permissions:
-  contents: read
-
 concurrency:
   group: run-tests-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -35,6 +32,8 @@ jobs:
     name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }} / Filament ${{ matrix.filament }} / ${{ matrix.stability }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
+    permissions:
+      contents: read
 
     strategy:
       fail-fast: false
@@ -160,6 +159,53 @@ jobs:
           composer require "filament/filament:${{ matrix.filament }}" --no-update
           composer require --dev "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-update
           composer update --${{ matrix.stability }} --prefer-dist --with-all-dependencies --no-progress
+
+      - name: Execute tests
+        run: vendor/bin/pest --no-coverage
+
+  laravel13-filament5-required:
+    name: Laravel 13 / Filament 5 Required Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: test
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
+        with:
+          php-version: '8.3'
+          extensions: none, curl, dom, fileinfo, intl, mbstring, openssl, pdo_sqlite, simplexml, sqlite, tokenizer, xml, xmlreader, xmlwriter, zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Resolve Composer cache directory
+        id: composer-cache
+        shell: bash
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v5
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-8.3-laravel-13-testbench-11-filament-5-required-composer-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.3-laravel-13-testbench-11-filament-5-required-composer-
+            ${{ runner.os }}-php-8.3-composer-
+            ${{ runner.os }}-composer-
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install Laravel 13 + Filament 5 dependencies
+        run: |
+          composer require "filament/filament:5.*" --no-update
+          composer require --dev "laravel/framework:13.*" "orchestra/testbench:11.*" --no-update
+          composer update --prefer-stable --prefer-dist --with-all-dependencies --no-progress
 
       - name: Execute tests
         run: vendor/bin/pest --no-coverage
