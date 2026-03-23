@@ -302,7 +302,7 @@
                 @forelse ($groupedRows as $group => $rowsInGroup)
                     @if ($groupedRows->count() > 1)
                         <div class="fi-in-activity-diff-group">
-                            {{ \\Illuminate\\Support\\Str::headline((string) $group) }}
+                            {{ \Illuminate\Support\Str::headline((string) $group) }}
                         </div>
                     @endif
 
@@ -313,8 +313,8 @@
                                 data-label="{{ __('Field') }}"
                             >
                                 @if ($row['is_nested'] ?? false)
-                                    <span class="fi-in-activity-diff-path-parent">{{ \\Illuminate\\Support\\Str::beforeLast($row['field'], '.') }}</span>
-                                    <span class="fi-in-activity-diff-path-leaf">{{ \\Illuminate\\Support\\Str::afterLast($row['field'], '.') }}</span>
+                                    <span class="fi-in-activity-diff-path-parent">{{ \Illuminate\Support\Str::beforeLast($row['field'], '.') }}</span>
+                                    <span class="fi-in-activity-diff-path-leaf">{{ \Illuminate\Support\Str::afterLast($row['field'], '.') }}</span>
                                 @else
                                     {{ $row['field'] }}
                                 @endif
