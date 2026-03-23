@@ -2,6 +2,18 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.2.1 - 2026-03-23
+
+## Summary
+
+- No user-facing changes in this release.
+
+## Contributors
+
+@MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.2.0...v1.2.1
+
 ## v1.2.0 - 2026-03-21
 
 ## Summary
