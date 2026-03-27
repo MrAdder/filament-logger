@@ -2,6 +2,22 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.2.2 - 2026-03-27
+
+## Summary
+
+- chore: update GitHub repository link in install command by @sescongene in #44
+
+## Maintenance
+
+- chore(deps): bump release-drafter/release-drafter from 6.4.0 to 7.1.1 by @[dependabot[bot]](https://github.com/apps/dependabot) in #43
+
+## Contributors
+
+@MrAdder, @dependabot[bot], @sescongene and [dependabot[bot]](https://github.com/apps/dependabot)
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.2.1...v1.2.2
+
 ## v1.2.1 - 2026-03-23
 
 ## Summary
