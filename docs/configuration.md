@@ -63,6 +63,22 @@ Auth event logging is configurable per event:
 
 The 2FA recovery event is only registered when the Fortify event class is available.
 
+In multi-guard applications, you can scope guard-based access logging with `access.guards`:
+
+```php
+'access' => [
+    'guards' => ['web'],
+],
+```
+
+Guard filter behavior:
+
+- `null` (default): log access events for all guards
+- `['web']` (or any list): for events with a `guard` property (`Login`, `Logout`, `Failed`), only listed guards are logged
+- events without a `guard` property (`Lockout`, `PasswordReset`, and optional Fortify recovery-code events) continue to be logged
+
+This keeps panel access logs focused in apps that also have storefront or customer guards.
+
 You can also redact stored IP addresses at view/export time for users who do not pass the sensitive-data policy ability:
 
 ```php
