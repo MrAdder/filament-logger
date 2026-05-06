@@ -18,6 +18,10 @@ class AccessLogger
 {
     public function handle(mixed $event): void
     {
+        if (! $this->shouldLogEvent($event)) {
+            return;
+        }
+
         [$eventName, $description, $properties, $causer] = match (true) {
             $event instanceof Login => [
                 'Login',
@@ -123,5 +127,20 @@ class AccessLogger
             && class_basename($event) === 'RecoveryCodeReplaced'
             && property_exists($event, 'user')
             && ($event->user instanceof Authenticatable);
+    }
+
+    protected function shouldLogEvent(mixed $event): bool
+    {
+        $allowedGuards = config('filament-logger.access.guards');
+
+        if ($allowedGuards === null) {
+            return true;
+        }
+
+        if (! is_object($event) || ! property_exists($event, 'guard')) {
+            return true;
+        }
+
+        return in_array($event->guard, (array) $allowedGuards, true);
     }
 }
