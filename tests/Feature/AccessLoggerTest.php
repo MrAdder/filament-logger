@@ -59,3 +59,31 @@ it('logs the expanded set of auth events with sanitized metadata', function () {
 
     expect(data_get($recovery->properties->toArray(), 'used_recovery_code'))->toBeTrue();
 });
+
+it('filters guard-based access events when an allow-list is configured', function () {
+    config()->set('filament-logger.access.guards', ['web']);
+
+    $user = TestUser::query()->create([
+        'name' => 'Taylor',
+        'email' => 'taylor@example.com',
+    ]);
+
+    $request = Request::create('/login', 'POST', [
+        'email' => 'taylor@example.com',
+        'password' => 'super-secret',
+    ]);
+    $request->server->set('REMOTE_ADDR', '192.168.1.44');
+    $request->headers->set('User-Agent', 'Mozilla/5.0 (Test Browser)');
+    $this->app->instance('request', $request);
+
+    $logger = new AccessLogger();
+
+    $logger->handle(new Login('customer', $user, false));
+
+    expect(Activity::query()->count())->toBe(0);
+
+    $logger->handle(new Login('web', $user, false));
+
+    expect(Activity::query()->count())->toBe(1)
+        ->and(Activity::query()->firstOrFail()->event)->toBe('Login');
+});

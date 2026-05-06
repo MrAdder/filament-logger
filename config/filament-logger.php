@@ -213,6 +213,7 @@ return [
         'logger' => \MrAdder\FilamentLogger\Loggers\AccessLogger::class,
         'color' => 'danger',
         'log_name' => 'Access',
+        'guards' => null,
         'store_ip' => true,
         'anonymize_ip' => true,
         'redact_ip_for_unauthorized_viewers' => false,

@@ -87,6 +87,34 @@ public function panel(Panel $panel): Panel
 - [Custom Events and Alerts](https://mradder.github.io/filament-logger/custom-events)
 - [Roadmap](https://mradder.github.io/filament-logger/roadmap)
 
+## Filtering By Auth Guard
+
+In multi-guard applications, you can scope access-event logging to specific guards.
+
+Set `access.guards` to an allow-list:
+
+```php
+'access' => [
+    // ...
+    'guards' => ['web'],
+],
+```
+
+Behavior:
+
+- `null` (default): log access events from all guards (backward compatible behavior)
+- `['web']` (or any list): for events that include a `guard` property (`Login`, `Logout`, `Failed`), only the listed guards are logged
+- events without a `guard` property (`Lockout`, `PasswordReset`, and optional Fortify recovery-code events) continue to be logged
+
+Example for a Filament panel + storefront app:
+
+```php
+'access' => [
+    // Log only panel auth events from the web guard.
+    'guards' => ['web'],
+],
+```
+
 ## Screenshots
 
 <img alt="Filament Logger dashboard widgets" src="https://raw.githubusercontent.com/MrAdder/filament-logger/main/art/activity-review-dashboard-widgets.png">
