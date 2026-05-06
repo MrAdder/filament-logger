@@ -2,6 +2,29 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.2.3 - 2026-05-06
+
+## Summary
+
+- fix: add guard allow-list for access logger in multi-guard apps by @MrAdder in #54
+
+## Maintenance
+
+- chore(deps-dev): bump postcss from 8.5.8 to 8.5.14 in the npm\_and\_yarn group across 1 directory by @[dependabot[bot]](https://github.com/apps/dependabot) in #52
+- chore(deps): bump release-drafter/release-drafter from 7.2.0 to 7.2.1 by @[dependabot[bot]](https://github.com/apps/dependabot) in #51
+- chore(deps): bump dependabot/fetch-metadata from 3.0.0 to 3.1.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #50
+- chore(deps): bump actions/upload-pages-artifact from 4 to 5 by @[dependabot[bot]](https://github.com/apps/dependabot) in #48
+- chore(deps): bump release-drafter/release-drafter from 7.1.1 to 7.2.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #49
+- chore(deps): bump actions/configure-pages from 5 to 6 by @[dependabot[bot]](https://github.com/apps/dependabot) in #47
+- chore(deps): bump actions/deploy-pages from 4 to 5 by @[dependabot[bot]](https://github.com/apps/dependabot) in #46
+- chore(deps): bump dependabot/fetch-metadata from 2.5.0 to 3.0.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #45
+
+## Contributors
+
+@MrAdder, @dependabot[bot], @github-actions[bot] and [dependabot[bot]](https://github.com/apps/dependabot)
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.2.2...v1.2.3
+
 ## v1.2.2 - 2026-03-27
 
 ## Summary
