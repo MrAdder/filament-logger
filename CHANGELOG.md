@@ -2,6 +2,23 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.2.4 - 2026-05-18
+
+## Summary
+
+- Added polish lang by @finus16 in #57
+- Document access.guards config for multi-guard apps by @MrAdder in #55
+
+## Maintenance
+
+- chore(deps): bump release-drafter/release-drafter from 7.2.1 to 7.3.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #56
+
+## Contributors
+
+@MrAdder, @dependabot[bot], @finus16, @github-actions[bot] and [dependabot[bot]](https://github.com/apps/dependabot)
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.2.3...v1.2.4
+
 ## v1.2.3 - 2026-05-06
 
 ## Summary
