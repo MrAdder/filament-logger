@@ -91,10 +91,10 @@ abstract class BaseListActivities extends ListRecords
                         ActivityExportPresetManager::apply($query, $preset);
                     }
 
-                    $metadata = [
+                    $metadata = $this->buildExportMetadata([
                         'preset' => $key,
                         'embed' => config('filament-logger.exports.embed_metadata', false),
-                    ];
+                    ]);
 
                     return app(ActivityExporter::class)->toCsv($query, $columns, $metadata);
                 });
@@ -116,10 +116,10 @@ abstract class BaseListActivities extends ListRecords
                         ActivityExportPresetManager::apply($query, $preset);
                     }
 
-                    $metadata = [
+                    $metadata = $this->buildExportMetadata([
                         'preset' => $key,
                         'embed' => config('filament-logger.exports.embed_metadata', false),
-                    ];
+                    ]);
 
                     return app(ActivityExporter::class)->toJson($query, $columns, $metadata);
                 });
@@ -194,19 +194,19 @@ abstract class BaseListActivities extends ListRecords
     {
         $columns = config('filament-logger.exports.columns');
 
-        $metadata = [
-            'exported_at' => now()->toIso8601String(),
-            'exported_by' => optional(auth()->user())->id ?? null,
-            'exported_by_name' => optional(auth()->user())->name ?? null,
-            'columns' => $columns,
-            'filters' => request()->query(),
-            'source' => static::getResource(),
-        ];
-
-        return app(ActivityExporter::class)->toCsv($this->getTableQueryForExport(), $columns, $metadata);
+        return app(ActivityExporter::class)->toCsv($this->getTableQueryForExport(), $columns, $this->buildExportMetadata());
     }
 
     public function exportJson(): StreamedResponse
+    {
+        $columns = config('filament-logger.exports.columns');
+
+        return app(ActivityExporter::class)->toJson($this->getTableQueryForExport(), $columns, $this->buildExportMetadata());
+    }
+
+    abstract protected function makeTab(string $label);
+
+    protected function buildExportMetadata(array $overrides = []): array
     {
         $columns = config('filament-logger.exports.columns');
 
@@ -219,8 +219,6 @@ abstract class BaseListActivities extends ListRecords
             'source' => static::getResource(),
         ];
 
-        return app(ActivityExporter::class)->toJson($this->getTableQueryForExport(), $columns, $metadata);
+        return array_merge($metadata, $overrides);
     }
-
-    abstract protected function makeTab(string $label);
 }

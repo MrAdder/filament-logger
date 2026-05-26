@@ -9,6 +9,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\MultiSelect;
 use MrAdder\FilamentLogger\Models\ExportPreset;
+use MrAdder\FilamentLogger\Resources\ExportPresetResourceCommon;
 
 class ExportPresetResourceV4 extends Resource
 {
@@ -20,25 +21,13 @@ class ExportPresetResourceV4 extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->schema([
-            TextInput::make('key')->required()->unique(ExportPreset::class, 'key'),
-            TextInput::make('label')->required(),
-            TextInput::make('icon'),
-            MultiSelect::make('columns')
-                ->options(collect(config('filament-logger.exports.columns'))->mapWithKeys(fn($c) => [$c => $c])->toArray())
-                ->required(),
-        ]);
+        return $schema->schema(static::presetFormSchema());
     }
 
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
-            ->columns([
-                TextColumn::make('key')->label('Key')->searchable(),
-                TextColumn::make('label')->label('Label')->searchable(),
-                TextColumn::make('columns')->label('Columns')->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state),
-                TextColumn::make('created_at')->label('Created')->dateTime(),
-            ])
+            ->columns(static::presetTableColumns())
             ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),

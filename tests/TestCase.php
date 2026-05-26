@@ -85,5 +85,17 @@ class TestCase extends Orchestra
             $table->timestamps();
             $table->softDeletes();
         });
+
+        Schema::create('export_presets', function (Blueprint $table): void {
+            $table->id();
+            $table->string('key')->unique();
+            $table->string('label');
+            $table->string('icon')->nullable();
+            $table->json('columns');
+            $table->json('filters')->nullable();
+            $table->string('visibility')->default('global');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->timestamps();
+        });
     }
 }

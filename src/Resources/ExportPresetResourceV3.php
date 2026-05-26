@@ -14,6 +14,7 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\EditRecord;
 use MrAdder\FilamentLogger\Models\ExportPreset;
+use MrAdder\FilamentLogger\Resources\ExportPresetResourceCommon;
 
 class ExportPresetResourceV3 extends Resource
 {
@@ -25,25 +26,13 @@ class ExportPresetResourceV3 extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form->schema([
-            TextInput::make('key')->required()->unique(ExportPreset::class, 'key'),
-            TextInput::make('label')->required(),
-            TextInput::make('icon'),
-            MultiSelect::make('columns')
-                ->options(collect(config('filament-logger.exports.columns'))->mapWithKeys(fn($c) => [$c => $c])->toArray())
-                ->required(),
-        ]);
+        return $form->schema(static::presetFormSchema());
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                TextColumn::make('key')->label('Key')->searchable(),
-                TextColumn::make('label')->label('Label')->searchable(),
-                TextColumn::make('columns')->label('Columns')->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state),
-                TextColumn::make('created_at')->label('Created')->dateTime(),
-            ])
+            ->columns(static::presetTableColumns())
             ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
