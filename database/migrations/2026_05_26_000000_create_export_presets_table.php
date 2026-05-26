@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('export_presets', function (Blueprint $table): void {
+            $table->id();
+            $table->string('key')->unique();
+            $table->string('label');
+            $table->string('icon')->nullable();
+            $table->json('columns');
+            $table->json('filters')->nullable();
+            $table->string('visibility')->default('global');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('export_presets');
+    }
+};

@@ -75,6 +75,10 @@ return [
             'properties',
             'created_at',
         ],
+        'presets' => [],
+        'db_presets_enabled' => false,
+        'embed_metadata' => false,
+        'manage_ability' => 'manageExportPresets',
     ],
 
     'dashboard' => [
