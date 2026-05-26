@@ -6,7 +6,6 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\Select as FormSelect;
 use Filament\Forms\Components\TextInput as FormTextInput;
-use Filament\Forms\Components\MultiSelect as FormMultiSelect;
 use MrAdder\FilamentLogger\Models\ExportPreset;
 use MrAdder\FilamentLogger\Support\ActivityExportPresetManager;
 use Filament\Resources\Pages\ListRecords;
@@ -76,7 +75,7 @@ abstract class BaseListActivities extends ListRecords
         if ($presetOptions !== []) {
             $exportActions[] = Action::make('exportCsvWithPreset')
                 ->label('Export CSV (preset)')
-                ->form([
+                ->schema([
                     FormSelect::make('preset')
                         ->label('Preset')
                         ->options($presetOptions),
@@ -101,7 +100,7 @@ abstract class BaseListActivities extends ListRecords
 
             $exportActions[] = Action::make('exportJsonWithPreset')
                 ->label('Export JSON (preset)')
-                ->form([
+                ->schema([
                     FormSelect::make('preset')
                         ->label('Preset')
                         ->options($presetOptions),
@@ -129,12 +128,13 @@ abstract class BaseListActivities extends ListRecords
         if (config('filament-logger.exports.db_presets_enabled', false)) {
             $exportActions[] = Action::make('saveExportPreset')
                 ->label('Save Export Preset')
-                ->form([
+                ->schema([
                     FormTextInput::make('key')->required(),
                     FormTextInput::make('label')->required(),
                     FormTextInput::make('icon'),
-                    FormMultiSelect::make('columns')
+                    FormSelect::make('columns')
                         ->label('Columns')
+                        ->multiple()
                         ->options(collect(config('filament-logger.exports.columns'))->mapWithKeys(fn($c) => [$c => $c])->toArray())
                         ->required(),
                 ])

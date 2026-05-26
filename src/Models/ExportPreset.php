@@ -5,6 +5,13 @@ namespace MrAdder\FilamentLogger\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $key
+ * @property string $label
+ * @property string|null $icon
+ * @property array<int, string> $columns
+ * @property array<string, mixed>|null $filters
+ */
 class ExportPreset extends Model
 {
     use HasFactory;

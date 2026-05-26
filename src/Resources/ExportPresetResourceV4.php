@@ -2,21 +2,24 @@
 
 namespace MrAdder\FilamentLogger\Resources;
 
+use BackedEnum;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\MultiSelect;
 use MrAdder\FilamentLogger\Models\ExportPreset;
-use MrAdder\FilamentLogger\Resources\ExportPresetResourceCommon;
+use UnitEnum;
 
 class ExportPresetResourceV4 extends Resource
 {
+    use ExportPresetResourceCommon;
+
     protected static ?string $model = ExportPreset::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-table-cells';
-    protected static ?string $navigationGroup = 'Settings';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-table-cells';
+    protected static string|UnitEnum|null $navigationGroup = 'Settings';
     protected static ?string $navigationLabel = 'Export Presets';
 
     public static function form(Schema $schema): Schema
@@ -29,12 +32,12 @@ class ExportPresetResourceV4 extends Resource
         return $table
             ->columns(static::presetTableColumns())
             ->filters([])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 

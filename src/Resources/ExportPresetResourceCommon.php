@@ -4,7 +4,7 @@ namespace MrAdder\FilamentLogger\Resources;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\MultiSelect;
+use Filament\Forms\Components\Select;
 use MrAdder\FilamentLogger\Models\ExportPreset;
 
 trait ExportPresetResourceCommon
@@ -20,7 +20,8 @@ trait ExportPresetResourceCommon
             TextInput::make('key')->required()->unique(ExportPreset::class, 'key'),
             TextInput::make('label')->required(),
             TextInput::make('icon'),
-            MultiSelect::make('columns')
+            Select::make('columns')
+                ->multiple()
                 ->options(collect(config('filament-logger.exports.columns'))->mapWithKeys(fn($c) => [$c => $c])->toArray())
                 ->required(),
         ];

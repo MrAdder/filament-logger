@@ -2,44 +2,42 @@
 
 namespace MrAdder\FilamentLogger\Resources;
 
-use Filament\Forms;
+use BackedEnum;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Tables;
 use Filament\Resources\Resource;
-use Filament\Resources\Form;
-use Filament\Resources\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\MultiSelect;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Pages\CreateRecord;
-use Filament\Resources\Pages\EditRecord;
+use Filament\Schemas\Schema;
 use MrAdder\FilamentLogger\Models\ExportPreset;
-use MrAdder\FilamentLogger\Resources\ExportPresetResourceCommon;
+use UnitEnum;
 
 class ExportPresetResourceV3 extends Resource
 {
+    use ExportPresetResourceCommon;
+
     protected static ?string $model = ExportPreset::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-table-cells';
-    protected static ?string $navigationGroup = 'Settings';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-table-cells';
+    protected static string|UnitEnum|null $navigationGroup = 'Settings';
     protected static ?string $navigationLabel = 'Export Presets';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema(static::presetFormSchema());
+        return $schema->schema(static::presetFormSchema());
     }
 
-    public static function table(Table $table): Table
+    public static function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns(static::presetTableColumns())
             ->filters([])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 
