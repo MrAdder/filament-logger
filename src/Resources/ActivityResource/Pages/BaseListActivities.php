@@ -73,55 +73,8 @@ abstract class BaseListActivities extends ListRecords
         $presetOptions = ActivityExportPresetManager::options();
 
         if ($presetOptions !== []) {
-            $exportActions[] = Action::make('exportCsvWithPreset')
-                ->label('Export CSV (preset)')
-                ->schema([
-                    FormSelect::make('preset')
-                        ->label('Preset')
-                        ->options($presetOptions),
-                ])
-                ->action(function (array $data): StreamedResponse {
-                    $key = $data['preset'] ?? null;
-                    $preset = ActivityExportPresetManager::saved()[$key] ?? null;
-                    $columns = $preset['columns'] ?? config('filament-logger.exports.columns');
-                    $query = $this->getTableQueryForExport();
-
-                    if ($preset) {
-                        ActivityExportPresetManager::apply($query, $preset);
-                    }
-
-                    $metadata = $this->buildExportMetadata([
-                        'preset' => $key,
-                        'embed' => config('filament-logger.exports.embed_metadata', false),
-                    ]);
-
-                    return app(ActivityExporter::class)->toCsv($query, $columns, $metadata);
-                });
-
-            $exportActions[] = Action::make('exportJsonWithPreset')
-                ->label('Export JSON (preset)')
-                ->schema([
-                    FormSelect::make('preset')
-                        ->label('Preset')
-                        ->options($presetOptions),
-                ])
-                ->action(function (array $data): StreamedResponse {
-                    $key = $data['preset'] ?? null;
-                    $preset = ActivityExportPresetManager::saved()[$key] ?? null;
-                    $columns = $preset['columns'] ?? config('filament-logger.exports.columns');
-                    $query = $this->getTableQueryForExport();
-
-                    if ($preset) {
-                        ActivityExportPresetManager::apply($query, $preset);
-                    }
-
-                    $metadata = $this->buildExportMetadata([
-                        'preset' => $key,
-                        'embed' => config('filament-logger.exports.embed_metadata', false),
-                    ]);
-
-                    return app(ActivityExporter::class)->toJson($query, $columns, $metadata);
-                });
+            $exportActions[] = $this->makePresetExportAction('exportCsvWithPreset', 'Export CSV (preset)', 'csv', $presetOptions);
+            $exportActions[] = $this->makePresetExportAction('exportJsonWithPreset', 'Export JSON (preset)', 'json', $presetOptions);
         }
 
         // Allow saving the current view as a DB preset when enabled
@@ -205,6 +158,41 @@ abstract class BaseListActivities extends ListRecords
     }
 
     abstract protected function makeTab(string $label);
+
+    protected function makePresetExportAction(string $name, string $label, string $format, array $presetOptions): Action
+    {
+        return Action::make($name)
+            ->label($label)
+            ->schema([
+                FormSelect::make('preset')
+                    ->label('Preset')
+                    ->options($presetOptions),
+            ])
+            ->action(fn (array $data): StreamedResponse => $this->runPresetExport($format, $data));
+    }
+
+    protected function runPresetExport(string $format, array $data): StreamedResponse
+    {
+        $key = $data['preset'] ?? null;
+        $preset = ActivityExportPresetManager::saved()[$key] ?? null;
+        $columns = $preset['columns'] ?? config('filament-logger.exports.columns');
+        $query = $this->getTableQueryForExport();
+
+        if ($preset) {
+            ActivityExportPresetManager::apply($query, $preset);
+        }
+
+        $metadata = $this->buildExportMetadata([
+            'preset' => $key,
+            'embed' => config('filament-logger.exports.embed_metadata', false),
+        ]);
+
+        if ($format === 'json') {
+            return app(ActivityExporter::class)->toJson($query, $columns, $metadata);
+        }
+
+        return app(ActivityExporter::class)->toCsv($query, $columns, $metadata);
+    }
 
     protected function buildExportMetadata(array $overrides = []): array
     {
