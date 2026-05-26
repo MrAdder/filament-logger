@@ -14,6 +14,9 @@ use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
+use Illuminate\Support\Facades\Gate;
+use MrAdder\FilamentLogger\Policies\ExportPresetPolicy;
+use MrAdder\FilamentLogger\Models\ExportPreset;
 use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Commands\PruneActivitiesCommand;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
@@ -39,7 +42,8 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
     protected function getResources(): array
     {
         return [
-            config('filament-logger.activity_resource')
+            config('filament-logger.activity_resource'),
+            \MrAdder\FilamentLogger\Resources\ExportPresetResource::class,
         ];
     }
 
@@ -72,6 +76,14 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
         $this->app->singleton(ActivityExporter::class);
         $this->app->singleton(ActivityAnalytics::class);
         $this->app->singleton(FilamentLoggerManager::class);
+    }
+
+    public function registeringPackage(): void
+    {
+        parent::registeringPackage();
+
+        // Register policy for export presets so Filament + Gates honor management permissions
+        Gate::policy(ExportPreset::class, ExportPresetPolicy::class);
     }
 
     public function bootingPackage(): void

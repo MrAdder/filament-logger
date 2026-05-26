@@ -4,6 +4,10 @@ namespace MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Forms\Components\Select as FormSelect;
+use Filament\Forms\Components\TextInput as FormTextInput;
+use MrAdder\FilamentLogger\Models\ExportPreset;
+use MrAdder\FilamentLogger\Support\ActivityExportPresetManager;
 use Filament\Resources\Pages\ListRecords;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
 use MrAdder\FilamentLogger\Support\ActivityFilterPresetManager;
@@ -54,7 +58,7 @@ abstract class BaseListActivities extends ListRecords
             return $actions;
         }
 
-        $actions[] = ActionGroup::make([
+        $exportActions = [
                 Action::make('exportCsv')
                     ->label('Export CSV')
                     ->icon('heroicon-o-table-cells')
@@ -63,7 +67,45 @@ abstract class BaseListActivities extends ListRecords
                     ->label('Export JSON')
                     ->icon('heroicon-o-code-bracket')
                     ->action(fn (): StreamedResponse => $this->exportJson()),
-            ])
+            ];
+
+        // Export using a saved preset (select + export)
+        $presetOptions = ActivityExportPresetManager::options();
+
+        if ($presetOptions !== []) {
+            $exportActions[] = $this->makePresetExportAction('exportCsvWithPreset', 'Export CSV (preset)', 'csv', $presetOptions);
+            $exportActions[] = $this->makePresetExportAction('exportJsonWithPreset', 'Export JSON (preset)', 'json', $presetOptions);
+        }
+
+        // Allow saving the current view as a DB preset when enabled
+        if (config('filament-logger.exports.db_presets_enabled', false)) {
+            $exportActions[] = Action::make('saveExportPreset')
+                ->label('Save Export Preset')
+                ->schema([
+                    FormTextInput::make('key')->required(),
+                    FormTextInput::make('label')->required(),
+                    FormTextInput::make('icon'),
+                    FormSelect::make('columns')
+                        ->label('Columns')
+                        ->multiple()
+                        ->options(collect(config('filament-logger.exports.columns'))->mapWithKeys(fn($c) => [$c => $c])->toArray())
+                        ->required(),
+                ])
+                ->visible(fn () => optional(auth()->user())->can(config('filament-logger.exports.manage_ability', 'manageExportPresets')))
+                ->action(function (array $data): void {
+                    ExportPreset::create([
+                        'key' => $data['key'],
+                        'label' => $data['label'],
+                        'icon' => $data['icon'] ?? null,
+                        'columns' => $data['columns'],
+                        'filters' => request()->query(),
+                        'visibility' => 'global',
+                        'created_by' => optional(auth()->user())->id ?? null,
+                    ]);
+                });
+        }
+
+        $actions[] = ActionGroup::make($exportActions)
             ->label('Export')
             ->icon('heroicon-o-arrow-down-tray');
 
@@ -103,13 +145,68 @@ abstract class BaseListActivities extends ListRecords
 
     public function exportCsv(): StreamedResponse
     {
-        return app(ActivityExporter::class)->toCsv($this->getTableQueryForExport());
+        $columns = config('filament-logger.exports.columns');
+
+        return app(ActivityExporter::class)->toCsv($this->getTableQueryForExport(), $columns, $this->buildExportMetadata());
     }
 
     public function exportJson(): StreamedResponse
     {
-        return app(ActivityExporter::class)->toJson($this->getTableQueryForExport());
+        $columns = config('filament-logger.exports.columns');
+
+        return app(ActivityExporter::class)->toJson($this->getTableQueryForExport(), $columns, $this->buildExportMetadata());
     }
 
     abstract protected function makeTab(string $label);
+
+    protected function makePresetExportAction(string $name, string $label, string $format, array $presetOptions): Action
+    {
+        return Action::make($name)
+            ->label($label)
+            ->schema([
+                FormSelect::make('preset')
+                    ->label('Preset')
+                    ->options($presetOptions),
+            ])
+            ->action(fn (array $data): StreamedResponse => $this->runPresetExport($format, $data));
+    }
+
+    protected function runPresetExport(string $format, array $data): StreamedResponse
+    {
+        $key = $data['preset'] ?? null;
+        $preset = ActivityExportPresetManager::saved()[$key] ?? null;
+        $columns = $preset['columns'] ?? config('filament-logger.exports.columns');
+        $query = $this->getTableQueryForExport();
+
+        if ($preset) {
+            ActivityExportPresetManager::apply($query, $preset);
+        }
+
+        $metadata = $this->buildExportMetadata([
+            'preset' => $key,
+            'embed' => config('filament-logger.exports.embed_metadata', false),
+        ]);
+
+        if ($format === 'json') {
+            return app(ActivityExporter::class)->toJson($query, $columns, $metadata);
+        }
+
+        return app(ActivityExporter::class)->toCsv($query, $columns, $metadata);
+    }
+
+    protected function buildExportMetadata(array $overrides = []): array
+    {
+        $columns = config('filament-logger.exports.columns');
+
+        $metadata = [
+            'exported_at' => now()->toIso8601String(),
+            'exported_by' => optional(auth()->user())->id ?? null,
+            'exported_by_name' => optional(auth()->user())->name ?? null,
+            'columns' => $columns,
+            'filters' => request()->query(),
+            'source' => static::getResource(),
+        ];
+
+        return array_merge($metadata, $overrides);
+    }
 }

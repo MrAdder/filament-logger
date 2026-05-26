@@ -9,12 +9,13 @@ class ActivityExporter
 {
     /**
      * @param  array<int, string>|null  $columns
+     * @param  array<string, mixed>|null $metadata
      */
-    public function toCsv(Builder $query, ?array $columns = null): StreamedResponse
+    public function toCsv(Builder $query, ?array $columns = null, ?array $metadata = null): StreamedResponse
     {
         $columns ??= config('filament-logger.exports.columns', $this->defaultColumns());
 
-        return response()->streamDownload(function () use ($query, $columns): void {
+        $response = response()->streamDownload(function () use ($query, $columns): void {
             $handle = fopen('php://output', 'wb');
 
             if (! is_resource($handle)) {
@@ -31,16 +32,54 @@ class ActivityExporter
         }, 'activity-export-'.now()->format('Ymd-His').'.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+
+        $metadata ??= [];
+        $metadata['exported_at'] = $metadata['exported_at'] ?? now()->toIso8601String();
+        $metadata['columns'] = $metadata['columns'] ?? $columns;
+
+        $embed = (bool) ($metadata['embed'] ?? config('filament-logger.exports.embed_metadata', false));
+
+        if ($embed) {
+            // embed metadata as a top-line comment for CSV
+            $response = response()->streamDownload(function () use ($query, $columns, $metadata): void {
+                $handle = fopen('php://output', 'wb');
+
+                if (! is_resource($handle)) {
+                    return;
+                }
+
+                // write metadata as a JSON comment line
+                fwrite($handle, "#METADATA:" . json_encode($metadata, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n");
+
+                fputcsv($handle, $columns);
+
+                $this->streamRows($query, function (array $row) use ($handle, $columns): void {
+                    fputcsv($handle, array_map(fn (string $column): mixed => $row[$column] ?? null, $columns));
+                });
+
+                fclose($handle);
+            }, 'activity-export-'.now()->format('Ymd-His').'.csv', [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+            ]);
+        }
+
+        try {
+            $response->headers->set('X-Activity-Export-Metadata', json_encode($metadata, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        } catch (\Throwable $_) {
+            // ignore header if metadata cannot be encoded
+        }
+
+        return $response;
     }
 
     /**
      * @param  array<int, string>|null  $columns
+     * @param  array<string, mixed>|null $metadata
      */
-    public function toJson(Builder $query, ?array $columns = null): StreamedResponse
+    public function toJson(Builder $query, ?array $columns = null, ?array $metadata = null): StreamedResponse
     {
         $columns ??= config('filament-logger.exports.columns', $this->defaultColumns());
-
-        return response()->streamDownload(function () use ($query, $columns): void {
+        $response = response()->streamDownload(function () use ($query, $columns): void {
             $first = true;
             echo '[';
 
@@ -61,6 +100,45 @@ class ActivityExporter
         }, 'activity-export-'.now()->format('Ymd-His').'.json', [
             'Content-Type' => 'application/json; charset=UTF-8',
         ]);
+
+        $metadata ??= [];
+        $metadata['exported_at'] = $metadata['exported_at'] ?? now()->toIso8601String();
+        $metadata['columns'] = $metadata['columns'] ?? $columns;
+
+        $embed = (bool) ($metadata['embed'] ?? config('filament-logger.exports.embed_metadata', false));
+
+        if ($embed) {
+            $response = response()->streamDownload(function () use ($query, $columns, $metadata): void {
+                echo json_encode($metadata, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                echo '{"rows":[';
+
+                $first = true;
+                $this->streamRows($query, function (array $row) use (&$first, $columns): void {
+                    if (! $first) {
+                        echo ',';
+                    }
+
+                    $first = false;
+
+                    echo json_encode(
+                        array_intersect_key($row, array_flip($columns)),
+                        JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+                    );
+                });
+
+                echo ']}';
+            }, 'activity-export-'.now()->format('Ymd-His').'.json', [
+                'Content-Type' => 'application/json; charset=UTF-8',
+            ]);
+        }
+
+        try {
+            $response->headers->set('X-Activity-Export-Metadata', json_encode($metadata, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        } catch (\Throwable $_) {
+            // ignore header if metadata cannot be encoded
+        }
+
+        return $response;
     }
 
     protected function streamRows(Builder $query, callable $callback): void
