@@ -49,11 +49,14 @@ class PruneActivitiesCommand extends Command
         }
 
         $count = (clone $query)->count();
+        $breakdown = $this->buildPruningBreakdown(clone $query);
+        $this->components->info($this->formatPruningScopeSummary($days, $logNames, $excludedLogNames));
+        $this->components->info($this->formatPruningBreakdownSummary($breakdown));
 
         if ($count === 0) {
             $this->components->info('No activity records matched the pruning rules.');
         } elseif ($this->option('dry-run')) {
-            $this->components->info("{$count} activity record(s) would be pruned.");
+            $this->components->info("Dry run: {$count} activity record(s) would be pruned.");
         } else {
             $deleted = $query->delete();
 
@@ -75,5 +78,49 @@ class PruneActivitiesCommand extends Command
                 $logNames,
             ),
         )));
+    }
+
+    /**
+     * @param  array<int, string>  $logNames
+     * @param  array<int, string>  $excludedLogNames
+     */
+    protected function formatPruningScopeSummary(int $days, array $logNames, array $excludedLogNames): string
+    {
+        $matchingLogNames = $logNames !== [] ? implode(', ', $logNames) : 'all log names';
+        $excludedLabel = $excludedLogNames !== [] ? implode(', ', $excludedLogNames) : 'none';
+
+        return "Pruning scope: older than {$days} day(s); matching log names: {$matchingLogNames}; excluded log names: {$excludedLabel}.";
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    protected function buildPruningBreakdown($query): array
+    {
+        return $query
+            ->selectRaw('log_name, COUNT(*) as aggregate')
+            ->groupBy('log_name')
+            ->orderBy('log_name')
+            ->pluck('aggregate', 'log_name')
+            ->map(static fn ($value): int => (int) $value)
+            ->all();
+    }
+
+    /**
+     * @param  array<string, int>  $breakdown
+     */
+    protected function formatPruningBreakdownSummary(array $breakdown): string
+    {
+        if ($breakdown === []) {
+            return 'Matching records by log name: none.';
+        }
+
+        $parts = [];
+
+        foreach ($breakdown as $logName => $count) {
+            $parts[] = "{$logName} ({$count})";
+        }
+
+        return 'Matching records by log name: '.implode(', ', $parts).'.';
     }
 }
