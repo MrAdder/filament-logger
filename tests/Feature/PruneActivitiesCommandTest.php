@@ -13,6 +13,13 @@ function createPruneActivity(string $logName, string $description, string $event
     ]);
 }
 
+function setPruneConfig(int $days = 365, array $only = [], array $except = []): void
+{
+    config()->set('filament-logger.pruning.days', $days);
+    config()->set('filament-logger.pruning.only', $only);
+    config()->set('filament-logger.pruning.except', $except);
+}
+
 function pruneActivitiesCommand(\MrAdder\FilamentLogger\Tests\TestCase $test, array $commandOptions = [])
 {
     return $test->artisan('filament-logger:prune', $commandOptions);
@@ -26,12 +33,32 @@ function expectPruneSummary($command, string $scopeSummary, string $breakdownSum
         ->expectsOutputToContain($resultSummary);
 }
 
-it('prunes only matching old activity records', function () {
-    config()->set('filament-logger.pruning.days', 30);
-    config()->set('filament-logger.pruning.only', ['Access']);
+function seedOldAccessRecord(string $description, int $daysAgo = 40): void
+{
+    createPruneActivity('Access', $description, 'Login', $daysAgo);
+}
 
-    createPruneActivity('Access', 'Old access record', 'Login', 40);
-    createPruneActivity('Notification', 'Old notification record', 'Notification Sent', 40);
+function seedOldNotificationRecord(string $description, int $daysAgo = 40): void
+{
+    createPruneActivity('Notification', $description, 'Notification Sent', $daysAgo);
+}
+
+function assertActivityDescriptions(array $descriptions): void
+{
+    expect(Activity::query()->orderBy('id')->pluck('description')->all())
+        ->toBe($descriptions);
+}
+
+function assertActivityCount(int $count): void
+{
+    expect(Activity::query()->count())->toBe($count);
+}
+
+it('prunes only matching old activity records', function () {
+    setPruneConfig(30, ['Access']);
+
+    seedOldAccessRecord('Old access record');
+    seedOldNotificationRecord('Old notification record');
     createPruneActivity('Access', 'Recent access record', 'Login', 5);
 
     expectPruneSummary(
@@ -42,17 +69,16 @@ it('prunes only matching old activity records', function () {
     )
         ->assertSuccessful();
 
-    expect(Activity::query()->orderBy('id')->pluck('description')->all())
-        ->toBe([
-            'Old notification record',
-            'Recent access record',
-        ]);
+    assertActivityDescriptions([
+        'Old notification record',
+        'Recent access record',
+    ]);
 });
 
 it('supports dry-run pruning', function () {
-    config()->set('filament-logger.pruning.days', 30);
+    setPruneConfig(30);
 
-    createPruneActivity('Access', 'Old access record', 'Login', 40);
+    seedOldAccessRecord('Old access record');
 
     expectPruneSummary(
         pruneActivitiesCommand($this, ['--dry-run' => true]),
@@ -62,15 +88,13 @@ it('supports dry-run pruning', function () {
     )
         ->assertSuccessful();
 
-    expect(Activity::query()->count())->toBe(1);
+    assertActivityCount(1);
 });
 
 it('reports when nothing matches pruning rules', function () {
-    config()->set('filament-logger.pruning.days', 30);
-    config()->set('filament-logger.pruning.only', ['Access']);
-    config()->set('filament-logger.pruning.except', ['Notification']);
+    setPruneConfig(30, ['Access'], ['Notification']);
 
-    createPruneActivity('Notification', 'Old notification record', 'Notification Sent', 40);
+    seedOldNotificationRecord('Old notification record');
 
     expectPruneSummary(
         pruneActivitiesCommand($this),
@@ -80,15 +104,14 @@ it('reports when nothing matches pruning rules', function () {
     )
         ->assertSuccessful();
 
-    expect(Activity::query()->count())->toBe(1);
+    assertActivityCount(1);
 });
 
 it('reports real prune summaries with excluded log names', function () {
-    config()->set('filament-logger.pruning.days', 30);
-    config()->set('filament-logger.pruning.except', ['Notification']);
+    setPruneConfig(30, [], ['Notification']);
 
-    createPruneActivity('Access', 'Old access record', 'Login', 40);
-    createPruneActivity('Notification', 'Old notification record', 'Notification Sent', 40);
+    seedOldAccessRecord('Old access record');
+    seedOldNotificationRecord('Old notification record');
 
     expectPruneSummary(
         pruneActivitiesCommand($this),
@@ -98,8 +121,7 @@ it('reports real prune summaries with excluded log names', function () {
     )
         ->assertSuccessful();
 
-    expect(Activity::query()->orderBy('id')->pluck('description')->all())
-        ->toBe([
-            'Old notification record',
-        ]);
+    assertActivityDescriptions([
+        'Old notification record',
+    ]);
 });
