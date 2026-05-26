@@ -74,7 +74,7 @@ it('prunes only matching old activity records', function () {
         ->assertSuccessful();
 
     assertActivityDescriptions([
-        'Old notification record',
+        PRUNE_NOTIFICATION_RECORD_DESCRIPTION,
         'Recent access record',
     ]);
 });
@@ -126,6 +126,6 @@ it('reports real prune summaries with excluded log names', function () {
         ->assertSuccessful();
 
     assertActivityDescriptions([
-        'Old notification record',
+        PRUNE_NOTIFICATION_RECORD_DESCRIPTION,
     ]);
 });
