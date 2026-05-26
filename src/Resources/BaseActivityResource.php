@@ -86,7 +86,7 @@ abstract class BaseActivityResource extends AbstractActivityResource
         return [
             // Search across high-value fields: description, causer name, subject type and properties
             Filter::make('search')
-                ->form([
+                ->schema([
                     TextInput::make('query')
                         ->label(static::resourceLabel('search'))
                         ->placeholder(__('filament-logger::filament-logger.resource.placeholder.search')),
