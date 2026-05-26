@@ -86,16 +86,8 @@ class TestCase extends Orchestra
             $table->softDeletes();
         });
 
-        Schema::create('export_presets', function (Blueprint $table): void {
-            $table->id();
-            $table->string('key')->unique();
-            $table->string('label');
-            $table->string('icon')->nullable();
-            $table->json('columns');
-            $table->json('filters')->nullable();
-            $table->string('visibility')->default('global');
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->timestamps();
-        });
+        /** @var \Illuminate\Database\Migrations\Migration $migration */
+        $migration = require dirname(__DIR__).'/database/migrations/2026_05_26_000000_create_export_presets_table.php';
+        $migration->up();
     }
 }
