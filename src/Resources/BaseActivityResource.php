@@ -84,6 +84,29 @@ abstract class BaseActivityResource extends AbstractActivityResource
     protected static function getTableFilters(): array
     {
         return [
+            // Search across high-value fields: description, causer name, subject type and properties
+            Filter::make('search')
+                ->schema([
+                    TextInput::make('query')
+                        ->label(static::resourceLabel('search'))
+                        ->placeholder(__('filament-logger::filament-logger.resource.placeholder.search')),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    $search = $data['query'] ?? null;
+
+                    if (! filled($search)) {
+                        return $query;
+                    }
+
+                    return $query->where(function (Builder $q) use ($search) {
+                        $q->where('description', 'like', "%{$search}%")
+                            ->orWhere('subject_type', 'like', "%{$search}%")
+                            ->orWhere('properties', 'like', "%{$search}%")
+                            ->orWhereHas('causer', function (Builder $q2) use ($search) {
+                                $q2->where('name', 'like', "%{$search}%");
+                            });
+                    });
+                }),
             SelectFilter::make('log_name')
                 ->label(static::resourceLabel('type'))
                 ->options(ActivityResourceTableOptions::logNames()),

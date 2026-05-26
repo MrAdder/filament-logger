@@ -22,7 +22,7 @@ class ActivityResourceV3 extends BaseActivityResource
 
     protected static function configureFilterFields(Filter $filter, array $fields): Filter
     {
-        return $filter->form($fields);
+        return $filter->schema($fields);
     }
 
     protected static function makeInfolistSection(string $label): InfolistSection

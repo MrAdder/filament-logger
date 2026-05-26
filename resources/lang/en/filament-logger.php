@@ -20,6 +20,8 @@ return [
     'resource.label.type' => 'Type',
     'resource.label.event' => 'Event',
     'resource.label.logged_at' => 'Logged At',
+    'resource.label.search' => 'Search',
+    'resource.placeholder.search' => 'Search description, subject, user or tags',
     'resource.label.properties' => 'Properties',
     'resource.label.old' => 'Old',
     'resource.label.new' => 'New',

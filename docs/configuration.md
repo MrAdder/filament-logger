@@ -185,4 +185,17 @@ You can define your own log names and colors:
     'default_log_name' => 'Custom',
     'color' => 'primary',
 ],
+
+## Search
+
+The activity table includes a broad search box that scans multiple high-value fields to help investigations when you only have partial context. The search looks across:
+
+- `description`
+- `subject_type`
+- `causer` name
+- `properties` JSON (useful for tags or payload values)
+
+Search integrates with existing filters and sorting — it's implemented as a table filter, so applying a search term will narrow results alongside any selected filters or sort order. The search performs SQL `LIKE` matching against these fields (for JSON payloads it performs a `LIKE` against the JSON column), so behavior is predictable across supported database engines.
+
+If you need more advanced full-text search (language-aware stemming, ranking, or very large datasets), consider integrating a dedicated search engine (e.g., Meilisearch, Algolia, or database full-text indexes) and adapting the filter's query logic.
 ```
