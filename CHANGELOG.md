@@ -2,6 +2,24 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.4.0 - 2026-05-26
+
+## Summary
+
+- Improve pruning dry-run summaries and reporting by @MrAdder in #61
+- Add export metadata + DB-backed export presets and admin UI by @MrAdder in #60
+- Add broad multi-field activity search (description, subject, causer, tags) by @MrAdder in #59
+
+## Maintenance
+
+- chore(deps): bump release-drafter/release-drafter from 7.3.0 to 7.3.1 by @[dependabot[bot]](https://github.com/apps/dependabot) in #58
+
+## Contributors
+
+@MrAdder, @dependabot[bot], @github-actions[bot] and [dependabot[bot]](https://github.com/apps/dependabot)
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.2.4...v1.4.0
+
 ## v1.2.4 - 2026-05-18
 
 ## Summary
