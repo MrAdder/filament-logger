@@ -2,6 +2,10 @@
 
 use Spatie\Activitylog\Models\Activity;
 
+const PRUNE_ACCESS_RECORD_DESCRIPTION = 'Old access record';
+const PRUNE_NOTIFICATION_RECORD_DESCRIPTION = 'Old notification record';
+const PRUNE_ACCESS_BREAKDOWN_SUMMARY = 'Matching records by log name: Access (1).';
+
 function createPruneActivity(string $logName, string $description, string $event, int $daysAgo): void
 {
     Activity::query()->create([
@@ -57,14 +61,14 @@ function assertActivityCount(int $count): void
 it('prunes only matching old activity records', function () {
     setPruneConfig(30, ['Access']);
 
-    seedOldAccessRecord('Old access record');
-    seedOldNotificationRecord('Old notification record');
+    seedOldAccessRecord(PRUNE_ACCESS_RECORD_DESCRIPTION);
+    seedOldNotificationRecord(PRUNE_NOTIFICATION_RECORD_DESCRIPTION);
     createPruneActivity('Access', 'Recent access record', 'Login', 5);
 
     expectPruneSummary(
         pruneActivitiesCommand($this),
         'Pruning scope: older than 30 day(s); matching log names: Access; excluded log names: none.',
-        'Matching records by log name: Access (1).',
+        PRUNE_ACCESS_BREAKDOWN_SUMMARY,
         'Pruned 1 activity record(s).',
     )
         ->assertSuccessful();
@@ -78,12 +82,12 @@ it('prunes only matching old activity records', function () {
 it('supports dry-run pruning', function () {
     setPruneConfig(30);
 
-    seedOldAccessRecord('Old access record');
+    seedOldAccessRecord(PRUNE_ACCESS_RECORD_DESCRIPTION);
 
     expectPruneSummary(
         pruneActivitiesCommand($this, ['--dry-run' => true]),
         'Pruning scope: older than 30 day(s); matching log names: all log names; excluded log names: none.',
-        'Matching records by log name: Access (1).',
+        PRUNE_ACCESS_BREAKDOWN_SUMMARY,
         'Dry run: 1 activity record(s) would be pruned.',
     )
         ->assertSuccessful();
@@ -94,7 +98,7 @@ it('supports dry-run pruning', function () {
 it('reports when nothing matches pruning rules', function () {
     setPruneConfig(30, ['Access'], ['Notification']);
 
-    seedOldNotificationRecord('Old notification record');
+    seedOldNotificationRecord(PRUNE_NOTIFICATION_RECORD_DESCRIPTION);
 
     expectPruneSummary(
         pruneActivitiesCommand($this),
@@ -110,13 +114,13 @@ it('reports when nothing matches pruning rules', function () {
 it('reports real prune summaries with excluded log names', function () {
     setPruneConfig(30, [], ['Notification']);
 
-    seedOldAccessRecord('Old access record');
-    seedOldNotificationRecord('Old notification record');
+    seedOldAccessRecord(PRUNE_ACCESS_RECORD_DESCRIPTION);
+    seedOldNotificationRecord(PRUNE_NOTIFICATION_RECORD_DESCRIPTION);
 
     expectPruneSummary(
         pruneActivitiesCommand($this),
         'Pruning scope: older than 30 day(s); matching log names: all log names; excluded log names: Notification.',
-        'Matching records by log name: Access (1).',
+        PRUNE_ACCESS_BREAKDOWN_SUMMARY,
         'Pruned 1 activity record(s).',
     )
         ->assertSuccessful();
