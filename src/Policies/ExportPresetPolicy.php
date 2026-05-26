@@ -4,7 +4,6 @@ namespace MrAdder\FilamentLogger\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
-use MrAdder\FilamentLogger\Models\ExportPreset;
 
 class ExportPresetPolicy
 {
@@ -20,7 +19,7 @@ class ExportPresetPolicy
         return $user->can($this->manageAbility());
     }
 
-    public function view(UserContract $user, ExportPreset $preset): bool
+    public function view(UserContract $user, mixed ...$unused): bool
     {
         return $user->can($this->manageAbility());
     }
@@ -30,22 +29,22 @@ class ExportPresetPolicy
         return $user->can($this->manageAbility());
     }
 
-    public function update(UserContract $user, ExportPreset $preset): bool
+    public function update(UserContract $user, mixed ...$unused): bool
     {
         return $user->can($this->manageAbility());
     }
 
-    public function delete(UserContract $user, ExportPreset $preset): bool
+    public function delete(UserContract $user, mixed ...$unused): bool
     {
         return $user->can($this->manageAbility());
     }
 
-    public function restore(UserContract $user, ExportPreset $preset): bool
+    public function restore(UserContract $user, mixed ...$unused): bool
     {
         return $user->can($this->manageAbility());
     }
 
-    public function forceDelete(UserContract $user, ExportPreset $preset): bool
+    public function forceDelete(UserContract $user, mixed ...$unused): bool
     {
         return $user->can($this->manageAbility());
     }

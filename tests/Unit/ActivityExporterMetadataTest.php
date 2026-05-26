@@ -4,7 +4,7 @@ use Spatie\Activitylog\Models\Activity as ActivityModel;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
 
 it('adds export metadata header for csv exports', function () {
-    $first = ActivityModel::create([
+    ActivityModel::create([
         'log_name' => 'default',
         'description' => 'Updated email address for user',
         'subject_type' => 'App\\Models\\User',

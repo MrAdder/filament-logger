@@ -8,7 +8,7 @@ use Spatie\Activitylog\Models\Activity as ActivityModel;
 it('saves and applies a db export preset and exporter uses its columns', function () {
     config(['filament-logger.exports.db_presets_enabled' => true]);
 
-    $preset = ExportPreset::create([
+    ExportPreset::create([
         'key' => 'short',
         'label' => 'Short Export',
         'columns' => ['id', 'description', 'created_at'],
@@ -20,7 +20,7 @@ it('saves and applies a db export preset and exporter uses its columns', functio
     expect(array_key_exists('short', $saved))->toBeTrue();
 
     // create an activity to export
-    $act = ActivityModel::create([
+    ActivityModel::create([
         'log_name' => 'default',
         'description' => 'Short export test',
         'subject_type' => 'App\\Models\\User',
