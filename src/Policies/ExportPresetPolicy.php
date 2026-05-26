@@ -34,29 +34,31 @@ class ExportPresetPolicy
 
     public function update(UserContract $user, ExportPreset $preset): bool
     {
-        $preset->getKeyName();
-
-        return $user->can($this->manageAbility());
+        return $this->canMutatePreset($user, $preset, 'update');
     }
 
     public function delete(UserContract $user, ExportPreset $preset): bool
     {
-        $preset->getKeyName();
-
-        return $user->can($this->manageAbility());
+        return $this->canMutatePreset($user, $preset, 'delete');
     }
 
     public function restore(UserContract $user, ExportPreset $preset): bool
     {
-        $preset->getKeyName();
-
-        return $user->can($this->manageAbility());
+        return $this->canMutatePreset($user, $preset, 'restore');
     }
 
     public function forceDelete(UserContract $user, ExportPreset $preset): bool
     {
+        return $this->canMutatePreset($user, $preset, 'forceDelete');
+    }
+
+    protected function canMutatePreset(UserContract $user, ExportPreset $preset, string $action): bool
+    {
         $preset->getKeyName();
 
-        return $user->can($this->manageAbility());
+        return match ($action) {
+            'update', 'delete', 'restore', 'forceDelete' => $user->can($this->manageAbility()),
+            default => false,
+        };
     }
 }
