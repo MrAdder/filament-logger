@@ -34,5 +34,6 @@ it('finds activities by broad search terms', function () {
             });
     })->get();
 
-    expect($results->pluck('id'))->toContain($first->id)->and->not->toContain($second->id);
+    expect($results->pluck('id'))->toContain($first->id);
+    expect($results->pluck('id'))->not->toContain($second->id);
 });
