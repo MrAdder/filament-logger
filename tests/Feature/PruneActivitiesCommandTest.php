@@ -13,6 +13,11 @@ function createPruneActivity(string $logName, string $description, string $event
     ]);
 }
 
+function pruneActivitiesCommand(\MrAdder\FilamentLogger\Tests\TestCase $test, array $commandOptions = [])
+{
+    return $test->artisan('filament-logger:prune', $commandOptions);
+}
+
 function expectPruneSummary($command, string $scopeSummary, string $breakdownSummary, string $resultSummary)
 {
     return $command
@@ -30,7 +35,7 @@ it('prunes only matching old activity records', function () {
     createPruneActivity('Access', 'Recent access record', 'Login', 5);
 
     expectPruneSummary(
-        $this->artisan('filament-logger:prune'),
+        pruneActivitiesCommand($this),
         'Pruning scope: older than 30 day(s); matching log names: Access; excluded log names: none.',
         'Matching records by log name: Access (1).',
         'Pruned 1 activity record(s).',
@@ -50,7 +55,7 @@ it('supports dry-run pruning', function () {
     createPruneActivity('Access', 'Old access record', 'Login', 40);
 
     expectPruneSummary(
-        $this->artisan('filament-logger:prune', ['--dry-run' => true]),
+        pruneActivitiesCommand($this, ['--dry-run' => true]),
         'Pruning scope: older than 30 day(s); matching log names: all log names; excluded log names: none.',
         'Matching records by log name: Access (1).',
         'Dry run: 1 activity record(s) would be pruned.',
@@ -68,7 +73,7 @@ it('reports when nothing matches pruning rules', function () {
     createPruneActivity('Notification', 'Old notification record', 'Notification Sent', 40);
 
     expectPruneSummary(
-        $this->artisan('filament-logger:prune'),
+        pruneActivitiesCommand($this),
         'Pruning scope: older than 30 day(s); matching log names: Access; excluded log names: Notification.',
         'Matching records by log name: none.',
         'No activity records matched the pruning rules.',
@@ -86,7 +91,7 @@ it('reports real prune summaries with excluded log names', function () {
     createPruneActivity('Notification', 'Old notification record', 'Notification Sent', 40);
 
     expectPruneSummary(
-        $this->artisan('filament-logger:prune'),
+        pruneActivitiesCommand($this),
         'Pruning scope: older than 30 day(s); matching log names: all log names; excluded log names: Notification.',
         'Matching records by log name: Access (1).',
         'Pruned 1 activity record(s).',
