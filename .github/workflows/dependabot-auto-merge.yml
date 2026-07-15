@@ -1,11 +1,15 @@
-name: dependabot-auto-merge
+name: Dependabot Auto Merge
+
 on:
   pull_request_target:
-    types: [opened, reopened, synchronize]
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 permissions:
-  pull-requests: write
   contents: write
+  pull-requests: write
 
 concurrency:
   group: dependabot-auto-merge-${{ github.event.pull_request.number }}
@@ -13,17 +17,18 @@ concurrency:
 
 jobs:
   dependabot:
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && !github.event.pull_request.draft
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' && ! github.event.pull_request.draft }}
+
     steps:
-      - name: Dependabot metadata
+      - name: Fetch Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v3.1.0
         with:
-          github-token: "${{ secrets.ADDER }}"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge for patch and minor updates
-        if: ${{ contains(fromJSON('["version-update:semver-patch","version-update:semver-minor"]'), steps.metadata.outputs.update-type) }}
+        if: contains(fromJSON('["version-update:semver-patch","version-update:semver-minor"]'), steps.metadata.outputs.update-type)
         run: gh pr merge --auto --merge "${{ github.event.pull_request.html_url }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.ADDER }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
