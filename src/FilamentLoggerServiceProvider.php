@@ -2,8 +2,10 @@
 
 namespace MrAdder\FilamentLogger;
 
+use Filament\Actions\ReplicateAction as ActionsReplicateAction;
 use Filament\Facades\Filament;
 use Filament\Panel;
+use Filament\Tables\Actions\ReplicateAction as TablesReplicateAction;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Auth\Events\Login;
@@ -20,6 +22,7 @@ use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
 use MrAdder\FilamentLogger\Models\ExportPreset;
 use MrAdder\FilamentLogger\Policies\ExportPresetPolicy;
+use MrAdder\FilamentLogger\Resources\ExportPresetResource;
 use MrAdder\FilamentLogger\Support\ActivityAlertDispatcher;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
@@ -47,7 +50,7 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
     {
         return [
             config('filament-logger.activity_resource'),
-            \MrAdder\FilamentLogger\Resources\ExportPresetResource::class,
+            ExportPresetResource::class,
         ];
     }
 
@@ -220,14 +223,18 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
         });
     }
 
+    /**
+     * Filament 3 keeps the replicate action under Tables\Actions; Filament 4
+     * and 5 moved it to Actions. Exactly one of the two exists at a time.
+     */
     protected function resolveReplicateActionClass(): ?string
     {
-        if (class_exists(\Filament\Tables\Actions\ReplicateAction::class)) {
-            return \Filament\Tables\Actions\ReplicateAction::class;
+        if (class_exists(TablesReplicateAction::class)) {
+            return TablesReplicateAction::class;
         }
 
-        if (class_exists(\Filament\Actions\ReplicateAction::class)) {
-            return \Filament\Actions\ReplicateAction::class;
+        if (class_exists(ActionsReplicateAction::class)) {
+            return ActionsReplicateAction::class;
         }
 
         return null;

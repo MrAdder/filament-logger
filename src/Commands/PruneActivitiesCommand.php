@@ -4,6 +4,7 @@ namespace MrAdder\FilamentLogger\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\ActivitylogServiceProvider;
 
 class PruneActivitiesCommand extends Command
@@ -94,7 +95,7 @@ class PruneActivitiesCommand extends Command
     }
 
     /**
-     * @param  \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>  $query
+     * @param  Builder<Model>  $query
      * @return array<string, int>
      */
     protected function buildPruningBreakdown(Builder $query): array

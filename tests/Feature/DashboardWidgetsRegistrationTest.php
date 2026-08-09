@@ -15,7 +15,7 @@ it('registers dashboard widgets as livewire components', function () {
         if (method_exists($livewire, 'new')) {
             try {
                 $resolved = get_class(Livewire::new($alias));
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 $resolved = null;
             }
         } elseif (

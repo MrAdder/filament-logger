@@ -53,10 +53,10 @@ class FilamentLogger
      * @param  array{
      *     properties?: array<string, mixed>,
      *     logName?: string|null,
-     *     causer?: \Illuminate\Database\Eloquent\Model|int|string|null,
-     *     subject?: \Illuminate\Database\Eloquent\Model|null,
+     *     causer?: Model|int|string|null,
+     *     subject?: Model|null,
      *     anonymous?: bool,
-     *     createdAt?: \DateTimeInterface|null,
+     *     createdAt?: DateTimeInterface|null,
      *     risk?: string|null,
      *     tags?: array<int, string>,
      *     riskReasons?: array<int, string>

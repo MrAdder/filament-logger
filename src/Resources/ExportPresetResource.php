@@ -2,7 +2,9 @@
 
 namespace MrAdder\FilamentLogger\Resources;
 
-if (class_exists(\Filament\Schemas\Schema::class)) {
+use Filament\Schemas\Schema;
+
+if (class_exists(Schema::class)) {
     class ExportPresetResource extends ExportPresetResourceV4 {}
 } else {
     class ExportPresetResource extends ExportPresetResourceV3 {}

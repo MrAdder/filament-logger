@@ -2,6 +2,7 @@
 
 use Filament\Tables\Filters\BaseFilter;
 use MrAdder\FilamentLogger\Resources\ActivityResource;
+use MrAdder\FilamentLogger\Resources\ActivityResource\Pages\BaseListActivities;
 
 /**
  * Filament renamed the filter and action form APIs between v3 (`form()`) and
@@ -21,7 +22,7 @@ function invokeProtected(object|string $target, string $method): mixed
  * The list page class differs per Filament version, so tests must go through
  * the same resolver the resource uses rather than naming a class directly.
  *
- * @return class-string<\MrAdder\FilamentLogger\Resources\ActivityResource\Pages\BaseListActivities>
+ * @return class-string<BaseListActivities>
  */
 function listActivitiesPage(): string
 {

@@ -1,5 +1,6 @@
 <?php
 
+use MrAdder\FilamentLogger\Loggers\ModelLogger;
 use MrAdder\FilamentLogger\Support\PreviousAttributesStore;
 use MrAdder\FilamentLogger\Tests\Fixtures\Models\TestRecord;
 
@@ -23,7 +24,7 @@ it('releases remembered attributes when an update produces no loggable changes',
     config()->set('filament-logger.models.enabled', true);
     config()->set('filament-logger.models.ignore', ['counter', 'updated_at']);
 
-    $logger = new MrAdder\FilamentLogger\Loggers\ModelLogger;
+    $logger = new ModelLogger;
     $record = TestRecord::create(['name' => 'Tracked', 'counter' => 0]);
 
     $record->counter = 5;
@@ -40,7 +41,7 @@ it('releases remembered attributes when an update produces no loggable changes',
 });
 
 it('releases remembered attributes after a logged update', function () {
-    $logger = new MrAdder\FilamentLogger\Loggers\ModelLogger;
+    $logger = new ModelLogger;
     $record = TestRecord::create(['name' => 'Tracked']);
 
     $record->name = 'Renamed';
@@ -52,7 +53,7 @@ it('releases remembered attributes after a logged update', function () {
 });
 
 it('bounds the fallback store so it cannot grow without limit', function () {
-    $logger = new MrAdder\FilamentLogger\Loggers\ModelLogger;
+    $logger = new ModelLogger;
 
     // Simulate updates that never reach updated(), e.g. a rolled back
     // transaction, which is the path that used to leak.

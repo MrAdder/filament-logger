@@ -6,6 +6,7 @@ use Filament\Facades\Filament;
 use Filament\FilamentServiceProvider;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
@@ -86,7 +87,7 @@ class TestCase extends Orchestra
             $table->softDeletes();
         });
 
-        /** @var \Illuminate\Database\Migrations\Migration $migration */
+        /** @var Migration $migration */
         $migration = require dirname(__DIR__).'/database/migrations/2026_05_26_000000_create_export_presets_table.php';
         $migration->up();
     }

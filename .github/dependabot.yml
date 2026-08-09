@@ -10,3 +10,16 @@ updates:
       interval: "daily"
     labels:
       - "dependencies"
+
+  # laravel/pint is pinned to an exact version in composer.json so that CI and
+  # local runs always apply the same formatting rules. Dependabot is what turns
+  # a Pint release into a deliberate PR (where any reformatting is reviewed)
+  # rather than a surprise failure on an unrelated pull request.
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    allow:
+      - dependency-name: "laravel/pint"

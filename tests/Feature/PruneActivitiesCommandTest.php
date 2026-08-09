@@ -1,5 +1,6 @@
 <?php
 
+use MrAdder\FilamentLogger\Tests\TestCase;
 use Spatie\Activitylog\Models\Activity;
 
 const PRUNE_ACCESS_RECORD_DESCRIPTION = 'Old access record';
@@ -24,7 +25,7 @@ function setPruneConfig(int $days = 365, array $only = [], array $except = []): 
     config()->set('filament-logger.pruning.except', $except);
 }
 
-function pruneActivitiesCommand(\MrAdder\FilamentLogger\Tests\TestCase $test, array $commandOptions = [])
+function pruneActivitiesCommand(TestCase $test, array $commandOptions = [])
 {
     return $test->artisan('filament-logger:prune', $commandOptions);
 }

@@ -49,6 +49,8 @@ npm run docs:build
 
 Code style is enforced with [Laravel Pint](https://laravel.com/docs/pint) using the config in `pint.json`. Run `composer format` before pushing — CI runs `pint --test` and will fail on unformatted code.
 
+Pint is pinned to an **exact** version in `composer.json`. This package does not commit a `composer.lock`, so an unpinned Pint would let CI resolve a newer release than you have locally and fail on code you never touched — a Pint minor release can add rules to the Laravel preset. Dependabot raises the upgrade as its own PR, where any resulting reformatting is reviewed deliberately. If you bump Pint, run `composer format` in the same PR.
+
 Static analysis runs at PHPStan level 6. The Filament 3 compatibility shims (`ActivityResourceV3`, `ListActivitiesV3`) use an API that no longer exists in Filament 4 and 5, so they are analysed separately:
 
 ```bash

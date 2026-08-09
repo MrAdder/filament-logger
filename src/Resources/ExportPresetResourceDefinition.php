@@ -9,6 +9,9 @@ use Filament\Actions\EditAction;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use MrAdder\FilamentLogger\Models\ExportPreset;
+use MrAdder\FilamentLogger\Resources\ExportPresetResource\Pages\CreateExportPreset;
+use MrAdder\FilamentLogger\Resources\ExportPresetResource\Pages\EditExportPreset;
+use MrAdder\FilamentLogger\Resources\ExportPresetResource\Pages\ListExportPresets;
 use UnitEnum;
 
 trait ExportPresetResourceDefinition
@@ -45,9 +48,9 @@ trait ExportPresetResourceDefinition
     public static function getPages(): array
     {
         return [
-            'index' => \MrAdder\FilamentLogger\Resources\ExportPresetResource\Pages\ListExportPresets::route('/'),
-            'create' => \MrAdder\FilamentLogger\Resources\ExportPresetResource\Pages\CreateExportPreset::route('/create'),
-            'edit' => \MrAdder\FilamentLogger\Resources\ExportPresetResource\Pages\EditExportPreset::route('/{record}/edit'),
+            'index' => ListExportPresets::route('/'),
+            'create' => CreateExportPreset::route('/create'),
+            'edit' => EditExportPreset::route('/{record}/edit'),
         ];
     }
 }

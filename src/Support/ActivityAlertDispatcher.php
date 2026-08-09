@@ -3,6 +3,7 @@
 namespace MrAdder\FilamentLogger\Support;
 
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -56,7 +57,7 @@ class ActivityAlertDispatcher
 
             if ($matches) {
                 $windowMinutes = (int) data_get($rule, 'window_minutes', 10);
-                /** @var \Illuminate\Database\Eloquent\Model&ActivityContract $activity */
+                /** @var Model&ActivityContract $activity */
                 $query = $activity->newQuery()
                     ->where('created_at', '<=', $createdAt)
                     ->where('created_at', '>=', $createdAt->copy()->subMinutes($windowMinutes));

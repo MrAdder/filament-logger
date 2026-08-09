@@ -2,8 +2,10 @@
 
 namespace MrAdder\FilamentLogger\Support;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Spatie\Activitylog\ActivitylogServiceProvider;
+use Spatie\Activitylog\Models\Activity;
 
 class ActivityAnalytics
 {
@@ -100,7 +102,7 @@ class ActivityAnalytics
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder<\Spatie\Activitylog\Models\Activity>
+     * @return Builder<Activity>
      */
     protected function baseQuery(int $days)
     {
@@ -109,7 +111,7 @@ class ActivityAnalytics
     }
 
     /**
-     * @param  Collection<int, \Spatie\Activitylog\Models\Activity>  $items
+     * @param  Collection<int, Activity>  $items
      * @return array{labels: array<int, string>, values: array<int, int>}
      */
     protected function countBy(Collection $items, string $key, int $limit): array

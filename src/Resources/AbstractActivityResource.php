@@ -3,6 +3,7 @@
 namespace MrAdder\FilamentLogger\Resources;
 
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
@@ -99,7 +100,7 @@ abstract class AbstractActivityResource extends Resource
 
     protected static function getListActivitiesPage(): string
     {
-        return class_exists(\Filament\Schemas\Schema::class)
+        return class_exists(Schema::class)
             ? Pages\ListActivities::class
             : Pages\ListActivitiesV3::class;
     }

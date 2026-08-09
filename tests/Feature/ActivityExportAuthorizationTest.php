@@ -2,12 +2,14 @@
 
 use Illuminate\Support\Facades\Gate;
 use MrAdder\FilamentLogger\Resources\ActivityResource;
+use MrAdder\FilamentLogger\Resources\ActivityResource\Pages\BaseListActivities;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * The list page class differs per Filament version, so resolve it the same way
  * the resource does instead of naming one directly.
  *
- * @return class-string<\MrAdder\FilamentLogger\Resources\ActivityResource\Pages\BaseListActivities>
+ * @return class-string<BaseListActivities>
  */
 function exportPageClass(): string
 {
@@ -50,7 +52,7 @@ it('aborts a direct csv export call when the ability is missing', function () {
     $page = new $class;
 
     expect(fn () => $page->exportCsv())
-        ->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+        ->toThrow(HttpException::class);
 });
 
 it('aborts a direct json export call when the ability is missing', function () {
@@ -58,7 +60,7 @@ it('aborts a direct json export call when the ability is missing', function () {
     $page = new $class;
 
     expect(fn () => $page->exportJson())
-        ->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+        ->toThrow(HttpException::class);
 });
 
 it('aborts a direct export call when exports are disabled entirely', function () {
@@ -69,5 +71,5 @@ it('aborts a direct export call when exports are disabled entirely', function ()
     $page = new $class;
 
     expect(fn () => $page->exportCsv())
-        ->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+        ->toThrow(HttpException::class);
 });

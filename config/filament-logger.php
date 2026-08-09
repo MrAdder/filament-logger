@@ -1,5 +1,13 @@
 <?php
 
+use MrAdder\FilamentLogger\Loggers\AccessLogger;
+use MrAdder\FilamentLogger\Loggers\ModelLogger;
+use MrAdder\FilamentLogger\Loggers\NotificationLogger;
+use MrAdder\FilamentLogger\Loggers\ResourceLogger;
+use MrAdder\FilamentLogger\Resources\ActivityResource;
+use MrAdder\FilamentLogger\Support\ActivityEvents;
+use MrAdder\FilamentLogger\Support\ActivityReviewPlaybookManager;
+
 return [
     'datetime_format' => 'd/m/Y H:i:s',
     'date_format' => 'd/m/Y',
@@ -57,8 +65,8 @@ return [
         'high' => [
             'events' => [
                 'Deleted',
-                \MrAdder\FilamentLogger\Support\ActivityEvents::FORCE_DELETED,
-                \MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN,
+                ActivityEvents::FORCE_DELETED,
+                ActivityEvents::FAILED_LOGIN,
                 'Lockout',
             ],
             'change_keys' => [
@@ -113,7 +121,7 @@ return [
         'top_limit' => 5,
     ],
 
-    'activity_playbooks' => \MrAdder\FilamentLogger\Support\ActivityReviewPlaybookManager::DEFAULT_PLAYBOOKS,
+    'activity_playbooks' => ActivityReviewPlaybookManager::DEFAULT_PLAYBOOKS,
 
     'activity_filters' => [
         'date_presets' => [
@@ -136,32 +144,32 @@ return [
             'destructive' => [
                 'label' => 'Deletes',
                 'icon' => 'heroicon-o-trash',
-                'events' => ['Deleted', \MrAdder\FilamentLogger\Support\ActivityEvents::FORCE_DELETED],
+                'events' => ['Deleted', ActivityEvents::FORCE_DELETED],
             ],
             'auth_issues' => [
                 'label' => 'Auth Issues',
                 'icon' => 'heroicon-o-lock-closed',
                 'log_names' => ['Access'],
-                'events' => [\MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN, 'Lockout'],
+                'events' => [ActivityEvents::FAILED_LOGIN, 'Lockout'],
             ],
             'failed_logins' => [
                 'label' => 'Failed Logins',
                 'icon' => 'heroicon-o-exclamation-triangle',
                 'log_names' => ['Access'],
-                'events' => [\MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN],
+                'events' => [ActivityEvents::FAILED_LOGIN],
                 'date_preset' => 'last_7_days',
             ],
             'destructive_recent' => [
                 'label' => 'Recent Destructive',
                 'icon' => 'heroicon-o-fire',
-                'events' => ['Deleted', \MrAdder\FilamentLogger\Support\ActivityEvents::FORCE_DELETED],
+                'events' => ['Deleted', ActivityEvents::FORCE_DELETED],
                 'date_preset' => 'last_7_days',
             ],
             'auth_anomalies' => [
                 'label' => 'Auth Anomalies',
                 'icon' => 'heroicon-o-finger-print',
                 'log_names' => ['Access'],
-                'events' => [\MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN, 'Lockout', 'Two Factor Recovery'],
+                'events' => [ActivityEvents::FAILED_LOGIN, 'Lockout', 'Two Factor Recovery'],
                 'date_preset' => 'last_30_days',
             ],
         ],
@@ -195,7 +203,7 @@ return [
                 'enabled' => true,
                 'label' => 'Destructive activity detected',
                 'channels' => ['mail', 'slack', 'discord'],
-                'events' => ['Deleted', \MrAdder\FilamentLogger\Support\ActivityEvents::FORCE_DELETED],
+                'events' => ['Deleted', ActivityEvents::FORCE_DELETED],
             ],
             'role_changes' => [
                 'enabled' => true,
@@ -209,7 +217,7 @@ return [
                 'channels' => ['mail', 'slack', 'discord'],
                 'type' => 'threshold',
                 'log_names' => ['Access'],
-                'events' => [\MrAdder\FilamentLogger\Support\ActivityEvents::FAILED_LOGIN],
+                'events' => [ActivityEvents::FAILED_LOGIN],
                 'threshold' => 5,
                 'window_minutes' => 10,
             ],
@@ -221,14 +229,14 @@ return [
         'color' => 'primary',
     ],
 
-    'activity_resource' => \MrAdder\FilamentLogger\Resources\ActivityResource::class,
+    'activity_resource' => ActivityResource::class,
     'scoped_to_tenant' => true,
     'navigation_sort' => null,
 
     'resources' => [
         'enabled' => true,
         'log_name' => 'Resource',
-        'logger' => \MrAdder\FilamentLogger\Loggers\ResourceLogger::class,
+        'logger' => ResourceLogger::class,
         'color' => 'success',
 
         'exclude' => [
@@ -250,7 +258,7 @@ return [
 
     'access' => [
         'enabled' => true,
-        'logger' => \MrAdder\FilamentLogger\Loggers\AccessLogger::class,
+        'logger' => AccessLogger::class,
         'color' => 'danger',
         'log_name' => 'Access',
         'guards' => null,
@@ -276,7 +284,7 @@ return [
 
     'notifications' => [
         'enabled' => true,
-        'logger' => \MrAdder\FilamentLogger\Loggers\NotificationLogger::class,
+        'logger' => NotificationLogger::class,
         'color' => null,
         'log_name' => 'Notification',
         'log_recipient' => false,
@@ -287,7 +295,7 @@ return [
         'enabled' => true,
         'log_name' => 'Model',
         'color' => 'warning',
-        'logger' => \MrAdder\FilamentLogger\Loggers\ModelLogger::class,
+        'logger' => ModelLogger::class,
         'ignore' => [
             'updated_at',
             'remember_token',

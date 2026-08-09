@@ -3,6 +3,7 @@
 namespace MrAdder\FilamentLogger\Support;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
@@ -40,7 +41,7 @@ class ActivityExporter
     protected const FORMULA_PREFIXES = ['=', '+', '-', '@', "\t", "\r"];
 
     /**
-     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
+     * @param  Builder<Model>  $query
      * @param  array<int, string>|null  $columns
      * @param  array<string, mixed>|null  $metadata
      */
@@ -79,7 +80,7 @@ class ActivityExporter
     }
 
     /**
-     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
+     * @param  Builder<Model>  $query
      * @param  array<int, string>|null  $columns
      * @param  array<string, mixed>|null  $metadata
      */
@@ -202,7 +203,7 @@ class ActivityExporter
     }
 
     /**
-     * @param  Builder<\Illuminate\Database\Eloquent\Model>  $query
+     * @param  Builder<Model>  $query
      * @param  callable(array<string, mixed>): void  $callback
      */
     protected function streamRows(Builder $query, callable $callback): void
