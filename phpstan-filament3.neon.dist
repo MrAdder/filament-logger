@@ -5,11 +5,20 @@
 #   composer require "filament/filament:3.*" --with-all-dependencies
 #   vendor/bin/phpstan analyse -c phpstan-filament3.neon.dist
 
+includes:
+    - phpstan-baseline.neon
+
 parameters:
     level: 6
     paths:
+        # The Filament 3 implementations of the version-specific hooks.
         - src/Resources/ActivityResourceV3.php
         - src/Resources/ActivityResource/Pages/ListActivitiesV3.php
+        # The shared classes those hooks exist for. Analysing them here is what
+        # catches a version-specific API leaking into shared code, which is how
+        # Filament 3 filter and action schemas silently broke before.
+        - src/Resources/BaseActivityResource.php
+        - src/Resources/ActivityResource/Pages/BaseListActivities.php
     tmpDir: build/phpstan-filament3
     checkOctaneCompatibility: true
     checkModelProperties: true

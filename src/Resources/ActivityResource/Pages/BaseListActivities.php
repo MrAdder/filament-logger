@@ -82,9 +82,9 @@ abstract class BaseListActivities extends ListRecords
 
         // Allow saving the current view as a DB preset when enabled
         if (config('filament-logger.exports.db_presets_enabled', false)) {
-            $exportActions[] = Action::make('saveExportPreset')
-                ->label(static::actionLabel('save_export_preset'))
-                ->schema([
+            $exportActions[] = $this->configureActionSchema(
+                Action::make('saveExportPreset')->label(static::actionLabel('save_export_preset')),
+                [
                     FormTextInput::make('key')
                         ->label(static::fieldLabel('key'))
                         ->required(),
@@ -98,7 +98,8 @@ abstract class BaseListActivities extends ListRecords
                         ->multiple()
                         ->options(ActivityExportPresetManager::columnOptions())
                         ->required(),
-                ])
+                ],
+            )
                 ->visible(fn (): bool => static::canManageExportPresets())
                 ->action(function (array $data): void {
                     abort_unless(static::canManageExportPresets(), 403);
@@ -218,17 +219,29 @@ abstract class BaseListActivities extends ListRecords
     abstract protected function makeTab(string $label);
 
     /**
+     * Attach a form schema to an action.
+     *
+     * Filament 3 actions take their fields through form(); schema() only exists
+     * from Filament 4 onwards, so the call is deferred to the version-specific
+     * page class.
+     *
+     * @param  array<int, mixed>  $schema
+     */
+    abstract protected function configureActionSchema(Action $action, array $schema): Action;
+
+    /**
      * @param  array<string, string>  $presetOptions
      */
     protected function makePresetExportAction(string $name, string $label, string $format, array $presetOptions): Action
     {
-        return Action::make($name)
-            ->label($label)
-            ->schema([
+        return $this->configureActionSchema(
+            Action::make($name)->label($label),
+            [
                 FormSelect::make('preset')
                     ->label(static::fieldLabel('preset'))
                     ->options($presetOptions),
-            ])
+            ],
+        )
             ->action(fn (array $data): StreamedResponse => $this->runPresetExport($format, $data));
     }
 

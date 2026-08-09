@@ -93,33 +93,36 @@ abstract class BaseActivityResource extends AbstractActivityResource
     {
         return [
             // Search across high-value fields: description, causer name, subject type and properties
-            Filter::make('search')
-                ->schema([
+            static::configureFilterFields(
+                Filter::make('search')
+                    ->query(function (Builder $query, array $data): Builder {
+                        $search = $data['query'] ?? null;
+
+                        if (! filled($search)) {
+                            return $query;
+                        }
+
+                        return $query->where(function (Builder $q) use ($search) {
+                            $q->where('description', 'like', "%{$search}%")
+                                ->orWhere('subject_type', 'like', "%{$search}%")
+                                ->orWhereHas('causer', function (Builder $q2) use ($search) {
+                                    $q2->where('name', 'like', "%{$search}%");
+                                });
+
+                            // A LIKE over the JSON properties column can never
+                            // use an index, so it is opt-out for large tables.
+                            if (config('filament-logger.search.include_properties', true)) {
+                                $q->orWhere('properties', 'like', "%{$search}%");
+                            }
+                        });
+                    }),
+                [
                     TextInput::make('query')
                         ->label(static::resourceLabel('search'))
                         ->placeholder(__('filament-logger::filament-logger.resource.placeholder.search')),
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    $search = $data['query'] ?? null;
+                ],
+            ),
 
-                    if (! filled($search)) {
-                        return $query;
-                    }
-
-                    return $query->where(function (Builder $q) use ($search) {
-                        $q->where('description', 'like', "%{$search}%")
-                            ->orWhere('subject_type', 'like', "%{$search}%")
-                            ->orWhereHas('causer', function (Builder $q2) use ($search) {
-                                $q2->where('name', 'like', "%{$search}%");
-                            });
-
-                        // A LIKE over the JSON properties column can never use
-                        // an index, so it is opt-out for large activity tables.
-                        if (config('filament-logger.search.include_properties', true)) {
-                            $q->orWhere('properties', 'like', "%{$search}%");
-                        }
-                    });
-                }),
             SelectFilter::make('log_name')
                 ->label(static::resourceLabel('type'))
                 ->options(ActivityResourceTableOptions::logNames()),

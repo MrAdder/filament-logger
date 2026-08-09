@@ -116,14 +116,19 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
     /**
      * The lifecycle stores are static, so under Octane they would otherwise
      * carry state between requests handled by the same worker.
+     *
+     * The events are referenced by name rather than guarded with class_exists()
+     * so that Octane stays an optional dependency: an event that is never
+     * dispatched simply never fires its listener.
      */
     protected function registerOctaneStateFlushing(): void
     {
-        foreach (['Laravel\\Octane\\Events\\RequestTerminated', 'Laravel\\Octane\\Events\\TaskTerminated'] as $event) {
-            if (! class_exists($event)) {
-                continue;
-            }
+        $events = [
+            'Laravel\\Octane\\Events\\RequestTerminated',
+            'Laravel\\Octane\\Events\\TaskTerminated',
+        ];
 
+        foreach ($events as $event) {
             Event::listen($event, function (): void {
                 PreviousAttributesStore::flush();
             });

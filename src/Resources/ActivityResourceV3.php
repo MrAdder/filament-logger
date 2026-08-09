@@ -21,11 +21,14 @@ class ActivityResourceV3 extends BaseActivityResource
     }
 
     /**
+     * Filament 3 filters take their fields through form(); schema() only
+     * exists from Filament 4 onwards.
+     *
      * @param  array<int, mixed>  $fields
      */
     protected static function configureFilterFields(Filter $filter, array $fields): Filter
     {
-        return $filter->schema($fields);
+        return $filter->form($fields);
     }
 
     protected static function makeInfolistSection(string $label): InfolistSection

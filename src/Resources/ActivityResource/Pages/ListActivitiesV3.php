@@ -2,6 +2,7 @@
 
 namespace MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
 
+use Filament\Actions\Action;
 use Filament\Resources\Components\Tab;
 
 class ListActivitiesV3 extends BaseListActivities
@@ -14,5 +15,13 @@ class ListActivitiesV3 extends BaseListActivities
     protected function makeTab(string $label): Tab
     {
         return Tab::make($label);
+    }
+
+    /**
+     * @param  array<int, mixed>  $schema
+     */
+    protected function configureActionSchema(Action $action, array $schema): Action
+    {
+        return $action->form($schema);
     }
 }
