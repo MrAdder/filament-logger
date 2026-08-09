@@ -35,7 +35,11 @@ jobs:
         uses: actions/configure-pages@v6
 
       - name: Install dependencies
-        run: npm ci
+        # --ignore-scripts blocks lifecycle scripts from every transitive
+        # dependency. Only esbuild and fsevents declare one, and neither is
+        # needed: esbuild resolves its binary through optionalDependencies,
+        # and fsevents is macOS-only.
+        run: npm ci --ignore-scripts
 
       - name: Build VitePress site
         run: npm run docs:build
