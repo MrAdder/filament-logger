@@ -54,7 +54,7 @@ it('can export stored sensitive values for authorized viewers', function () {
 
     $this->actingAs($user);
 
-    $activity = new Activity();
+    $activity = new Activity;
     $activity->forceFill([
         'log_name' => 'Custom',
         'event' => 'Sensitive Export',

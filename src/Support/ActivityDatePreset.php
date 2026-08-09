@@ -53,6 +53,12 @@ class ActivityDatePreset
         };
     }
 
+    /**
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
+     */
     public static function apply(Builder $query, ?string $preset, string $column = 'created_at'): Builder
     {
         $bounds = static::resolve($preset);

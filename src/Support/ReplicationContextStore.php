@@ -8,6 +8,7 @@ use WeakMap;
 
 class ReplicationContextStore
 {
+    /** @var WeakMap<Model, array{type: string, id: mixed, label: string}>|null */
     protected static ?WeakMap $contexts = null;
 
     public static function remember(Model $replica, Model $source): void
@@ -27,8 +28,11 @@ class ReplicationContextStore
         return self::contexts()[$replica] ?? null;
     }
 
+    /**
+     * @return WeakMap<Model, array{type: string, id: mixed, label: string}>
+     */
     protected static function contexts(): WeakMap
     {
-        return self::$contexts ??= new WeakMap();
+        return self::$contexts ??= new WeakMap;
     }
 }

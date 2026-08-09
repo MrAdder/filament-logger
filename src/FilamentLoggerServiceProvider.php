@@ -13,18 +13,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Support\Facades\Event;
-use Livewire\Livewire;
 use Illuminate\Support\Facades\Gate;
-use MrAdder\FilamentLogger\Policies\ExportPresetPolicy;
-use MrAdder\FilamentLogger\Models\ExportPreset;
-use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
+use Livewire\Livewire;
 use MrAdder\FilamentLogger\Commands\PruneActivitiesCommand;
+use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
+use MrAdder\FilamentLogger\Models\ExportPreset;
+use MrAdder\FilamentLogger\Policies\ExportPresetPolicy;
 use MrAdder\FilamentLogger\Support\ActivityAlertDispatcher;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
 use MrAdder\FilamentLogger\Support\ActivityRiskResolver;
 use MrAdder\FilamentLogger\Support\ObserverRegistrar;
+use MrAdder\FilamentLogger\Support\PreviousAttributesStore;
 use MrAdder\FilamentLogger\Support\ReplicationContextStore;
 use MrAdder\FilamentLogger\Widgets\ActivityOverviewWidget;
 use MrAdder\FilamentLogger\Widgets\ActivityTrendChartWidget;
@@ -39,6 +40,9 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'filament-logger';
 
+    /**
+     * @return array<int, class-string>
+     */
     protected function getResources(): array
     {
         return [
@@ -53,15 +57,21 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
             ->hasTranslations()
             ->hasConfigFile()
             ->hasViews()
+            ->hasMigrations([
+                '2026_05_26_000000_create_export_presets_table',
+                '2026_05_26_000001_add_filament_logger_indexes_to_activity_log_table',
+            ])
             ->hasCommand(PruneActivitiesCommand::class)
             ->hasInstallCommand(function (InstallCommand $installCommand) {
                 $installCommand
                     ->publishConfigFile()
+                    ->publishMigrations()
+                    ->askToRunMigrations()
                     ->askToStarRepoOnGitHub('MrAdder/filament-logger')
                     ->startWith(function (InstallCommand $installCommand) {
                         $installCommand->call('vendor:publish', [
                             '--provider' => "Spatie\Activitylog\ActivitylogServiceProvider",
-                            '--tag' => "activitylog-migrations"
+                            '--tag' => 'activitylog-migrations',
                         ]);
                     });
             });
@@ -100,6 +110,24 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
         }
 
         $this->configureReplicateAction();
+        $this->registerOctaneStateFlushing();
+    }
+
+    /**
+     * The lifecycle stores are static, so under Octane they would otherwise
+     * carry state between requests handled by the same worker.
+     */
+    protected function registerOctaneStateFlushing(): void
+    {
+        foreach (['Laravel\\Octane\\Events\\RequestTerminated', 'Laravel\\Octane\\Events\\TaskTerminated'] as $event) {
+            if (! class_exists($event)) {
+                continue;
+            }
+
+            Event::listen($event, function (): void {
+                PreviousAttributesStore::flush();
+            });
+        }
     }
 
     public function packageBooted(): void
@@ -108,12 +136,8 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
 
         $this->registerWidgetComponents();
 
-        $this->app->booted(function (): void {
-            $this->registerWidgetComponents();
-        });
-
         if (config('filament-logger.resources.enabled', true)) {
-            $exceptResources = [...config('filament-logger.resources.exclude'), config('filament-logger.activity_resource')];
+            $exceptResources = [...config('filament-logger.resources.exclude', []), config('filament-logger.activity_resource')];
 
             $loggableResources = collect(Filament::getPanels())
                 ->flatMap(fn (Panel $panel) => $panel->getResources())

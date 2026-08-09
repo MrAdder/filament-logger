@@ -6,7 +6,7 @@ use Filament\Resources\Components\Tab;
 
 class ListActivitiesV3 extends BaseListActivities
 {
-    public function getHeaderWidgetsColumns(): int | string | array
+    public function getHeaderWidgetsColumns(): int|string|array
     {
         return 2;
     }

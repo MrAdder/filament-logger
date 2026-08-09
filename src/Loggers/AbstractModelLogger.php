@@ -19,16 +19,45 @@ abstract class AbstractModelLogger
 
     protected function getUserName(?Authenticatable $user): string
     {
-        if(blank($user) || $user instanceof GenericUser) {
+        if (blank($user) || $user instanceof GenericUser) {
             return 'Anonymous';
         }
 
         return Filament::getUserName($user);
     }
 
-    protected function getModelName(Model $model)
+    protected function getModelName(Model $model): string
     {
-        return Str::of(class_basename($model))->headline();
+        return (string) Str::of(class_basename($model))->headline();
+    }
+
+    /**
+     * Build the human-readable activity description.
+     *
+     * Override this in a custom logger, or register a global callback with
+     * FilamentLogger::describeUsing() to change the wording everywhere.
+     */
+    protected function describe(Model $model, string $event): string
+    {
+        $override = FilamentLoggerManager::resolveDescription($model, $event, $this->getLogName());
+
+        if ($override !== null) {
+            return $override;
+        }
+
+        $description = __('filament-logger::filament-logger.log.description', [
+            'model' => $this->getModelName($model),
+            'event' => $event,
+        ]);
+
+        if (! auth()->check()) {
+            return $description;
+        }
+
+        return __('filament-logger::filament-logger.log.description_by', [
+            'description' => $description,
+            'user' => $this->getUserName(auth()->user()),
+        ]);
     }
 
     /**
@@ -47,6 +76,9 @@ abstract class AbstractModelLogger
         return [];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getLoggableAttributes(Model $model, mixed $values = []): array
     {
         if (! is_array($values)) {
@@ -73,15 +105,9 @@ abstract class AbstractModelLogger
     /**
      * @param  array<string, mixed>  $properties
      */
-    protected function log(Model $model, string $event, ?string $description = null, array $properties = [])
+    protected function log(Model $model, string $event, ?string $description = null, array $properties = []): void
     {
-        if(is_null($description)) {
-            $description = $this->getModelName($model).' '.$event;
-        }
-
-        if (auth()->check()) {
-            $description .= ' by '.$this->getUserName(auth()->user());
-        }
+        $description ??= $this->describe($model, $event);
 
         app(FilamentLoggerManager::class)->log(
             event: $event,
@@ -154,6 +180,10 @@ abstract class AbstractModelLogger
         return method_exists($model, 'isForceDeleting') && $model->isForceDeleting();
     }
 
+    /**
+     * @param  array<string, mixed>  $changes
+     * @param  array<string, mixed>  $previous
+     */
     protected function isRestoreUpdate(Model $model, array $changes, array $previous): bool
     {
         if (! method_exists($model, 'getDeletedAtColumn')) {
@@ -168,7 +198,7 @@ abstract class AbstractModelLogger
             && ($changes[$deletedAtColumn] === null);
     }
 
-    public function created(Model $model)
+    public function created(Model $model): void
     {
         $replicationContext = ReplicationContextStore::get($model);
 
@@ -203,20 +233,23 @@ abstract class AbstractModelLogger
         );
     }
 
-    public function updated(Model $model)
+    public function updated(Model $model): void
     {
         $changes = $this->getLoggableAttributes($model, $model->getChanges());
         $previous = $this->getLoggableAttributes($model, $this->getPreviousAttributes($model));
+
+        // The entry is released on every path. Returning early without it would
+        // leak the remembered attributes for the lifetime of the process.
+        PreviousAttributesStore::forget($model);
 
         if ($changes === [] || $this->isRestoreUpdate($model, $changes, $previous)) {
             return;
         }
 
         $this->log($model, 'Updated', properties: $this->buildProperties($model, $changes, $previous));
-        PreviousAttributesStore::forget($model);
     }
 
-    public function deleted(Model $model)
+    public function deleted(Model $model): void
     {
         if ($this->isForceDeleting($model)) {
             return;
@@ -225,7 +258,7 @@ abstract class AbstractModelLogger
         $this->log($model, 'Deleted', properties: $this->buildProperties($model, $model->getAttributes()));
     }
 
-    public function restored(Model $model)
+    public function restored(Model $model): void
     {
         $changes = $model->getChanges();
         $previous = $this->getPreviousAttributes($model, true);
@@ -241,7 +274,7 @@ abstract class AbstractModelLogger
         );
     }
 
-    public function forceDeleted(Model $model)
+    public function forceDeleted(Model $model): void
     {
         $this->log($model, 'Force Deleted', properties: $this->buildProperties($model, $model->getAttributes()));
     }

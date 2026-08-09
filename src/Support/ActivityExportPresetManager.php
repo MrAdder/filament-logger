@@ -30,16 +30,38 @@ class ActivityExportPresetManager
         return array_merge($config, $db);
     }
 
+    /**
+     * The exportable columns, as select options.
+     *
+     * @return array<string, string>
+     */
+    public static function columnOptions(): array
+    {
+        $columns = config('filament-logger.exports.columns', []);
+
+        return collect(is_array($columns) ? $columns : [])
+            ->mapWithKeys(fn (mixed $column): array => [(string) $column => (string) $column])
+            ->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
     public static function options(): array
     {
-        return collect(self::saved())->mapWithKeys(fn ($v, $k) => [$k => data_get($v, 'label', (string) $k)])->toArray();
+        return collect(self::saved())
+            ->mapWithKeys(fn (mixed $v, string $k): array => [$k => (string) data_get($v, 'label', $k)])
+            ->all();
     }
 
     /**
      * Apply a preset's filters to a query.
-     * @param Builder $query
-     * @param array<string, mixed> $preset
-     * @return Builder
+     *
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder<TModel>  $query
+     * @param  array<string, mixed>  $preset
+     * @return Builder<TModel>
      */
     public static function apply(Builder $query, array $preset): Builder
     {

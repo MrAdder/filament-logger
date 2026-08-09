@@ -1,0 +1,15 @@
+# Analyses the Filament 3 compatibility shims. Run this with Filament 3
+# installed; the main phpstan.neon.dist excludes these files because their
+# API does not exist in Filament 4 or 5.
+#
+#   composer require "filament/filament:3.*" --with-all-dependencies
+#   vendor/bin/phpstan analyse -c phpstan-filament3.neon.dist
+
+parameters:
+    level: 6
+    paths:
+        - src/Resources/ActivityResourceV3.php
+        - src/Resources/ActivityResource/Pages/ListActivitiesV3.php
+    tmpDir: build/phpstan-filament3
+    checkOctaneCompatibility: true
+    checkModelProperties: true

@@ -1,0 +1,101 @@
+name: Bug report
+description: Report something that is not working as documented.
+title: "[Bug]: "
+labels:
+  - bug
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+
+        If the issue is a security vulnerability, please do not open a public
+        issue — follow the [security policy](https://github.com/MrAdder/filament-logger/security/policy) instead.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A concise description of what is going wrong.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that reliably triggers the problem.
+      placeholder: |
+        1. Configure `filament-logger.alerts.enabled` to true
+        2. Delete a record from a logged resource
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the full error message and stack trace if there is one.
+    validations:
+      required: true
+
+  - type: input
+    id: package_version
+    attributes:
+      label: Filament Logger version
+      placeholder: "1.4.0"
+    validations:
+      required: true
+
+  - type: input
+    id: filament_version
+    attributes:
+      label: Filament version
+      placeholder: "4.3.1"
+    validations:
+      required: true
+
+  - type: input
+    id: laravel_version
+    attributes:
+      label: Laravel version
+      placeholder: "12.0"
+    validations:
+      required: true
+
+  - type: input
+    id: php_version
+    attributes:
+      label: PHP version
+      placeholder: "8.3"
+    validations:
+      required: true
+
+  - type: input
+    id: database
+    attributes:
+      label: Database
+      description: Relevant for anything touching queries, filters, or pruning.
+      placeholder: "MySQL 8.0"
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant configuration
+      description: The parts of your published `config/filament-logger.php` that relate to the problem.
+      render: php
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Screenshots, logs, or anything else that would help.

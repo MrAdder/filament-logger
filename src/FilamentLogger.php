@@ -13,10 +13,41 @@ use Spatie\Activitylog\Contracts\Activity as ActivityContract;
 
 class FilamentLogger
 {
+    /**
+     * Global override for model activity descriptions.
+     *
+     * @var (callable(Model, string, string): ?string)|null
+     */
+    protected static $describeUsing = null;
+
     public function __construct(
         protected ActivityRiskResolver $riskResolver,
         protected ActivityAlertDispatcher $alertDispatcher,
     ) {}
+
+    /**
+     * Customise how model lifecycle activities are described.
+     *
+     * The callback receives the subject, the event, and the log name, and may
+     * return null to fall back to the built-in translated description.
+     *
+     * @param  (callable(Model, string, string): ?string)|null  $callback
+     */
+    public static function describeUsing(?callable $callback): void
+    {
+        static::$describeUsing = $callback;
+    }
+
+    public static function resolveDescription(Model $model, string $event, string $logName): ?string
+    {
+        if (static::$describeUsing === null) {
+            return null;
+        }
+
+        $description = call_user_func(static::$describeUsing, $model, $event, $logName);
+
+        return is_string($description) && filled($description) ? $description : null;
+    }
 
     /**
      * @param  array{

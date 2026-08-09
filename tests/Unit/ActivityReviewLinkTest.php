@@ -52,8 +52,8 @@ it('returns null when no activity resource is configured', function () {
 it('renders chart headings with drill-down links', function () {
     config()->set('filament-logger.activity_resource', ActivityReviewLinkFakeResource::class);
 
-    $highRiskHeading = (string) (new HighRiskActionsChartWidget())->getHeading();
-    $topEventsHeading = (string) (new TopEventsChartWidget())->getHeading();
+    $highRiskHeading = (string) (new HighRiskActionsChartWidget)->getHeading();
+    $topEventsHeading = (string) (new TopEventsChartWidget)->getHeading();
 
     expect($highRiskHeading)
         ->toContain(ActivityReviewLinkFakeResource::ACTIVE_TAB_HIGH_RISK)

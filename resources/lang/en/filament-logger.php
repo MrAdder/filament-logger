@@ -30,4 +30,53 @@ return [
     'resource.label.properties_hint' => 'Can be key or value',
     'resource.label.old_attributes' => 'Old Attribute or Value: ',
     'resource.label.new_attributes' => 'New Attribute or Value: ',
+    'resource.label.changes' => 'Changes',
+    'resource.label.risk' => 'Risk',
+    'resource.label.date_preset' => 'Date preset',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Risk Levels
+    |--------------------------------------------------------------------------
+    */
+
+    'risk.high' => 'High',
+    'risk.medium' => 'Medium',
+    'risk.low' => 'Low',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Review Actions
+    |--------------------------------------------------------------------------
+    */
+
+    'action.playbooks' => 'Playbooks',
+    'action.export' => 'Export',
+    'action.export_csv' => 'Export CSV',
+    'action.export_json' => 'Export JSON',
+    'action.export_csv_preset' => 'Export CSV (preset)',
+    'action.export_json_preset' => 'Export JSON (preset)',
+    'action.save_export_preset' => 'Save export preset',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Shared Field Labels
+    |--------------------------------------------------------------------------
+    */
+
+    'field.preset' => 'Preset',
+    'field.key' => 'Key',
+    'field.label' => 'Label',
+    'field.icon' => 'Icon',
+    'field.columns' => 'Columns',
+    'field.created' => 'Created',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Activity Descriptions
+    |--------------------------------------------------------------------------
+    */
+
+    'log.description' => ':model :event',
+    'log.description_by' => ':description by :user',
 ];

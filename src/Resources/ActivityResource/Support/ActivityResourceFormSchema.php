@@ -26,8 +26,7 @@ final class ActivityResourceFormSchema
 
         /** @var Activity&ActivityModel $record */
         $properties = ActivityViewerPrivacy::sanitizeProperties(
-            $record->properties->except(['attributes', 'old'])
-        , $record);
+            $record->properties->except(['attributes', 'old']), $record);
 
         $schema = [];
 

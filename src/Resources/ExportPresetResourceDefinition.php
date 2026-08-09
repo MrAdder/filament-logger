@@ -18,7 +18,9 @@ trait ExportPresetResourceDefinition
     protected static ?string $model = ExportPreset::class;
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-table-cells';
+
     protected static string|UnitEnum|null $navigationGroup = 'Settings';
+
     protected static ?string $navigationLabel = 'Export Presets';
 
     public static function form(Schema $schema): Schema

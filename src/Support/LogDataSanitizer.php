@@ -43,6 +43,7 @@ class LogDataSanitizer
     }
 
     /**
+     * @param  array<array-key, mixed>  $properties
      * @param  array{preserve_sensitive_data: bool, redact_ip_addresses: bool}  $options
      * @return array<string, mixed>
      */
@@ -104,6 +105,9 @@ class LogDataSanitizer
         return self::maskValue($localPart, 1, 0).'@'.$domain;
     }
 
+    /**
+     * @param  array<int, string>  $keySegments
+     */
     protected static function candidateMatchesKey(string $normalizedKey, array $keySegments, mixed $candidate): bool
     {
         if (! is_string($candidate) || blank($candidate)) {

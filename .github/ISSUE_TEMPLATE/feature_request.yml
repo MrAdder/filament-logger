@@ -1,0 +1,53 @@
+name: Feature request
+description: Suggest a new capability or an improvement to an existing one.
+title: "[Feature]: "
+labels:
+  - enhancement
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check the [roadmap](https://mradder.github.io/filament-logger/roadmap)
+        first — the idea may already be planned for an upcoming release.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What audit or review workflow is awkward today?
+      placeholder: Describe the pain point rather than the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What would you like the package to do instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you have tried, or other designs you weighed.
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Would this change existing behavior?
+      description: The 1.x series is reserved for backwards-compatible changes.
+      options:
+        - "No — purely additive"
+        - "Yes — it would change existing behavior"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Examples, sketches, or links to prior art.

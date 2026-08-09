@@ -135,7 +135,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and [CODE_OF_
 
 ## Security
 
-Please review [our security policy](../../security/policy) for responsible disclosure details.
+Please review [SECURITY.md](SECURITY.md) for supported versions and responsible disclosure details. Do not report vulnerabilities through public issues.
 
 ## Credits
 

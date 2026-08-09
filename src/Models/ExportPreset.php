@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ExportPreset extends Model
 {
+    /** @use HasFactory<\Illuminate\Database\Eloquent\Factories\Factory<self>> */
     use HasFactory;
 
     protected $table = 'export_presets';

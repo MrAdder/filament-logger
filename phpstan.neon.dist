@@ -2,12 +2,16 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
-    level: 4
+    level: 6
     paths:
         - src
         - config
     excludePaths:
         analyse:
+            # These two files target the Filament 3 API (Infolists\Infolist,
+            # Resources\Components\Tab), which does not exist in the Filament
+            # version this run installs. They are analysed by their own config
+            # instead — see phpstan-filament3.neon.dist.
             - src/Resources/ActivityResourceV3.php
             - src/Resources/ActivityResource/Pages/ListActivitiesV3.php
     tmpDir: build/phpstan

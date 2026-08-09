@@ -39,10 +39,24 @@ Useful commands:
 
 ```bash
 composer validate --strict
-vendor/bin/pest
-vendor/bin/phpstan analyse --memory-limit=512M
+composer lint      # vendor/bin/pint --test
+composer format    # vendor/bin/pint
+composer analyse   # vendor/bin/phpstan analyse
+composer test      # vendor/bin/pest
+composer check     # lint + analyse + test
 npm run docs:build
 ```
+
+Code style is enforced with [Laravel Pint](https://laravel.com/docs/pint) using the config in `pint.json`. Run `composer format` before pushing — CI runs `pint --test` and will fail on unformatted code.
+
+Static analysis runs at PHPStan level 6. The Filament 3 compatibility shims (`ActivityResourceV3`, `ListActivitiesV3`) use an API that no longer exists in Filament 4 and 5, so they are analysed separately:
+
+```bash
+composer require "filament/filament:3.*" --with-all-dependencies
+vendor/bin/phpstan analyse -c phpstan-filament3.neon.dist
+```
+
+`phpstan-baseline.neon` is reserved for documented tool false positives. Do not add real findings to it.
 
 ## Pull request expectations
 

@@ -22,6 +22,14 @@ use Spatie\Activitylog\Models\Activity as ActivityModel;
 
 abstract class BaseActivityResource extends AbstractActivityResource
 {
+    /**
+     * Registered by FilamentLoggerServiceProvider::configurePackage() via
+     * hasViews(). Larastan builds its view-string list from the view finder's
+     * directories and drops the namespace prefix, so it cannot recognise a
+     * namespaced package view — see phpstan-baseline.neon.
+     */
+    protected const CHANGES_VIEW = 'filament-logger::infolists.activity-diff';
+
     public static function table(Table $table): Table
     {
         return $table
@@ -48,7 +56,7 @@ abstract class BaseActivityResource extends AbstractActivityResource
                 ->sortable(),
 
             TextColumn::make('properties.risk')
-                ->label('Risk')
+                ->label(static::resourceLabel('risk'))
                 ->badge()
                 ->toggleable()
                 ->color(fn (?string $state): string => match ($state) {
@@ -56,7 +64,7 @@ abstract class BaseActivityResource extends AbstractActivityResource
                     'medium' => 'warning',
                     default => 'gray',
                 })
-                ->formatStateUsing(fn (?string $state): string => $state ? Str::headline($state) : '-'),
+                ->formatStateUsing(fn (?string $state): string => static::riskLabel($state)),
 
             TextColumn::make('description')
                 ->label(static::resourceLabel('description'))
@@ -101,10 +109,15 @@ abstract class BaseActivityResource extends AbstractActivityResource
                     return $query->where(function (Builder $q) use ($search) {
                         $q->where('description', 'like', "%{$search}%")
                             ->orWhere('subject_type', 'like', "%{$search}%")
-                            ->orWhere('properties', 'like', "%{$search}%")
                             ->orWhereHas('causer', function (Builder $q2) use ($search) {
                                 $q2->where('name', 'like', "%{$search}%");
                             });
+
+                        // A LIKE over the JSON properties column can never use
+                        // an index, so it is opt-out for large activity tables.
+                        if (config('filament-logger.search.include_properties', true)) {
+                            $q->orWhere('properties', 'like', "%{$search}%");
+                        }
                     });
                 }),
             SelectFilter::make('log_name')
@@ -126,12 +139,8 @@ abstract class BaseActivityResource extends AbstractActivityResource
                     }),
                 [
                     Select::make('risk')
-                        ->label('Risk')
-                        ->options([
-                            'high' => 'High',
-                            'medium' => 'Medium',
-                            'low' => 'Low',
-                        ]),
+                        ->label(static::resourceLabel('risk'))
+                        ->options(static::riskOptions()),
                 ],
             ),
 
@@ -154,7 +163,7 @@ abstract class BaseActivityResource extends AbstractActivityResource
                         ->label(static::resourceLabel('logged_at'))
                         ->displayFormat(config('filament-logger.date_format', 'd/m/Y')),
                     Select::make('preset')
-                        ->label('Date Preset')
+                        ->label(static::resourceLabel('date_preset'))
                         ->options(ActivityDatePreset::options()),
                 ],
             ),
@@ -198,15 +207,21 @@ abstract class BaseActivityResource extends AbstractActivityResource
     {
         return [
             ViewEntry::make('changes')
-                ->label(__('Changes'))
+                ->label(static::resourceLabel('changes'))
                 ->hiddenLabel()
                 ->state(fn (ActivityModel $record): array => ActivityChangesFormatter::for($record))
-                ->view('filament-logger::infolists.activity-diff'),
+                ->view(self::CHANGES_VIEW),
         ];
     }
 
+    /**
+     * @param  array<int, mixed>  $fields
+     */
     abstract protected static function configureFilterFields(Filter $filter, array $fields): Filter;
 
+    /**
+     * @return mixed
+     */
     abstract protected static function makeInfolistSection(string $label);
 
     protected static function makePropertyValueFilter(
@@ -224,7 +239,7 @@ abstract class BaseActivityResource extends AbstractActivityResource
                         return null;
                     }
 
-                    return static::resourceLabel($indicatorKey) . $value;
+                    return static::resourceLabel($indicatorKey).$value;
                 })
                 ->query(function (Builder $query, array $data) use ($field, $propertyPath): Builder {
                     $value = $data[$field] ?? null;
@@ -258,7 +273,7 @@ abstract class BaseActivityResource extends AbstractActivityResource
             return '-';
         }
 
-        return Str::of($state)->afterLast('\\')->headline() . ' # ' . $record->subject_id;
+        return Str::of($state)->afterLast('\\')->headline().' # '.$record->subject_id;
     }
 
     protected static function formatTitleCaseState(?string $state): string
@@ -269,5 +284,26 @@ abstract class BaseActivityResource extends AbstractActivityResource
     protected static function resourceLabel(string $key): string
     {
         return __("filament-logger::filament-logger.resource.label.{$key}");
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected static function riskOptions(): array
+    {
+        return [
+            'high' => __('filament-logger::filament-logger.risk.high'),
+            'medium' => __('filament-logger::filament-logger.risk.medium'),
+            'low' => __('filament-logger::filament-logger.risk.low'),
+        ];
+    }
+
+    protected static function riskLabel(?string $state): string
+    {
+        if (! $state) {
+            return '-';
+        }
+
+        return static::riskOptions()[$state] ?? Str::headline($state);
     }
 }

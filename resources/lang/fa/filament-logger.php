@@ -2,7 +2,7 @@
 
 return [
 
-  /*
+    /*
   |--------------------------------------------------------------------------
   | Navigation & Resource
   |--------------------------------------------------------------------------
@@ -10,7 +10,7 @@ return [
 
     'nav.group' => 'تنظیمات',
     'nav.log.label' => 'لاگ فعالیت ها',
-  'nav.log.icon' => 'heroicon-o-clipboard-document-list',
+    'nav.log.icon' => 'heroicon-o-clipboard-document-list',
     'resource.label.log' => 'لاگ فعالیت',
     'resource.label.logs' => 'لاگ فعالیت ها',
     'resource.label.user' => 'کاربر',

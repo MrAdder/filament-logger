@@ -14,7 +14,7 @@ class ObserverRegistrar
             return;
         }
 
-        foreach ((new $model())->getObservableEvents() as $event) {
+        foreach ((new $model)->getObservableEvents() as $event) {
             if (! method_exists($observer, $event) || ! method_exists($model, $event)) {
                 continue;
             }

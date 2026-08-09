@@ -13,7 +13,7 @@ it('shows redacted values to viewers without sensitive data access', function ()
     config()->set('filament-logger.access.redact_ip_for_unauthorized_viewers', true);
     config()->set('filament-logger.access.anonymize_ip', false);
 
-    $activity = new Activity();
+    $activity = new Activity;
     $activity->forceFill([
         'properties' => [
             'old' => [
@@ -49,7 +49,7 @@ it('shows stored sensitive values to viewers with sensitive data access', functi
 
     $this->actingAs($user);
 
-    $activity = new Activity();
+    $activity = new Activity;
     $activity->forceFill([
         'properties' => [
             'old' => [
@@ -73,7 +73,7 @@ it('shows stored sensitive values to viewers with sensitive data access', functi
 });
 
 it('flattens nested change payloads into readable field paths', function () {
-    $activity = new Activity();
+    $activity = new Activity;
     $activity->forceFill([
         'properties' => [
             'old' => [
@@ -111,7 +111,7 @@ it('flattens nested change payloads into readable field paths', function () {
 it('marks large nested values as expandable with size metadata', function () {
     config()->set('filament-logger.diff.collapse_after', 40);
 
-    $activity = new Activity();
+    $activity = new Activity;
     $activity->forceFill([
         'properties' => [
             'old' => [

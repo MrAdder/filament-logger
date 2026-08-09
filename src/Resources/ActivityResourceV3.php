@@ -14,12 +14,15 @@ class ActivityResourceV3 extends BaseActivityResource
             static::makeInfolistSection(__('filament-logger::filament-logger.resource.label.log'))
                 ->columns(2)
                 ->schema(static::getInfolistEntries()),
-            static::makeInfolistSection(__('Changes'))
+            static::makeInfolistSection(__('filament-logger::filament-logger.resource.label.changes'))
                 ->columnSpanFull()
                 ->schema(static::getChangeEntries()),
         ]);
     }
 
+    /**
+     * @param  array<int, mixed>  $fields
+     */
     protected static function configureFilterFields(Filter $filter, array $fields): Filter
     {
         return $filter->schema($fields);

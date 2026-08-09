@@ -2,10 +2,11 @@
 
 namespace MrAdder\FilamentLogger\Resources;
 
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
 use MrAdder\FilamentLogger\Models\ExportPreset;
+use MrAdder\FilamentLogger\Support\ActivityExportPresetManager;
 
 trait ExportPresetResourceCommon
 {
@@ -17,12 +18,19 @@ trait ExportPresetResourceCommon
     protected static function presetFormSchema(): array
     {
         return [
-            TextInput::make('key')->required()->unique(ExportPreset::class, 'key'),
-            TextInput::make('label')->required(),
-            TextInput::make('icon'),
+            TextInput::make('key')
+                ->label(static::presetFieldLabel('key'))
+                ->required()
+                ->unique(ExportPreset::class, 'key'),
+            TextInput::make('label')
+                ->label(static::presetFieldLabel('label'))
+                ->required(),
+            TextInput::make('icon')
+                ->label(static::presetFieldLabel('icon')),
             Select::make('columns')
+                ->label(static::presetFieldLabel('columns'))
                 ->multiple()
-                ->options(collect(config('filament-logger.exports.columns'))->mapWithKeys(fn($c) => [$c => $c])->toArray())
+                ->options(ActivityExportPresetManager::columnOptions())
                 ->required(),
         ];
     }
@@ -35,10 +43,23 @@ trait ExportPresetResourceCommon
     protected static function presetTableColumns(): array
     {
         return [
-            TextColumn::make('key')->label('Key')->searchable(),
-            TextColumn::make('label')->label('Label')->searchable(),
-            TextColumn::make('columns')->label('Columns')->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state),
-            TextColumn::make('created_at')->label('Created')->dateTime(),
+            TextColumn::make('key')
+                ->label(static::presetFieldLabel('key'))
+                ->searchable(),
+            TextColumn::make('label')
+                ->label(static::presetFieldLabel('label'))
+                ->searchable(),
+            TextColumn::make('columns')
+                ->label(static::presetFieldLabel('columns'))
+                ->formatStateUsing(fn (mixed $state): string => is_array($state) ? implode(', ', $state) : (string) $state),
+            TextColumn::make('created_at')
+                ->label(static::presetFieldLabel('created'))
+                ->dateTime(),
         ];
+    }
+
+    protected static function presetFieldLabel(string $key): string
+    {
+        return __("filament-logger::filament-logger.field.{$key}");
     }
 }

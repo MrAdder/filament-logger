@@ -169,6 +169,25 @@ Sensitive activity alerts can be throttled per rule to reduce noise from repeate
 
 Cooldown keys are stored in the default cache store unless you set `alerts.cache_store`.
 
+Threshold rules (`'type' => 'threshold'`) alert as soon as the count in the window reaches the threshold, and keep alerting while it stays above it. To keep that to one alert per spike they default their cooldown to `window_minutes`. Set `cooldown_minutes` explicitly to override.
+
+## Alert Delivery
+
+Alerts are dispatched from model observers, so by default a slow or unreachable webhook adds its timeout to the action being audited. Move delivery onto the queue to avoid that:
+
+```php
+'alerts' => [
+    'queue' => true,
+    'queue_connection' => 'redis',
+    'queue_name' => 'audit-alerts',
+    'webhook_timeout' => 5,
+],
+```
+
+With `queue` enabled, mail alerts are queued and webhooks are dispatched as `MrAdder\FilamentLogger\Jobs\SendActivityAlertWebhook`, which retries failed deliveries three times. With it disabled the behaviour is unchanged: everything is sent inline.
+
+Webhook responses are checked. A non-2xx response counts as a failed delivery, which releases the rule cooldown so the next matching activity retries rather than being silently suppressed.
+
 ## Custom Log Names
 
 You can define your own log names and colors:
@@ -185,6 +204,28 @@ You can define your own log names and colors:
     'default_log_name' => 'Custom',
     'color' => 'primary',
 ],
+```
+
+## Activity Descriptions
+
+Model lifecycle descriptions are built from translation lines, so they follow the application locale:
+
+```php
+'log.description' => ':model :event',
+'log.description_by' => ':description by :user',
+```
+
+To change the wording globally without translating, register a callback. Returning `null` falls back to the built-in description:
+
+```php
+use MrAdder\FilamentLogger\Facades\FilamentLogger;
+
+FilamentLogger::describeUsing(function ($subject, string $event, string $logName): ?string {
+    return $subject instanceof \App\Models\Order
+        ? "Order {$subject->reference} {$event}"
+        : null;
+});
+```
 
 ## Search
 
@@ -197,34 +238,98 @@ The activity table includes a broad search box that scans multiple high-value fi
 
 Search integrates with existing filters and sorting — it's implemented as a table filter, so applying a search term will narrow results alongside any selected filters or sort order. The search performs SQL `LIKE` matching against these fields (for JSON payloads it performs a `LIKE` against the JSON column), so behavior is predictable across supported database engines.
 
-If you need more advanced full-text search (language-aware stemming, ranking, or very large datasets), consider integrating a dedicated search engine (e.g., Meilisearch, Algolia, or database full-text indexes) and adapting the filter's query logic.
+A `LIKE` over the JSON `properties` column cannot use an index, which makes it the most expensive part of a broad search. On large activity tables you can drop it and keep search on the indexed columns:
+
+```php
+'search' => [
+    'include_properties' => false,
+],
 ```
+
+If you need more advanced full-text search (language-aware stemming, ranking, or very large datasets), consider integrating a dedicated search engine (e.g., Meilisearch, Algolia, or database full-text indexes) and adapting the filter's query logic.
+
+## Performance
+
+The `log_name` and `subject_type` filter dropdowns are built from `SELECT DISTINCT` over the activity table. That is a full scan, and it runs on every render of the activity list, so the results are cached:
+
+```php
+'performance' => [
+    'cache_store' => null,          // null uses the default store
+    'filter_options_cache_ttl' => 300,  // seconds; 0 disables caching
+    'filter_options_limit' => 200,      // cap on distinct values pulled
+],
+```
+
+A newly seen log name or subject type appears once the cache expires. To refresh it immediately — after a bulk import or a prune, for example — call:
+
+```php
+use MrAdder\FilamentLogger\Resources\ActivityResource\Support\ActivityResourceTableOptions;
+
+ActivityResourceTableOptions::flushCache();
+```
+
+The package also ships an optional migration adding indexes on `created_at` and `(event, created_at)` to the activity log table. Spatie's own migration only indexes `log_name` and the subject/causer morphs, but the resource sorts by `created_at` on every page load. Publish and run it if your audit trail is large:
+
+```bash
+php artisan vendor:publish --tag=filament-logger-migrations
+php artisan migrate
+```
+
+## Export Authorization
+
+Exports bypass table pagination, so they are gated separately from viewing the resource:
+
+```php
+'exports' => [
+    'ability' => 'exportActivity',        // set to null to allow any viewer
+    'manage_ability' => 'manageExportPresets',
+],
+```
+
+Define the ability on your activity policy or as a gate. Without it the export actions are hidden, and calling the export methods directly returns a 403.
 
 ## Exports metadata
 
-Exports generated by the package include a machine-readable metadata JSON blob in the response headers. The header name is `X-Activity-Export-Metadata` and contains useful context about the export such as when it was produced, which columns were included, and the applied filters.
+Exports generated by the package include a machine-readable metadata JSON blob in the response headers. The header name is `X-Activity-Export-Metadata` and contains context about the export such as when it was produced and which columns were included.
 
 Example header contents:
 
-```
+```json
 {
     "exported_at": "2026-05-26T12:00:00+00:00",
     "exported_by": 1,
     "exported_by_name": "alice@example.com",
-    "columns": ["id","description","tags","created_at"],
-    "filters": {"log_name":"Access","date_preset":"last_7_days","search":"email"},
+    "columns": ["id", "description", "tags", "created_at"],
     "source": "MrAdder\\FilamentLogger\\Resources\\ActivityResource"
 }
 ```
 
-Note: By default metadata is delivered in response headers (non-breaking). For embedding metadata inside exports (for example, wrapping JSON results in an envelope) consider customising the exporter in your application — embedding changes file shapes and is therefore opt-in only.
+The applied filters are deliberately **not** in the header — they are unbounded in size and would push the response past the server's header limit. They are included in the in-file metadata instead. The header is dropped entirely if it would exceed 4 KB.
+
+To embed metadata in the file itself, enable `exports.embed_metadata`. This changes the file shape, so it is opt-in:
+
+- **CSV** gains a leading `#METADATA:{...}` comment line before the header row.
+- **JSON** becomes an object, `{"metadata": {...}, "rows": [...]}`, instead of a bare array.
+
+With `embed_metadata` disabled (the default), JSON exports remain a bare array.
+
+### CSV and spreadsheet formulas
+
+Cell values beginning with `=`, `+`, `-`, or `@` are prefixed with a single quote before being written. Audit descriptions carry attacker-influenced text — a model label or a failed-login identifier — and without this a crafted value would execute as a formula when the export is opened in Excel, LibreOffice, or Google Sheets.
 
 ## Export presets
 
 You can define reusable export presets that include a set of columns and optional saved filters. There are two ways to provide presets:
 
 - Config-defined presets: add entries to `filament-logger.exports.presets` in your app config. These are available out of the box without database migrations.
-- DB-backed presets: enable `filament-logger.exports.db_presets_enabled` and run the provided migration to allow creating presets from the UI. DB presets are stored in `export_presets` and can be managed by admins.
+- DB-backed presets: enable `filament-logger.exports.db_presets_enabled`, then publish and run the package migrations to create the `export_presets` table:
+
+  ```bash
+  php artisan vendor:publish --tag=filament-logger-migrations
+  php artisan migrate
+  ```
+
+  DB presets can then be created from the UI by users holding the `exports.manage_ability` ability.
 
 Presets can be used from the activity list page via the "Export (preset)" actions. When exporting with a preset the exporter will use the preset's `columns` and apply the preset's filters to the query. The export response will include the same `X-Activity-Export-Metadata` header described above and will include a `preset` field referencing the preset key.
 

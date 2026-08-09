@@ -25,7 +25,7 @@ it('logs the expanded set of auth events with sanitized metadata', function () {
     $request->headers->set('User-Agent', 'Mozilla/5.0 (Test Browser)');
     $this->app->instance('request', $request);
 
-    $logger = new AccessLogger();
+    $logger = new AccessLogger;
 
     $logger->handle(new Login('web', $user, false));
     $logger->handle(new Failed('web', $user, [
@@ -76,7 +76,7 @@ it('filters guard-based access events when an allow-list is configured', functio
     $request->headers->set('User-Agent', 'Mozilla/5.0 (Test Browser)');
     $this->app->instance('request', $request);
 
-    $logger = new AccessLogger();
+    $logger = new AccessLogger;
 
     $logger->handle(new Login('customer', $user, false));
 

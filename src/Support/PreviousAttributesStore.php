@@ -7,6 +7,15 @@ use WeakMap;
 
 class PreviousAttributesStore
 {
+    /**
+     * Cap on the fallback store. It is keyed by model identity rather than by
+     * object, so nothing but an explicit forget() removes an entry — without a
+     * bound, a long-running worker or an Octane process that updates models
+     * whose changes are never logged would grow it forever.
+     */
+    public const MAX_TRACKED_MODELS = 1000;
+
+    /** @var WeakMap<Model, array<string, mixed>>|null */
     protected static ?WeakMap $attributes = null;
 
     /**
@@ -26,9 +35,27 @@ class PreviousAttributesStore
 
         $modelKey = self::getModelStoreKey($model);
 
-        if ($modelKey !== null) {
-            self::$attributesByModelKey[$modelKey] = $attributes;
+        if ($modelKey === null) {
+            return;
         }
+
+        // Re-inserting moves the key to the end, so the oldest entry stays first.
+        unset(self::$attributesByModelKey[$modelKey]);
+        self::$attributesByModelKey[$modelKey] = $attributes;
+
+        while (count(self::$attributesByModelKey) > self::MAX_TRACKED_MODELS) {
+            array_shift(self::$attributesByModelKey);
+        }
+    }
+
+    /**
+     * Drop everything currently tracked. Registered as an Octane request/tick
+     * listener so state never survives a request in a long-running worker.
+     */
+    public static function flush(): void
+    {
+        self::$attributes = null;
+        self::$attributesByModelKey = [];
     }
 
     /**
@@ -73,9 +100,12 @@ class PreviousAttributesStore
         }
     }
 
+    /**
+     * @return WeakMap<Model, array<string, mixed>>
+     */
     protected static function attributes(): WeakMap
     {
-        return self::$attributes ??= new WeakMap();
+        return self::$attributes ??= new WeakMap;
     }
 
     protected static function getModelStoreKey(Model $model): ?string
@@ -97,7 +127,7 @@ class PreviousAttributesStore
     {
         unset(self::$attributesByModelKey[$modelKey]);
 
-        foreach (self::attributes() as $storedModel => $attributes) {
+        foreach (self::attributes() as $storedModel => $_) {
             if (self::getModelStoreKey($storedModel) !== $modelKey) {
                 continue;
             }

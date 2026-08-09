@@ -67,3 +67,40 @@ jobs:
 
       - name: Run PHPStan
         run: ./vendor/bin/phpstan analyse --memory-limit=512M --error-format=github
+
+  phpstan-filament3:
+    name: phpstan (filament 3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
+        with:
+          php-version: '8.2'
+          extensions: none, curl, dom, fileinfo, intl, mbstring, openssl, pdo_sqlite, simplexml, sqlite, tokenizer, xml, xmlreader, xmlwriter, zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Resolve Composer cache directory
+        id: composer-cache
+        shell: bash
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-8.2-filament3-phpstan-composer-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.2-filament3-phpstan-composer-
+            ${{ runner.os }}-composer-
+
+      - name: Install Filament 3 dependencies
+        run: |
+          composer require "filament/filament:3.*" --no-update
+          composer update --prefer-stable --prefer-dist --with-all-dependencies --no-progress
+
+      - name: Analyse Filament 3 compatibility shims
+        run: ./vendor/bin/phpstan analyse -c phpstan-filament3.neon.dist --memory-limit=512M --error-format=github

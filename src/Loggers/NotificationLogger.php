@@ -4,16 +4,15 @@ namespace MrAdder\FilamentLogger\Loggers;
 
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSent;
+use Illuminate\Support\Str;
 use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
-use Illuminate\Support\Str;
 
 class NotificationLogger
 {
     /**
      * Log the notification
      *
-     * @param  NotificationSent|NotificationFailed  $event
      * @return void
      */
     public function handle(NotificationSent|NotificationFailed $event)
@@ -25,7 +24,7 @@ class NotificationLogger
         } else {
             $description = $notification.' Notification failed';
         }
-        
+
         $recipient = LogDataSanitizer::sanitizeNotificationRecipient(
             $this->getRecipient($event->notifiable, $event->channel)
         );

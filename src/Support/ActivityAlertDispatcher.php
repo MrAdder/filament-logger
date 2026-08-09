@@ -3,10 +3,11 @@
 namespace MrAdder\FilamentLogger\Support;
 
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use MrAdder\FilamentLogger\Jobs\SendActivityAlertWebhook;
 use MrAdder\FilamentLogger\Notifications\SensitiveActivityAlertNotification;
 use Spatie\Activitylog\Contracts\Activity as ActivityContract;
 use Throwable;
@@ -62,7 +63,10 @@ class ActivityAlertDispatcher
 
                 ActivityFilterPresetManager::apply($query, $rule);
 
-                $matches = $query->count() === $threshold;
+                // A burst can push the count past the threshold between two
+                // activities, so an exact match would silently skip the alert.
+                // Repeat alerts are suppressed by the rule cooldown instead.
+                $matches = $query->count() >= $threshold;
             }
         }
 
@@ -129,8 +133,14 @@ class ActivityAlertDispatcher
             return false;
         }
 
-        Notification::route('mail', $recipients)
-            ->notify(new SensitiveActivityAlertNotification($activity, $title));
+        $notifiable = Notification::route('mail', $recipients);
+        $notification = new SensitiveActivityAlertNotification($activity, $title);
+
+        // The notification implements ShouldQueue, so notifyNow() is what keeps
+        // the previous synchronous behaviour available.
+        $this->shouldQueue()
+            ? $notifiable->notify($notification)
+            : $notifiable->notifyNow($notification);
 
         return true;
     }
@@ -144,9 +154,43 @@ class ActivityAlertDispatcher
             return false;
         }
 
-        Http::timeout(5)->post($url, $payload);
+        if ($this->shouldQueue()) {
+            $job = new SendActivityAlertWebhook($url, $payload, $this->webhookTimeout());
 
-        return true;
+            dispatch($job->onConnection($this->queueConnection())->onQueue($this->queueName()));
+
+            return true;
+        }
+
+        $response = Http::timeout($this->webhookTimeout())->post($url, $payload);
+
+        // Laravel does not throw on 4xx/5xx by default. Reporting success for a
+        // rejected webhook would burn the cooldown and hide the failure.
+        return $response->successful();
+    }
+
+    protected function shouldQueue(): bool
+    {
+        return (bool) config('filament-logger.alerts.queue', false);
+    }
+
+    protected function queueConnection(): ?string
+    {
+        $connection = config('filament-logger.alerts.queue_connection');
+
+        return filled($connection) ? (string) $connection : null;
+    }
+
+    protected function queueName(): ?string
+    {
+        $queue = config('filament-logger.alerts.queue_name');
+
+        return filled($queue) ? (string) $queue : null;
+    }
+
+    protected function webhookTimeout(): int
+    {
+        return max(1, (int) config('filament-logger.alerts.webhook_timeout', 5));
     }
 
     /**
@@ -218,7 +262,17 @@ class ActivityAlertDispatcher
      */
     protected function cooldownSecondsForRule(array $rule): int
     {
-        return max(0, (int) data_get($rule, 'cooldown_minutes', 0)) * 60;
+        $minutes = data_get($rule, 'cooldown_minutes');
+
+        // Threshold rules match every activity once the count is reached, so
+        // without a cooldown a single spike would alert on each subsequent
+        // event. Defaulting to the detection window keeps it to one alert per
+        // spike, which is what the exact-count comparison used to provide.
+        if ($minutes === null && data_get($rule, 'type') === 'threshold') {
+            $minutes = data_get($rule, 'window_minutes', 10);
+        }
+
+        return max(0, (int) $minutes) * 60;
     }
 
     /**

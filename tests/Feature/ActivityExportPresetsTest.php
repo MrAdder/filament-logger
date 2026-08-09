@@ -1,8 +1,8 @@
 <?php
 
 use MrAdder\FilamentLogger\Models\ExportPreset;
-use MrAdder\FilamentLogger\Support\ActivityExportPresetManager;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
+use MrAdder\FilamentLogger\Support\ActivityExportPresetManager;
 use Spatie\Activitylog\Models\Activity as ActivityModel;
 
 it('saves and applies a db export preset and exporter uses its columns', function () {

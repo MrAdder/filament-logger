@@ -1,7 +1,7 @@
 <?php
 
-use Spatie\Activitylog\Models\Activity as ActivityModel;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
+use Spatie\Activitylog\Models\Activity as ActivityModel;
 
 it('adds export metadata header for csv exports', function () {
     ActivityModel::create([

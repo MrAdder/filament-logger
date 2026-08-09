@@ -15,7 +15,7 @@ it('requires an explicit view method for single record access in strict mode', f
     Gate::policy(ActivityResource::getModel(), ViewAnyOnlyActivityPolicy::class);
 
     $activityModel = ActivityResource::getModel();
-    $record = new $activityModel();
+    $record = new $activityModel;
 
     expect(ActivityResource::canViewAny())->toBeTrue()
         ->and(ActivityResource::canView($record))->toBeFalse();
@@ -33,7 +33,7 @@ it('allows access when the activity policy defines view abilities', function () 
     Gate::policy(ActivityResource::getModel(), AllowAllActivityPolicy::class);
 
     $activityModel = ActivityResource::getModel();
-    $record = new $activityModel();
+    $record = new $activityModel;
 
     expect(ActivityResource::canAccess())->toBeTrue()
         ->and(ActivityResource::canView($record))->toBeTrue();

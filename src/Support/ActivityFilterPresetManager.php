@@ -57,7 +57,11 @@ class ActivityFilterPresetManager
     }
 
     /**
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder<TModel>  $query
      * @param  array<string, mixed>  $rule
+     * @return Builder<TModel>
      */
     public static function apply(Builder $query, array $rule): Builder
     {

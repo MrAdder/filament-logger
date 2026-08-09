@@ -10,6 +10,26 @@ return [
         'sensitive_ability' => 'viewSensitiveData',
     ],
 
+    'performance' => [
+        // Cache store used for filter option lists. Null uses the default store.
+        'cache_store' => null,
+
+        // Seconds to cache the distinct log name / subject type lists that back
+        // the table filters. Each rebuild is a full scan of the activity table,
+        // so raise this on large installs. Set to 0 to disable caching.
+        'filter_options_cache_ttl' => 300,
+
+        // Upper bound on how many distinct values are pulled for those lists.
+        'filter_options_limit' => 200,
+    ],
+
+    'search' => [
+        // The properties column is JSON and cannot use an index, so a LIKE scan
+        // over it is the most expensive part of a broad search. Disable this on
+        // large installs to keep search on the indexed columns only.
+        'include_properties' => true,
+    ],
+
     'sensitive_keys' => [
         'password',
         'password_confirmation',
@@ -79,6 +99,12 @@ return [
         'db_presets_enabled' => false,
         'embed_metadata' => false,
         'manage_ability' => 'manageExportPresets',
+
+        // Gate ability required to download an export. Exports bypass table
+        // pagination, so this is the control that stops any user who can open
+        // the resource from pulling the whole audit trail. Set to null to allow
+        // every viewer of the resource to export.
+        'ability' => 'exportActivity',
     ],
 
     'dashboard' => [
@@ -145,6 +171,16 @@ return [
         'enabled' => false,
         'cache_store' => null,
         'default_channels' => ['mail'],
+
+        // Deliver alerts through the queue instead of inline. Recommended:
+        // alerts fire from model observers, so a slow or unreachable webhook
+        // otherwise blocks the action being audited.
+        'queue' => false,
+        'queue_connection' => null,
+        'queue_name' => null,
+
+        // Seconds to wait on a webhook before giving up.
+        'webhook_timeout' => 5,
         'mail' => [
             'to' => [],
         ],
@@ -194,22 +230,22 @@ return [
         'log_name' => 'Resource',
         'logger' => \MrAdder\FilamentLogger\Loggers\ResourceLogger::class,
         'color' => 'success',
-        
+
         'exclude' => [
-            //App\Filament\Resources\UserResource::class,
+            // App\Filament\Resources\UserResource::class,
         ],
         'ignore' => [
             'updated_at',
             'remember_token',
         ],
         'ignore_for_models' => [
-            //App\Models\User::class => ['last_seen_at', 'login_count'],
+            // App\Models\User::class => ['last_seen_at', 'login_count'],
         ],
         'ignore_for_resources' => [
-            //App\Filament\Resources\UserResource::class => ['last_seen_at', 'login_count'],
+            // App\Filament\Resources\UserResource::class => ['last_seen_at', 'login_count'],
         ],
         'cluster' => null,
-        'navigation_group' =>'Settings',
+        'navigation_group' => 'Settings',
     ],
 
     'access' => [
@@ -257,10 +293,10 @@ return [
             'remember_token',
         ],
         'ignore_for' => [
-            //App\Models\User::class => ['last_seen_at', 'login_count'],
+            // App\Models\User::class => ['last_seen_at', 'login_count'],
         ],
         'register' => [
-            //App\Models\User::class,
+            // App\Models\User::class,
         ],
     ],
 

@@ -1,0 +1,18 @@
+# Known false positives only. Do not add real findings here — fix them instead.
+#
+# Larastan validates `view-string` arguments against a list it builds by
+# scanning the view finder's directories, stripping each directory prefix to
+# derive the view name (see Larastan\Larastan\Support\ViewFileHelper::
+# getAllViewNames()). That process never reattaches a package's namespace, so
+# a namespaced package view such as `filament-logger::infolists.activity-diff`
+# can never match, no matter how the view is registered. The view does exist,
+# at resources/views/infolists/activity-diff.blade.php, and is registered by
+# FilamentLoggerServiceProvider::configurePackage() via hasViews().
+
+parameters:
+    ignoreErrors:
+        -
+            message: '#^Parameter \#1 \$view of method Filament\\Support\\Components\\ViewComponent\:\:view\(\) expects view\-string\|null, string given\.$#'
+            identifier: argument.type
+            count: 1
+            path: src/Resources/BaseActivityResource.php

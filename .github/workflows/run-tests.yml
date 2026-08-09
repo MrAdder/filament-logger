@@ -163,6 +163,52 @@ jobs:
       - name: Execute tests
         run: vendor/bin/pest --no-coverage
 
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
+        with:
+          php-version: '8.3'
+          extensions: none, curl, dom, fileinfo, intl, mbstring, openssl, pdo_sqlite, simplexml, sqlite, tokenizer, xml, xmlreader, xmlwriter, zip
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Resolve Composer cache directory
+        id: composer-cache
+        shell: bash
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-8.3-coverage-composer-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.3-coverage-composer-
+            ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer update --prefer-stable --prefer-dist --with-all-dependencies --no-progress
+
+      - name: Execute tests with coverage
+        run: vendor/bin/pest --coverage --coverage-clover=build/logs/clover.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-clover
+          path: build/logs/clover.xml
+          if-no-files-found: warn
+
   laravel13-filament5-required:
     name: Laravel 13 / Filament 5 Required Gate
     runs-on: ubuntu-latest

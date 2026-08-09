@@ -40,7 +40,7 @@ class TopEventsChartWidget extends ChartWidget
         return 'doughnut';
     }
 
-    public function getHeading(): string | Htmlable | null
+    public function getHeading(): string|Htmlable|null
     {
         return $this->activityReviewHeadingForPlaybook('Top Events', 'all_activity');
     }

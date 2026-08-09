@@ -1,6 +1,6 @@
-name: Issue
-description: Report a bug, request a feature, or track repository work.
-title: "[Issue]: "
+name: Maintenance or documentation
+description: Track repository work, chores, release follow-ups, or documentation changes.
+title: "[Chore]: "
 labels:
   - triage
 body:
@@ -8,12 +8,11 @@ body:
     id: issue_type
     attributes:
       label: Issue Type
-      description: What kind of issue are you opening?
+      description: What kind of work is this?
       options:
-        - Feature request
-        - Bug report
         - Documentation
         - Maintenance / chore
+        - Release follow-up
     validations:
       required: true
 
