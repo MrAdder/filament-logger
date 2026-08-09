@@ -2,6 +2,28 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.4.1 - 2026-08-09
+
+## Summary
+
+## Maintenance
+
+- chore(deps-dev): bump postcss from 8.5.14 to 8.5.26 in the npm\_and\_yarn group across 1 directory by @[dependabot[bot]](https://github.com/apps/dependabot) in #71
+- chore(deps): bump release-drafter/release-drafter from 7.6.0 to 7.7.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #70
+- chore(deps): bump release-drafter/release-drafter from 7.5.1 to 7.6.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #69
+- chore(deps): bump actions/setup-node from 6 to 7 by @[dependabot[bot]](https://github.com/apps/dependabot) in #68
+- chore(deps): bump release-drafter/release-drafter from 7.4.0 to 7.5.1 by @[dependabot[bot]](https://github.com/apps/dependabot) in #66
+- chore(deps): bump actions/cache from 5 to 6 by @[dependabot[bot]](https://github.com/apps/dependabot) in #64
+- chore(deps): bump actions/checkout from 6 to 7 by @[dependabot[bot]](https://github.com/apps/dependabot) in #62
+- chore(deps): bump stefanzweifel/git-auto-commit-action from 7.1.0 to 7.2.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #65
+- chore(deps): bump release-drafter/release-drafter from 7.3.1 to 7.4.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #63
+
+## Contributors
+
+[@dependabot[bot]](https://github.com/apps/dependabot), @MrAdder and [@github-actions[bot]](https://github.com/apps/github-actions)
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.4.0...v1.4.1
+
 ## v1.4.0 - 2026-05-26
 
 ## Summary
