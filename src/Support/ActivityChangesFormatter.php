@@ -170,14 +170,20 @@ class ActivityChangesFormatter
         }
 
         $display = self::stringify($value);
-        $lineCount = substr_count($display, PHP_EOL) + 1;
+
+        // Count "\n" rather than PHP_EOL: the value being rendered comes from
+        // the database or from JSON_PRETTY_PRINT, both of which use "\n" no
+        // matter what the host OS uses. On Windows PHP_EOL is "\r\n", which
+        // made every multi-line value report a single line and never expand.
+        // Counting "\n" also handles "\r\n" content correctly.
+        $lineCount = substr_count($display, "\n") + 1;
         $charCount = mb_strlen($display);
         $collapseAfter = (int) config('filament-logger.diff.collapse_after', 120);
         $summaryPreview = Str::of(str_replace(["\r\n", "\r", "\n"], ' ', $display))
             ->squish()
             ->limit($collapseAfter)
             ->toString();
-        $expandable = str_contains($display, PHP_EOL) || ($charCount > $collapseAfter);
+        $expandable = $lineCount > 1 || ($charCount > $collapseAfter);
 
         $summary = $summaryPreview;
 
