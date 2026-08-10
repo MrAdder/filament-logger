@@ -2,9 +2,7 @@
 
 namespace MrAdder\FilamentLogger\Support;
 
-use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use MrAdder\FilamentLogger\Jobs\SendActivityAlertWebhook;
@@ -14,10 +12,15 @@ use Throwable;
 
 class ActivityAlertDispatcher
 {
+    protected ActivityAlertCooldown $cooldown;
+
     public function __construct(
         protected ActivityRiskResolver $riskResolver,
         protected ActivityAlertDigest $digest = new ActivityAlertDigest,
-    ) {}
+        ?ActivityAlertCooldown $cooldown = null,
+    ) {
+        $this->cooldown = $cooldown ?? new ActivityAlertCooldown($riskResolver);
+    }
 
     public function dispatch(ActivityContract $activity): void
     {
@@ -123,9 +126,9 @@ class ActivityAlertDispatcher
     ): void {
         // A digest has already waited out its window; applying the cooldown
         // again would suppress the very alert the window was accumulating.
-        $usesCooldown = ! $digest && $this->cooldownSecondsForRule($rule) > 0;
+        $usesCooldown = ! $digest && $this->cooldown->applies($rule);
 
-        if ($usesCooldown && ! $this->claimCooldown($ruleName, $rule, $channel, $activity)) {
+        if ($usesCooldown && ! $this->cooldown->claim($ruleName, $rule, $channel, $activity)) {
             return;
         }
 
@@ -141,14 +144,14 @@ class ActivityAlertDispatcher
             $dispatched = $this->dispatchToChannel($channel, $rule, $activity, $message);
         } catch (Throwable $exception) {
             if ($usesCooldown) {
-                $this->releaseCooldown($ruleName, $rule, $channel, $activity);
+                $this->cooldown->release($ruleName, $rule, $channel, $activity);
             }
 
             throw $exception;
         }
 
         if ($usesCooldown && ! $dispatched) {
-            $this->releaseCooldown($ruleName, $rule, $channel, $activity);
+            $this->cooldown->release($ruleName, $rule, $channel, $activity);
         }
     }
 
@@ -347,71 +350,5 @@ class ActivityAlertDispatcher
         }
 
         return null;
-    }
-
-    /**
-     * @param  array<string, mixed>  $rule
-     */
-    protected function claimCooldown(string $ruleName, array $rule, string $channel, ActivityContract $activity): bool
-    {
-        return $this->cooldownCache()->add(
-            $this->cooldownCacheKey($ruleName, $rule, $channel, $activity),
-            true,
-            now()->addSeconds($this->cooldownSecondsForRule($rule)),
-        );
-    }
-
-    /**
-     * @param  array<string, mixed>  $rule
-     */
-    protected function releaseCooldown(string $ruleName, array $rule, string $channel, ActivityContract $activity): void
-    {
-        $this->cooldownCache()->forget($this->cooldownCacheKey($ruleName, $rule, $channel, $activity));
-    }
-
-    /**
-     * @param  array<string, mixed>  $rule
-     */
-    protected function cooldownSecondsForRule(array $rule): int
-    {
-        $minutes = data_get($rule, 'cooldown_minutes');
-
-        // Threshold rules match every activity once the count is reached, so
-        // without a cooldown a single spike would alert on each subsequent
-        // event. Defaulting to the detection window keeps it to one alert per
-        // spike, which is what the exact-count comparison used to provide.
-        if ($minutes === null && data_get($rule, 'type') === 'threshold') {
-            $minutes = data_get($rule, 'window_minutes', 10);
-        }
-
-        return max(0, (int) $minutes) * 60;
-    }
-
-    /**
-     * @param  array<string, mixed>  $rule
-     */
-    protected function cooldownCacheKey(string $ruleName, array $rule, string $channel, ActivityContract $activity): string
-    {
-        $pattern = [
-            'rule' => $ruleName,
-            'channel' => $channel,
-            'type' => data_get($rule, 'type'),
-            'log_name' => data_get($activity, 'log_name'),
-            'event' => data_get($activity, 'event'),
-            'risk' => $this->riskResolver->resolveForActivity($activity),
-        ];
-
-        return 'filament-logger:alerts:cooldown:'.hash('sha256', (string) json_encode($pattern));
-    }
-
-    protected function cooldownCache(): CacheRepository
-    {
-        $store = config('filament-logger.alerts.cache_store');
-
-        if (filled($store)) {
-            return Cache::store((string) $store);
-        }
-
-        return Cache::store();
     }
 }

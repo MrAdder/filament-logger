@@ -8,7 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
+use MrAdder\FilamentLogger\Exceptions\AlertWebhookFailed;
 
 /**
  * Delivers an alert webhook off the request path so an unreachable Slack or
@@ -41,9 +41,7 @@ class SendActivityAlertWebhook implements ShouldQueue
             ->post($this->url, $this->payload);
 
         if (! $response->successful()) {
-            throw new RuntimeException(
-                'Activity alert webhook failed with status '.$response->status().'.'
-            );
+            throw AlertWebhookFailed::status($this->url, $response->status());
         }
     }
 

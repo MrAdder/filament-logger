@@ -141,24 +141,40 @@ class ActivityRiskResolver
      */
     protected function resolveLevel(string $event, array $reasons, array $detected): ?string
     {
+        return $this->mostSevere($this->candidateLevels($event, $reasons, $detected));
+    }
+
+    /**
+     * Levels in play for this activity.
+     *
+     * An event configured as high or medium risk settles the matter on its own;
+     * only otherwise do the detected reasons contribute.
+     *
+     * @param  array<int, string>  $reasons
+     * @param  array<string, string>  $detected
+     * @return array<int, string>
+     */
+    protected function candidateLevels(string $event, array $reasons, array $detected): array
+    {
         if (in_array($event, $this->highRiskEvents(), true)) {
-            return 'high';
+            return ['high'];
         }
 
         if (in_array($event, $this->mediumRiskEvents(), true)) {
-            return 'medium';
+            return ['medium'];
         }
 
-        if ($reasons === []) {
-            return null;
-        }
+        return array_map(
+            fn (string $reason): string => $detected[$reason] ?? $this->levelForReason($reason) ?? 'high',
+            $reasons,
+        );
+    }
 
-        $levels = [];
-
-        foreach ($reasons as $reason) {
-            $levels[] = $detected[$reason] ?? $this->levelForReason($reason) ?? 'high';
-        }
-
+    /**
+     * @param  array<int, string>  $levels
+     */
+    protected function mostSevere(array $levels): ?string
+    {
         foreach (static::LEVELS as $level) {
             if (in_array($level, $levels, true)) {
                 return $level;

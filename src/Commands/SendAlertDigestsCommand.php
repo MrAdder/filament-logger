@@ -29,18 +29,17 @@ class SendAlertDigestsCommand extends Command
             return self::SUCCESS;
         }
 
-        $sent = $dispatcher->flushDigests(force: (bool) $this->option('force'));
-
-        if ($sent === 0) {
-            $this->components->info('No digests were due.');
-
-            return self::SUCCESS;
-        }
-
-        $this->components->info($sent === 1
-            ? 'Sent 1 alert digest.'
-            : "Sent {$sent} alert digests.");
+        $this->reportSent($dispatcher->flushDigests(force: (bool) $this->option('force')));
 
         return self::SUCCESS;
+    }
+
+    protected function reportSent(int $sent): void
+    {
+        $this->components->info(match (true) {
+            $sent === 0 => 'No digests were due.',
+            $sent === 1 => 'Sent 1 alert digest.',
+            default => "Sent {$sent} alert digests.",
+        });
     }
 }

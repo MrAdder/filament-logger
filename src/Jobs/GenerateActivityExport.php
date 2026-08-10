@@ -10,10 +10,10 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
+use MrAdder\FilamentLogger\Exceptions\ActivityExportFailed;
 use MrAdder\FilamentLogger\Support\ActivityExportCriteria;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
 use MrAdder\FilamentLogger\Support\ActivityExportNotifier;
-use RuntimeException;
 use Spatie\Activitylog\ActivitylogServiceProvider;
 
 /**
@@ -58,7 +58,7 @@ class GenerateActivityExport implements ShouldQueue
         $handle = fopen('php://temp', 'w+b');
 
         if (! is_resource($handle)) {
-            throw new RuntimeException('Unable to open a temporary stream for the activity export.');
+            throw ActivityExportFailed::streamUnavailable();
         }
 
         try {

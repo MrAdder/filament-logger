@@ -189,11 +189,9 @@ class ActivityAlertDigest
         }
 
         $model = ActivitylogServiceProvider::determineActivityModel();
-
-        /** @var ActivityContract|null $activity */
         $activity = $model::query()->find(end($ids));
 
-        return $activity;
+        return $activity instanceof ActivityContract ? $activity : null;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace MrAdder\FilamentLogger\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
 
 class PruneActivityExportsCommand extends Command
@@ -33,8 +34,21 @@ class PruneActivityExportsCommand extends Command
             return self::SUCCESS;
         }
 
-        $cutoff = now()->subDays($days)->getTimestamp();
         $dryRun = (bool) $this->option('dry-run');
+
+        [$deleted, $bytes] = $this->prune($disk, $directory, $days, $dryRun);
+
+        $this->reportPruned($deleted, $bytes, $days, $dryRun);
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @return array{0: int, 1: int} Files removed, and the bytes they occupied.
+     */
+    protected function prune(Filesystem $disk, string $directory, int $days, bool $dryRun): array
+    {
+        $cutoff = now()->subDays($days)->getTimestamp();
         $deleted = 0;
         $bytes = 0;
 
@@ -51,18 +65,21 @@ class PruneActivityExportsCommand extends Command
             }
         }
 
-        $size = number_format($bytes / 1024, 1);
+        return [$deleted, $bytes];
+    }
 
+    protected function reportPruned(int $deleted, int $bytes, int $days, bool $dryRun): void
+    {
         if ($deleted === 0) {
             $this->components->info("No exports older than {$days} day(s).");
 
-            return self::SUCCESS;
+            return;
         }
+
+        $size = number_format($bytes / 1024, 1);
 
         $this->components->info($dryRun
             ? "Would delete {$deleted} export file(s), freeing {$size} KB."
             : "Deleted {$deleted} export file(s), freeing {$size} KB.");
-
-        return self::SUCCESS;
     }
 }
