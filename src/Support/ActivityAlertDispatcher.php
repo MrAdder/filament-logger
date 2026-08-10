@@ -33,7 +33,7 @@ class ActivityAlertDispatcher
             $this->flushDigests();
         }
 
-        foreach (config('filament-logger.alerts.rules', []) as $ruleName => $rule) {
+        foreach (ActivityAlertRules::all() as $ruleName => $rule) {
             if (! is_array($rule) || ! data_get($rule, 'enabled', true)) {
                 continue;
             }

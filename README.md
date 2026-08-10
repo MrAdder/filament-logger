@@ -85,6 +85,8 @@ public function panel(Panel $panel): Panel
 - [Configuration Guide](https://mradder.github.io/filament-logger/configuration)
 - [Activity Review UI](https://mradder.github.io/filament-logger/activity-review)
 - [Custom Events and Alerts](https://mradder.github.io/filament-logger/custom-events)
+- [Recipes: multi-panel, tenancy, alerts, custom events](https://mradder.github.io/filament-logger/recipes)
+- [Extending](https://mradder.github.io/filament-logger/extending)
 - [Roadmap](https://mradder.github.io/filament-logger/roadmap)
 
 ## Filtering By Auth Guard

@@ -10,7 +10,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Livewire\LivewireServiceProvider;
+use MrAdder\FilamentLogger\FilamentLogger;
 use MrAdder\FilamentLogger\FilamentLoggerServiceProvider;
+use MrAdder\FilamentLogger\Support\ActivityAlertRules;
+use MrAdder\FilamentLogger\Support\ActivityDisplay;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\Activitylog\ActivitylogServiceProvider as SpatieActivitylogServiceProvider;
 
@@ -19,6 +22,12 @@ class TestCase extends Orchestra
     protected function setUp(): void
     {
         parent::setUp();
+
+        // The extension registries are static. Tests run in random order, so a
+        // hook registered by one file must not leak into another.
+        ActivityDisplay::flush();
+        ActivityAlertRules::flush();
+        FilamentLogger::describeUsing(null);
 
         Filament::setCurrentPanel(
             Panel::make()

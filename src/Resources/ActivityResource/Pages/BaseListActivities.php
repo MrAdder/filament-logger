@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use MrAdder\FilamentLogger\Jobs\GenerateActivityExport;
 use MrAdder\FilamentLogger\Models\ExportPreset;
+use MrAdder\FilamentLogger\Support\ActivityDisplay;
 use MrAdder\FilamentLogger\Support\ActivityExportCriteria;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
 use MrAdder\FilamentLogger\Support\ActivityExportPresetManager;
@@ -167,6 +168,14 @@ abstract class BaseListActivities extends ListRecords
      */
     public function getTabs(): array
     {
+        return ActivityDisplay::resolveTabs($this->defaultTabs());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function defaultTabs(): array
+    {
         $tabs = [];
 
         foreach (ActivityFilterPresetManager::saved() as $key => $preset) {
@@ -178,7 +187,18 @@ abstract class BaseListActivities extends ListRecords
         return $tabs;
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     protected function getHeaderWidgets(): array
+    {
+        return ActivityDisplay::resolveWidgets($this->defaultHeaderWidgets());
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    protected function defaultHeaderWidgets(): array
     {
         if (! config('filament-logger.dashboard.enabled', true)) {
             return [];

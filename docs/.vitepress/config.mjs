@@ -44,7 +44,9 @@ export default defineConfig({
         items: [
           { text: 'Configuration Guide', link: '/configuration' },
           { text: 'Activity Review UI', link: '/activity-review' },
-          { text: 'Custom Events and Alerts', link: '/custom-events' }
+          { text: 'Custom Events and Alerts', link: '/custom-events' },
+          { text: 'Recipes', link: '/recipes' },
+          { text: 'Extending', link: '/extending' }
         ]
       },
       {

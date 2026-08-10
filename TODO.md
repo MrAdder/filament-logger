@@ -29,14 +29,14 @@ This backlog is focused on improvements that can land during the `1.x` series wi
 ## Extensibility
 
 - [x] Add public hooks for customizing activity descriptions (`FilamentLogger::describeUsing()`).
-- [ ] Add public hooks for customizing subject labels, causer labels, and activity row display.
-- [ ] Add clearer extension points for custom resource tabs, widgets, and filters.
-- [ ] Add more configuration hooks for alert rule registration and risk classification.
+- [x] Add public hooks for customizing subject labels, causer labels, and activity row display.
+- [x] Add clearer extension points for custom resource tabs, widgets, and filters.
+- [x] Add more configuration hooks for alert rule registration and risk classification.
 
 ## Documentation and ecosystem
 
 - [x] Publish a dedicated support matrix for PHP, Laravel, and Filament compatibility in `1.x`.
-- [ ] Add end-to-end examples for multi-panel, tenancy, alerts, and custom event setups.
+- [x] Add end-to-end examples for multi-panel, tenancy, alerts, and custom event setups.
 - [ ] Translate the newer review UI strings into the non-English locale files. All strings are
       translatable and fall back to English; `TranslationsTest` guards against stale keys.
 - [x] Add issue templates for bugs, feature requests, and release follow-ups.

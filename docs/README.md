@@ -36,6 +36,8 @@ This site contains the package guides that power setup, security review, audit w
 - [Configuration Guide](configuration.md)
 - [Activity Review UI](activity-review.md)
 - [Custom Events and Alerts](custom-events.md)
+- [Recipes](recipes.md)
+- [Extending](extending.md)
 - [Releasing](releasing.md)
 
 ## Suggested Reading Order
@@ -45,4 +47,6 @@ This site contains the package guides that power setup, security review, audit w
 3. Use [Configuration Guide](configuration.md) to tailor logging behavior.
 4. Use [Activity Review UI](activity-review.md) for exports, dashboards, filters, and pruning.
 5. Use [Custom Events and Alerts](custom-events.md) for domain-specific events and notifications.
-6. Use [Releasing](releasing.md) to cut and publish versions consistently.
+6. Use [Recipes](recipes.md) for end-to-end multi-panel, tenancy, alert, and custom event setups.
+7. Use [Extending](extending.md) when you need to tailor the resource beyond configuration.
+8. Use [Releasing](releasing.md) to cut and publish versions consistently.

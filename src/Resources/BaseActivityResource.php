@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use MrAdder\FilamentLogger\Resources\ActivityResource\Support\ActivityResourceTableOptions;
 use MrAdder\FilamentLogger\Support\ActivityChangesFormatter;
 use MrAdder\FilamentLogger\Support\ActivityDatePreset;
+use MrAdder\FilamentLogger\Support\ActivityDisplay;
 use MrAdder\FilamentLogger\Support\ActivityExportCriteria;
 use Spatie\Activitylog\Contracts\Activity;
 use Spatie\Activitylog\Models\Activity as ActivityModel;
@@ -40,9 +41,17 @@ abstract class BaseActivityResource extends AbstractActivityResource
     }
 
     /**
-     * @return array<int, TextColumn>
+     * @return array<int, mixed>
      */
     protected static function getTableColumns(): array
+    {
+        return ActivityDisplay::resolveTableColumns(static::defaultTableColumns());
+    }
+
+    /**
+     * @return array<int, TextColumn>
+     */
+    protected static function defaultTableColumns(): array
     {
         return [
             TextColumn::make('log_name')
@@ -78,7 +87,8 @@ abstract class BaseActivityResource extends AbstractActivityResource
                 ->formatStateUsing(fn ($state, Model $record): string => static::formatSubjectState($state, $record)),
 
             TextColumn::make('causer.name')
-                ->label(static::resourceLabel('user')),
+                ->label(static::resourceLabel('user'))
+                ->formatStateUsing(fn ($state, Model $record): string => static::formatCauserState($state, $record)),
 
             TextColumn::make('created_at')
                 ->label(static::resourceLabel('logged_at'))
@@ -88,9 +98,17 @@ abstract class BaseActivityResource extends AbstractActivityResource
     }
 
     /**
-     * @return array<int, SelectFilter|Filter>
+     * @return array<int, mixed>
      */
     protected static function getTableFilters(): array
+    {
+        return ActivityDisplay::resolveFilters(static::defaultTableFilters());
+    }
+
+    /**
+     * @return array<int, SelectFilter|Filter>
+     */
+    protected static function defaultTableFilters(): array
     {
         return [
             // Search across high-value fields: description, causer name, subject type and properties
@@ -162,10 +180,19 @@ abstract class BaseActivityResource extends AbstractActivityResource
      */
     protected static function getInfolistEntries(): array
     {
+        return ActivityDisplay::resolveInfolistEntries(static::defaultInfolistEntries());
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    protected static function defaultInfolistEntries(): array
+    {
         return [
             TextEntry::make('causer.name')
                 ->label(static::resourceLabel('user'))
-                ->placeholder('-'),
+                ->placeholder('-')
+                ->formatStateUsing(fn ($state, Model $record): string => static::formatCauserState($state, $record)),
 
             TextEntry::make('subject_type')
                 ->label(static::resourceLabel('subject'))
@@ -256,11 +283,36 @@ abstract class BaseActivityResource extends AbstractActivityResource
     protected static function formatSubjectState(?string $state, Model $record): string
     {
         /** @var Activity&ActivityModel $record */
+        $custom = ActivityDisplay::resolveSubjectLabel($state, $record->subject_id, $record);
+
+        if ($custom !== null) {
+            return $custom;
+        }
+
         if (! $state) {
             return '-';
         }
 
         return Str::of($state)->afterLast('\\')->headline().' # '.$record->subject_id;
+    }
+
+    /**
+     * The causer column resolves through a hook so that a user model without a
+     * `name` column, or one needing a domain-specific label, is supported
+     * without overriding the resource.
+     */
+    protected static function formatCauserState(mixed $state, Model $record): string
+    {
+        /** @var Activity&ActivityModel $record */
+        $causer = $record->causer instanceof Model ? $record->causer : null;
+
+        $custom = ActivityDisplay::resolveCauserLabel($causer, $record);
+
+        if ($custom !== null) {
+            return $custom;
+        }
+
+        return filled($state) ? (string) $state : '-';
     }
 
     protected static function formatTitleCaseState(?string $state): string

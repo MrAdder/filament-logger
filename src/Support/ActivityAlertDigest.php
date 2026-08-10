@@ -143,7 +143,7 @@ class ActivityAlertDigest
      */
     public static function hasDigestRules(): bool
     {
-        foreach (config('filament-logger.alerts.rules', []) as $rule) {
+        foreach (ActivityAlertRules::all() as $rule) {
             if (data_get($rule, 'digest', false)) {
                 return true;
             }
@@ -201,9 +201,7 @@ class ActivityAlertDigest
      */
     protected function rule(string $ruleName): ?array
     {
-        $rule = config("filament-logger.alerts.rules.{$ruleName}");
-
-        return is_array($rule) ? $rule : null;
+        return ActivityAlertRules::get($ruleName);
     }
 
     /**

@@ -21,6 +21,8 @@ class SendAlertDigestsCommand extends Command
             return self::SUCCESS;
         }
 
+        // Rules can be registered programmatically as well as in config, so
+        // this reads through the registry rather than the config file.
         if (! ActivityAlertDigest::hasDigestRules()) {
             $this->components->info('No alert rules are configured as digests. Nothing to send.');
 
