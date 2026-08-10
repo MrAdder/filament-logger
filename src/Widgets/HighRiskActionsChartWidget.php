@@ -42,6 +42,6 @@ class HighRiskActionsChartWidget extends ChartWidget
 
     public function getHeading(): string|Htmlable|null
     {
-        return $this->activityReviewHeadingForPlaybook('High-Risk Actions', 'high_risk_incidents');
+        return $this->activityReviewHeadingForPlaybook(__('filament-logger::filament-logger.widget.high_risk.heading'), 'high_risk_incidents');
     }
 }

@@ -14,6 +14,8 @@ parameters:
             # instead — see phpstan-filament3.neon.dist.
             - src/Resources/ActivityResourceV3.php
             - src/Resources/ActivityResource/Pages/ListActivitiesV3.php
+            - src/Resources/ExportPresetResourceV3.php
+            - src/Resources/ExportPresetResourceDefinitionV3.php
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true

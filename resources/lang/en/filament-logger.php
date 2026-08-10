@@ -11,6 +11,9 @@ return [
     'nav.group' => 'Settings',
     'nav.log.label' => 'Activity Log',
     'nav.log.icon' => 'heroicon-o-clipboard-document-list',
+    'nav.export_presets.label' => 'Export Presets',
+    'resource.label.export_preset' => 'Export preset',
+    'resource.label.export_presets' => 'Export presets',
     'resource.label.log' => 'Activity log',
     'resource.label.logs' => 'Activity logs',
     'resource.label.user' => 'User',
@@ -93,4 +96,24 @@ return [
     'export.failed_title' => 'Activity export failed',
     'export.failed_body' => 'The export could not be generated. Check the application log for details.',
     'export.download' => 'Download',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard Widgets
+    |--------------------------------------------------------------------------
+    */
+
+    'widget.overview.heading' => 'Activity Overview',
+    'widget.overview.total' => 'Total Activity',
+    'widget.overview.total_description' => 'Last :days days',
+    'widget.overview.high_risk' => 'High Risk',
+    'widget.overview.high_risk_description' => 'High-risk actions detected',
+    'widget.overview.failed_logins' => 'Failed Logins',
+    'widget.overview.failed_logins_description' => 'Authentication failures',
+    'widget.overview.unique_actors' => 'Unique Actors',
+    'widget.overview.unique_actors_description' => 'Distinct causers recorded',
+    'widget.trend.heading' => 'Activity Trend',
+    'widget.high_risk.heading' => 'High-Risk Actions',
+    'widget.top_events.heading' => 'Top Events',
+    'widget.top_users.heading' => 'Top Users',
 ];

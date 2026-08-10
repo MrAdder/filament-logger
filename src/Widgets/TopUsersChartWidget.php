@@ -42,6 +42,6 @@ class TopUsersChartWidget extends ChartWidget
 
     public function getHeading(): string|Htmlable|null
     {
-        return $this->activityReviewHeadingForPlaybook('Top Users', 'all_activity');
+        return $this->activityReviewHeadingForPlaybook(__('filament-logger::filament-logger.widget.top_users.heading'), 'all_activity');
     }
 }

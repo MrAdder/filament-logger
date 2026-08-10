@@ -2,36 +2,29 @@
 
 namespace MrAdder\FilamentLogger\Resources;
 
-use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Schemas\Schema;
-use Filament\Tables;
-use MrAdder\FilamentLogger\Models\ExportPreset;
-use MrAdder\FilamentLogger\Resources\ExportPresetResource\Pages\CreateExportPreset;
-use MrAdder\FilamentLogger\Resources\ExportPresetResource\Pages\EditExportPreset;
-use MrAdder\FilamentLogger\Resources\ExportPresetResource\Pages\ListExportPresets;
-use UnitEnum;
+use Filament\Tables\Table;
 
+/**
+ * The Filament 4 and 5 shape of the export preset resource.
+ *
+ * Filament 3 moves actions to the Tables\Actions namespace and uses Form rather
+ * than Schema, so it has its own definition in
+ * {@see ExportPresetResourceDefinitionV3}.
+ */
 trait ExportPresetResourceDefinition
 {
     use ExportPresetResourceCommon;
-
-    protected static ?string $model = ExportPreset::class;
-
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-table-cells';
-
-    protected static string|UnitEnum|null $navigationGroup = 'Settings';
-
-    protected static ?string $navigationLabel = 'Export Presets';
 
     public static function form(Schema $schema): Schema
     {
         return $schema->schema(static::presetFormSchema());
     }
 
-    public static function table(Tables\Table $table): Tables\Table
+    public static function table(Table $table): Table
     {
         return $table
             ->columns(static::presetTableColumns())
@@ -43,14 +36,5 @@ trait ExportPresetResourceDefinition
             ->toolbarActions([
                 DeleteBulkAction::make(),
             ]);
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => ListExportPresets::route('/'),
-            'create' => CreateExportPreset::route('/create'),
-            'edit' => EditExportPreset::route('/{record}/edit'),
-        ];
     }
 }

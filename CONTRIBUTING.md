@@ -60,6 +60,15 @@ vendor/bin/phpstan analyse -c phpstan-filament3.neon.dist
 
 `phpstan-baseline.neon` is reserved for documented tool false positives. Do not add real findings to it.
 
+### Code quality reporting
+
+The quality gate badge comes from SonarQube Cloud. Configuration lives in `sonar-project.properties`, and the coverage job in `run-tests.yml` publishes the analysis.
+
+Two things must be true for coverage to appear on the dashboard:
+
+1. A `SONAR_TOKEN` repository secret exists. Without it the publish step logs and skips rather than failing, and it is always skipped for pull requests from forks.
+2. **Automatic Analysis is turned off** in the SonarQube Cloud project settings, under *Administration → Analysis Method*. Automatic Analysis cannot import coverage reports, and leaving it enabled makes the CI scan fail with `You are running manual analysis while Automatic Analysis is enabled`.
+
 ## Pull request expectations
 
 When opening a pull request:

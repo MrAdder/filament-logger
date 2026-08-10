@@ -1,39 +1,127 @@
 <?php
 
+use Illuminate\Database\Eloquent\Builder;
+use MrAdder\FilamentLogger\Support\ActivityExportCriteria;
+use MrAdder\FilamentLogger\Tests\Fixtures\Models\TestUser;
 use Spatie\Activitylog\Models\Activity as ActivityModel;
 
-it('finds activities by broad search terms', function () {
-    // create two records with distinct searchable content
-    $first = ActivityModel::create([
-        'log_name' => 'default',
+/**
+ * These exercise the shared search implementation the resource filter, the
+ * direct export, and the queued export all run through, rather than a copy of
+ * the query written for the test.
+ */
+function searchActivities(string $term): array
+{
+    /** @var Builder<ActivityModel> $query */
+    $query = ActivityModel::query();
+
+    return ActivityExportCriteria::applySearch($query, $term)->pluck('id')->all();
+}
+
+function seedSearchableActivities(): array
+{
+    $user = TestUser::create(['name' => 'Dana Scully', 'email' => 'dana@example.test']);
+
+    $email = ActivityModel::create([
+        'log_name' => 'Resource',
         'description' => 'Updated email address for user',
         'subject_type' => 'App\\Models\\User',
         'subject_id' => 1,
-        'event' => 'updated',
+        'event' => 'Updated',
         'properties' => ['tags' => ['email', 'user']],
     ]);
 
-    $second = ActivityModel::create([
-        'log_name' => 'default',
+    $order = ActivityModel::create([
+        'log_name' => 'Resource',
         'description' => 'Deleted order #42',
         'subject_type' => 'App\\Models\\Order',
         'subject_id' => 42,
-        'event' => 'deleted',
-        'properties' => ['tags' => ['order', 'delete']],
+        'event' => 'Deleted',
+        'properties' => ['tags' => ['order', 'refundable-xyz']],
     ]);
 
-    // replicate the search logic used by the resource filter
-    $term = 'email';
+    $byUser = ActivityModel::create([
+        'log_name' => 'Resource',
+        'description' => 'Archived report',
+        'event' => 'Updated',
+        'causer_type' => $user::class,
+        'causer_id' => $user->getKey(),
+    ]);
 
-    $results = ActivityModel::where(function ($q) use ($term) {
-        $q->where('description', 'like', "%{$term}%")
-            ->orWhere('subject_type', 'like', "%{$term}%")
-            ->orWhere('properties', 'like', "%{$term}%")
-            ->orWhereHas('causer', function ($q2) use ($term) {
-                $q2->where('name', 'like', "%{$term}%");
-            });
-    })->get();
+    return ['email' => $email, 'order' => $order, 'byUser' => $byUser];
+}
 
-    expect($results->pluck('id'))->toContain($first->id);
-    expect($results->pluck('id'))->not->toContain($second->id);
+it('matches on the description', function () {
+    ['email' => $email, 'order' => $order] = seedSearchableActivities();
+
+    $results = searchActivities('email address');
+
+    expect($results)->toContain($email->id)
+        ->and($results)->not->toContain($order->id);
+});
+
+it('matches on the subject type', function () {
+    ['order' => $order, 'email' => $email] = seedSearchableActivities();
+
+    $results = searchActivities('Order');
+
+    expect($results)->toContain($order->id)
+        ->and($results)->not->toContain($email->id);
+});
+
+it('matches on the causer name', function () {
+    ['byUser' => $byUser, 'order' => $order] = seedSearchableActivities();
+
+    $results = searchActivities('Scully');
+
+    expect($results)->toContain($byUser->id)
+        ->and($results)->not->toContain($order->id);
+});
+
+it('matches inside the properties payload', function () {
+    ['order' => $order, 'byUser' => $byUser] = seedSearchableActivities();
+
+    // Appears only in the tags, so a match proves the JSON column was scanned.
+    $results = searchActivities('refundable-xyz');
+
+    expect($results)->toContain($order->id)
+        ->and($results)->not->toContain($byUser->id);
+});
+
+it('skips the properties scan when it is disabled', function () {
+    config()->set('filament-logger.search.include_properties', false);
+
+    ['order' => $order] = seedSearchableActivities();
+
+    expect(searchActivities('refundable-xyz'))->not->toContain($order->id);
+});
+
+it('returns everything for an empty term', function () {
+    seedSearchableActivities();
+
+    expect(searchActivities(''))->toHaveCount(3);
+});
+
+it('is reachable through the resource filter', function () {
+    ['email' => $email, 'order' => $order] = seedSearchableActivities();
+
+    $filters = (new ReflectionMethod(
+        config('filament-logger.activity_resource'),
+        'getTableFilters',
+    ))->invoke(null);
+
+    $search = collect($filters)->first(fn ($filter): bool => $filter->getName() === 'search');
+
+    expect($search)->not->toBeNull();
+
+    /** @var Builder<ActivityModel> $query */
+    $query = ActivityModel::query();
+
+    // Run the filter's own query callback, which is what the table applies.
+    $results = $search->apply($query, ['query' => 'email address'])
+        ->pluck('id')
+        ->all();
+
+    expect($results)->toContain($email->id)
+        ->and($results)->not->toContain($order->id);
 });

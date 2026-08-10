@@ -6,5 +6,5 @@ use Filament\Resources\Resource;
 
 class ExportPresetResourceV3 extends Resource
 {
-    use ExportPresetResourceDefinition;
+    use ExportPresetResourceDefinitionV3;
 }

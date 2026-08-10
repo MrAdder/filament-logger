@@ -42,6 +42,6 @@ class TopEventsChartWidget extends ChartWidget
 
     public function getHeading(): string|Htmlable|null
     {
-        return $this->activityReviewHeadingForPlaybook('Top Events', 'all_activity');
+        return $this->activityReviewHeadingForPlaybook(__('filament-logger::filament-logger.widget.top_events.heading'), 'all_activity');
     }
 }

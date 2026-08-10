@@ -170,9 +170,16 @@ jobs:
     permissions:
       contents: read
 
+    env:
+      # Job-level so the publish step can test for it in its `if` condition.
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          # SonarQube Cloud needs the full history to attribute new code correctly.
+          fetch-depth: 0
 
       - name: Setup PHP
         uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
@@ -199,6 +206,8 @@ jobs:
       - name: Install dependencies
         run: composer update --prefer-stable --prefer-dist --with-all-dependencies --no-progress
 
+      # phpunit.xml.dist already writes build/report.junit.xml, which SonarQube
+      # Cloud reads for test results.
       - name: Execute tests with coverage
         run: vendor/bin/pest --coverage --coverage-clover=build/logs/clover.xml
 
@@ -208,6 +217,18 @@ jobs:
           name: coverage-clover
           path: build/logs/clover.xml
           if-no-files-found: warn
+
+      # Automatic Analysis cannot import coverage, so this replaces it. It must
+      # be turned off in the project settings first or this step fails with
+      # "You are running manual analysis while Automatic Analysis is enabled".
+      #
+      # Skipped on forks, which cannot read the secret, and before SONAR_TOKEN
+      # is configured.
+      - name: Publish analysis to SonarQube Cloud
+        if: ${{ env.SONAR_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_HOST_URL: https://sonarcloud.io
 
   laravel13-filament5-required:
     name: Laravel 13 / Filament 5 Required Gate

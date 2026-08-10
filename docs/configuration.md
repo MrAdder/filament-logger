@@ -530,7 +530,18 @@ You can define reusable export presets that include a set of columns and optiona
   php artisan migrate
   ```
 
-  DB presets can then be created from the UI by users holding the `exports.manage_ability` ability.
+  Then register the management resource in the panel that should administer them — it is not registered automatically:
+
+  ```php
+  use MrAdder\FilamentLogger\Resources\ExportPresetResource;
+
+  return $panel->resources([
+      config('filament-logger.activity_resource'),
+      ExportPresetResource::class,
+  ]);
+  ```
+
+  DB presets can then be created from the UI by users holding the `exports.manage_ability` ability. The resource works on Filament 3, 4, and 5.
 
 Presets can be used from the activity list page via the "Export (preset)" actions. When exporting with a preset the exporter will use the preset's `columns` and apply the preset's filters to the query. The export response will include the same `X-Activity-Export-Metadata` header described above and will include a `preset` field referencing the preset key.
 

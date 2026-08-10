@@ -24,7 +24,6 @@ use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
 use MrAdder\FilamentLogger\Models\ExportPreset;
 use MrAdder\FilamentLogger\Policies\ExportPresetPolicy;
-use MrAdder\FilamentLogger\Resources\ExportPresetResource;
 use MrAdder\FilamentLogger\Support\ActivityAlertDispatcher;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
@@ -44,17 +43,6 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 class FilamentLoggerServiceProvider extends PackageServiceProvider
 {
     public static string $name = 'filament-logger';
-
-    /**
-     * @return array<int, class-string>
-     */
-    protected function getResources(): array
-    {
-        return [
-            config('filament-logger.activity_resource'),
-            ExportPresetResource::class,
-        ];
-    }
 
     public function configurePackage(Package $package): void
     {

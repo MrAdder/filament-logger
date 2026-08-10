@@ -14,6 +14,8 @@ parameters:
         # The Filament 3 implementations of the version-specific hooks.
         - src/Resources/ActivityResourceV3.php
         - src/Resources/ActivityResource/Pages/ListActivitiesV3.php
+        - src/Resources/ExportPresetResourceV3.php
+        - src/Resources/ExportPresetResourceDefinitionV3.php
         # The shared classes those hooks exist for. Analysing them here is what
         # catches a version-specific API leaking into shared code, which is how
         # Filament 3 filter and action schemas silently broke before.

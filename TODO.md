@@ -6,7 +6,7 @@ This backlog is focused on improvements that can land during the `1.x` series wi
 
 - [ ] Add full-text activity search across description, subject, causer, and tags.
 - [ ] Add more built-in saved filter presets for common review workflows.
-- [ ] Add drill-down links from dashboard widgets into pre-filtered activity views.
+- [x] Add drill-down links from dashboard widgets into pre-filtered activity views.
 - [ ] Improve diff rendering for large JSON payloads and deeply nested changes.
 
 ## Alerts and integrations
@@ -44,7 +44,7 @@ This backlog is focused on improvements that can land during the `1.x` series wi
 ## Quality and maintainability
 
 - [x] Expand test coverage around filters, widgets, exports, and dashboard behavior.
-- [ ] Reduce remaining duplication warnings around the resource layer.
+- [x] Reduce remaining duplication warnings around the resource layer.
 - [x] Keep local tooling aligned with CI behavior for PHPStan and release checks.
 - [x] Adopt Laravel Pint with a CI style gate.
 - [x] Raise PHPStan to level 6 and analyse the Filament 3 shims in a dedicated job.

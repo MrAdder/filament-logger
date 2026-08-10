@@ -15,70 +15,71 @@ The goal for the `1.x` series is to keep improvements additive and stable while 
 
 ## Planned milestones
 
-| Milestone | Theme | Focus |
+| Milestone | Theme | Status |
 | --- | --- | --- |
-| `v1.1.0` | Foundation and confidence | Support matrix, issue templates, test coverage, and tooling alignment |
-| `v1.2.0` | Activity review UX | Better presets, drill-down workflows, and improved diff rendering |
-| `v1.3.0` | Search and productivity | Full-text activity search and smoother review workflows |
-| `v1.4.0` | Exports and operations | Export metadata, reusable export presets, and better pruning feedback |
-| `v1.5.0` | Alerts and integrations | Generic webhooks, message customization, richer risk heuristics, and digest alerts |
-| `v1.6.0` | Extensibility | Safer hooks for labels, row display, tabs, widgets, filters, and alert registration |
-| `v1.7.x` | Scale and polish | Queued exports, deeper examples, translation review, and `1.x` deprecation tracking |
+| `v1.1.0` | Foundation and confidence | Delivered |
+| `v1.4.0` | Exports and operations | Delivered |
+| `v1.5.0` | Alerts and integrations | Delivered |
+| `v1.6.0` | Extensibility | Delivered |
+| `v1.2.0` | Activity review UX | Partly delivered |
+| `v1.7.x` | Scale and polish | Partly delivered |
+| `v1.3.0` | Search and productivity | Planned |
 
-## Near term
+## Delivered
 
-### v1.1.0 Foundation and confidence
+### Foundation and confidence
 
-This phase focuses on trust, polish, and a stronger contributor experience around the stable `1.x` line.
+- Support matrix for PHP, Laravel, and Filament versions.
+- Issue templates for bug reports, feature requests, and maintenance.
+- Laravel Pint with a CI style gate, and PHPStan raised to level 6.
+- A dedicated PHPStan run for the Filament 3 compatibility shims.
+- Expanded coverage across filters, widgets, exports, alerts, and the dashboard.
 
-- Publish a dedicated support matrix for supported PHP, Laravel, and Filament versions.
-- Add issue templates for bug reports, feature requests, and release follow-ups.
-- Keep local tooling aligned with CI behavior for PHPStan and release checks.
-- Expand test coverage around filters, widgets, exports, and dashboard behavior.
-- Reduce remaining duplication warnings around the resource layer.
+### Exports and operations
 
-### v1.2.0 Activity review UX
+- Export metadata carrying filter and date-range context.
+- Reusable export presets and saved column sets, in config or the database.
+- Queued exports for large datasets, with notification and retention.
+- A dedicated export ability, and CSV formula neutralisation.
 
-This phase improves the core review experience inside the activity resource.
+### Alerts and integrations
 
-- Add more built-in saved filter presets for common review workflows.
-- Add drill-down links from dashboard widgets into pre-filtered activity views.
-- Improve diff rendering for large JSON payloads and deeply nested changes.
+- A generic webhook channel alongside mail, Slack, and Discord.
+- Per-rule title and message templates.
+- Digest alerts, released by a scheduled command or opportunistically.
+- Additional risk heuristics for permission, credential, two-factor, and account status changes.
+- Queued alert delivery so webhooks cannot block the audited action.
 
-## Mid-term
+### Extensibility
 
-### v1.3.0 Search and review productivity
+- Display hooks for subject labels, causer labels, table columns, and detail entries.
+- Extension points for review tabs, dashboard widgets, and filters.
+- Programmatic alert rule registration.
+- End-to-end examples for multi-panel, tenancy, alerts, and custom events.
 
-- Add full-text activity search across description, subject, causer, and tags.
-- Continue polishing review workflows around filtering and discoverability.
+## In progress
 
-### v1.4.0 Exports and operations
+### Activity review UX
 
-- Improve export metadata so generated files include filter and date-range context.
-- Add reusable export presets and saved column sets.
-- Expand pruning feedback with clearer dry-run summaries and reporting.
+- [x] Drill-down links from dashboard widgets into pre-filtered activity views.
+- [ ] More built-in saved filter presets for common review workflows.
+- [ ] Improved diff rendering for large JSON payloads and deeply nested changes.
 
-### v1.5.0 Alerts and integrations
+### Scale and polish
 
-- Add a generic webhook alert channel for services beyond mail, Slack, and Discord.
-- Add richer alert message customization with per-rule titles and message templates.
-- Add more built-in risk heuristics for permission changes, role changes, and auth anomalies.
-- Add digest or summary alerts to reduce noise from repeated events.
+- [x] Queued exports for large activity datasets.
+- [x] End-to-end examples for multi-panel, tenancy, alerts, and custom event setups.
+- [x] Caching for the filter option scans, and an optional activity log index migration.
+- [ ] Translation review across the non-English locale files.
+- [ ] Benchmarks against a multi-million row activity table.
 
-## Longer term
+## Planned
 
-### v1.6.0 Extensibility
+### Search and productivity
 
-- Add public hooks for customizing subject labels, causer labels, and activity row display.
-- Add clearer extension points for custom resource tabs, widgets, and filters.
-- Add more configuration hooks for alert rule registration and risk classification.
-
-### v1.7.x Scale and polish
-
-- Add queued exports for large activity datasets.
-- Add end-to-end examples for multi-panel, tenancy, alerts, and custom event setups.
-- Review translation completeness and consistency across locale files.
-- Track enhancements, deprecations, and upgrade notes throughout the `1.x` series.
+- Full-text activity search across description, subject, causer, and tags.
+- A generated or indexed `risk` column so risk filtering avoids a JSON scan.
+- Clearer dry-run summaries and reporting for pruning.
 
 ## Live backlog
 

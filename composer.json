@@ -69,9 +69,11 @@
     },
     "archive": {
         "exclude": [
+            "/.editorconfig",
             "/.github",
             "/.gitattributes",
             "/.gitignore",
+            "/art",
             "/bootstrap",
             "/build",
             "/composer.lock",
@@ -79,10 +81,10 @@
             "/package.json",
             "/package-lock.json",
             "/phpstan-baseline.neon",
-            "/pint.json",
+            "/phpstan-filament3.neon.dist",
             "/phpstan.neon.dist",
             "/phpunit.xml.dist",
-            "/testbench.yaml",
+            "/pint.json",
             "/tests"
         ]
     },

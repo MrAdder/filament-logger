@@ -37,6 +37,6 @@ class ActivityTrendChartWidget extends ChartWidget
 
     public function getHeading(): string|Htmlable|null
     {
-        return $this->activityReviewHeadingForPlaybook('Activity Trend', 'all_activity');
+        return $this->activityReviewHeadingForPlaybook(__('filament-logger::filament-logger.widget.trend.heading'), 'all_activity');
     }
 }
