@@ -2,6 +2,21 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.6.0 - 2026-08-10
+
+## Summary
+
+## Maintenance
+
+- chore(deps): bump SonarSource/sonarqube-scan-action from 5 to 6 in /.github/workflows in the github\_actions group across 1 directory by @[dependabot[bot]](https://github.com/apps/dependabot) in #73
+- chore(deps): bump actions/upload-artifact from 4 to 7 by @[dependabot[bot]](https://github.com/apps/dependabot) in #72
+
+## Contributors
+
+[@dependabot[bot]](https://github.com/apps/dependabot) and @MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.4.1...v1.6.0
+
 ## v1.4.1 - 2026-08-09
 
 ## Summary
