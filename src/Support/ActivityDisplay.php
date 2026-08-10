@@ -134,6 +134,17 @@ final class ActivityDisplay
     }
 
     /**
+     * Whether a causer hook is registered.
+     *
+     * Resolving the causer relation costs a query per row when it has not been
+     * eager loaded, so callers check this before touching it.
+     */
+    public static function hasCauserLabelHook(): bool
+    {
+        return self::$causerLabelUsing !== null;
+    }
+
+    /**
      * @param  array<int, mixed>  $columns
      * @return array<int, mixed>
      */

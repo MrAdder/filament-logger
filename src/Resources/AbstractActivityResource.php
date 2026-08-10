@@ -4,6 +4,7 @@ namespace MrAdder\FilamentLogger\Resources;
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
@@ -56,6 +57,17 @@ abstract class AbstractActivityResource extends Resource
     public static function getModel(): string
     {
         return ActivitylogServiceProvider::determineActivityModel();
+    }
+
+    /**
+     * The table renders the causer on every row, so it is eager loaded to keep
+     * a page of activity to one extra query rather than one per row.
+     *
+     * @return Builder<Model>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('causer');
     }
 
     public static function getLabel(): string

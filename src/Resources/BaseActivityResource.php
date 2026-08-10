@@ -303,13 +303,18 @@ abstract class BaseActivityResource extends AbstractActivityResource
      */
     protected static function formatCauserState(mixed $state, Model $record): string
     {
-        /** @var Activity&ActivityModel $record */
-        $causer = $record->causer instanceof Model ? $record->causer : null;
+        // Only touch the causer relation when a hook actually wants it: on a
+        // table page this runs once per row, and resolving the relation costs
+        // a query each time it has not been eager loaded.
+        if (ActivityDisplay::hasCauserLabelHook()) {
+            /** @var Activity&ActivityModel $record */
+            $causer = $record->causer instanceof Model ? $record->causer : null;
 
-        $custom = ActivityDisplay::resolveCauserLabel($causer, $record);
+            $custom = ActivityDisplay::resolveCauserLabel($causer, $record);
 
-        if ($custom !== null) {
-            return $custom;
+            if ($custom !== null) {
+                return $custom;
+            }
         }
 
         return filled($state) ? (string) $state : '-';
