@@ -79,4 +79,18 @@ return [
 
     'log.description' => ':model :event',
     'log.description_by' => ':description by :user',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Queued Exports
+    |--------------------------------------------------------------------------
+    */
+
+    'export.queued_title' => 'Export queued',
+    'export.queued_body' => 'Your export is being generated. You will be notified when it is ready.',
+    'export.ready_title' => 'Your activity export is ready',
+    'export.ready_body' => ':rows rows exported.',
+    'export.failed_title' => 'Activity export failed',
+    'export.failed_body' => 'The export could not be generated. Check the application log for details.',
+    'export.download' => 'Download',
 ];

@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
 use MrAdder\FilamentLogger\Jobs\SendActivityAlertWebhook;
 use MrAdder\FilamentLogger\Notifications\SensitiveActivityAlertNotification;
 use Spatie\Activitylog\Contracts\Activity as ActivityContract;
@@ -17,6 +16,7 @@ class ActivityAlertDispatcher
 {
     public function __construct(
         protected ActivityRiskResolver $riskResolver,
+        protected ActivityAlertDigest $digest = new ActivityAlertDigest,
     ) {}
 
     public function dispatch(ActivityContract $activity): void
@@ -25,8 +25,16 @@ class ActivityAlertDispatcher
             return;
         }
 
+        // Close expired windows before this activity is considered, otherwise
+        // it would be folded into a stale bucket and reported under a window it
+        // does not belong to. This is also the opportunistic release path for
+        // installs that have not scheduled the digest command.
+        if (ActivityAlertDigest::hasDigestRules()) {
+            $this->flushDigests();
+        }
+
         foreach (config('filament-logger.alerts.rules', []) as $ruleName => $rule) {
-            if (! data_get($rule, 'enabled', true)) {
+            if (! is_array($rule) || ! data_get($rule, 'enabled', true)) {
                 continue;
             }
 
@@ -34,12 +42,31 @@ class ActivityAlertDispatcher
                 continue;
             }
 
-            $title = data_get($rule, 'label', Str::headline((string) $ruleName));
-
             foreach ($this->channelsForRule($rule) as $channel) {
-                $this->dispatchRuleChannel($ruleName, $rule, $channel, $activity, $title);
+                if (ActivityAlertDigest::isDigestRule($rule)) {
+                    $this->digest->add((string) $ruleName, $rule, $channel, $activity);
+
+                    continue;
+                }
+
+                $this->dispatchRuleChannel((string) $ruleName, $rule, $channel, $activity);
             }
         }
+    }
+
+    /**
+     * Release every digest whose window has closed.
+     *
+     * @return int Number of digests sent.
+     */
+    public function flushDigests(bool $force = false): int
+    {
+        return $this->digest->flushDue(
+            function (string $ruleName, array $rule, string $channel, ActivityContract $activity, int $count): void {
+                $this->dispatchRuleChannel($ruleName, $rule, $channel, $activity, $count, digest: true);
+            },
+            $force,
+        );
     }
 
     /**
@@ -91,16 +118,27 @@ class ActivityAlertDispatcher
         array $rule,
         string $channel,
         ActivityContract $activity,
-        string $title,
+        int $count = 1,
+        bool $digest = false,
     ): void {
-        $usesCooldown = $this->cooldownSecondsForRule($rule) > 0;
+        // A digest has already waited out its window; applying the cooldown
+        // again would suppress the very alert the window was accumulating.
+        $usesCooldown = ! $digest && $this->cooldownSecondsForRule($rule) > 0;
 
         if ($usesCooldown && ! $this->claimCooldown($ruleName, $rule, $channel, $activity)) {
             return;
         }
 
+        $message = ActivityAlertMessage::for(
+            $ruleName,
+            $digest ? $this->digestRule($rule) : $rule,
+            $activity,
+            $this->riskResolver->resolveForActivity($activity),
+            $count,
+        );
+
         try {
-            $dispatched = $this->dispatchToChannel($channel, $activity, $title);
+            $dispatched = $this->dispatchToChannel($channel, $rule, $activity, $message);
         } catch (Throwable $exception) {
             if ($usesCooldown) {
                 $this->releaseCooldown($ruleName, $rule, $channel, $activity);
@@ -114,19 +152,122 @@ class ActivityAlertDispatcher
         }
     }
 
-    protected function dispatchToChannel(string $channel, ActivityContract $activity, string $title): bool
+    /**
+     * Digest rules may override the wording for the batched alert; otherwise
+     * the rule's normal templates are reused.
+     *
+     * @param  array<string, mixed>  $rule
+     * @return array<string, mixed>
+     */
+    protected function digestRule(array $rule): array
     {
+        if (filled(data_get($rule, 'digest_title'))) {
+            $rule['title'] = data_get($rule, 'digest_title');
+        }
+
+        $rule['message'] = filled(data_get($rule, 'digest_message'))
+            ? data_get($rule, 'digest_message')
+            : ':count matching activities in the last :window minutes.'."\n".
+              'Latest: :description'."\n".
+              'Event: :event'."\n".
+              'Log: :log_name';
+
+        return $rule;
+    }
+
+    /**
+     * @param  array<string, mixed>  $rule
+     */
+    protected function dispatchToChannel(
+        string $channel,
+        array $rule,
+        ActivityContract $activity,
+        ActivityAlertMessage $message,
+    ): bool {
         return match ($channel) {
-            'mail' => $this->sendMail($activity, $title),
-            'slack' => $this->sendWebhook(config('filament-logger.alerts.slack.webhook_url'), $this->formatWebhookMessage($activity, $title)),
-            'discord' => $this->sendWebhook(config('filament-logger.alerts.discord.webhook_url'), [
-                'content' => $this->formatWebhookMessage($activity, $title)['text'],
-            ]),
+            'mail' => $this->sendMail($activity, $message),
+            'slack' => $this->sendWebhook(
+                $this->channelUrl($rule, 'slack'),
+                ['text' => $message->toText()],
+            ),
+            'discord' => $this->sendWebhook(
+                $this->channelUrl($rule, 'discord'),
+                ['content' => $message->toText()],
+            ),
+            'webhook' => $this->sendWebhook(
+                $this->channelUrl($rule, 'webhook'),
+                $this->webhookPayload($activity, $message),
+                $this->webhookHeaders(),
+            ),
             default => false,
         };
     }
 
-    protected function sendMail(ActivityContract $activity, string $title): bool
+    /**
+     * A rule may point a channel at its own endpoint, overriding the global one.
+     *
+     * @param  array<string, mixed>  $rule
+     */
+    protected function channelUrl(array $rule, string $channel): ?string
+    {
+        // 'webhook' => rule key `webhook_url`, 'slack' => `slack_url`, etc.
+        $override = data_get($rule, $channel.'_url');
+
+        if (filled($override)) {
+            return (string) $override;
+        }
+
+        $key = $channel === 'webhook'
+            ? 'filament-logger.alerts.webhook.url'
+            : "filament-logger.alerts.{$channel}.webhook_url";
+
+        $url = config($key);
+
+        return filled($url) ? (string) $url : null;
+    }
+
+    /**
+     * Structured payload for the generic webhook channel. Slack and Discord
+     * keep their own service-specific shapes.
+     *
+     * @return array<string, mixed>
+     */
+    protected function webhookPayload(ActivityContract $activity, ActivityAlertMessage $message): array
+    {
+        $replacements = $message->replacements;
+
+        return [
+            'title' => $message->title,
+            'message' => $message->body,
+            'rule' => $replacements[':rule'],
+            'count' => (int) $replacements[':count'],
+            'activity' => [
+                'id' => $activity instanceof Model ? $activity->getKey() : data_get($activity, 'id'),
+                'log_name' => data_get($activity, 'log_name'),
+                'event' => data_get($activity, 'event'),
+                'description' => data_get($activity, 'description'),
+                'risk' => $replacements[':risk'],
+                'risk_reasons' => $replacements[':risk_reasons'],
+                'subject_type' => data_get($activity, 'subject_type'),
+                'subject_id' => data_get($activity, 'subject_id'),
+                'causer_type' => data_get($activity, 'causer_type'),
+                'causer_id' => data_get($activity, 'causer_id'),
+                'logged_at' => $replacements[':logged_at'],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function webhookHeaders(): array
+    {
+        $headers = config('filament-logger.alerts.webhook.headers', []);
+
+        return is_array($headers) ? $headers : [];
+    }
+
+    protected function sendMail(ActivityContract $activity, ActivityAlertMessage $message): bool
     {
         $recipients = array_values(array_filter(config('filament-logger.alerts.mail.to', [])));
 
@@ -135,7 +276,7 @@ class ActivityAlertDispatcher
         }
 
         $notifiable = Notification::route('mail', $recipients);
-        $notification = new SensitiveActivityAlertNotification($activity, $title);
+        $notification = new SensitiveActivityAlertNotification($activity, $message->title, $message);
 
         // The notification implements ShouldQueue, so notifyNow() is what keeps
         // the previous synchronous behaviour available.
@@ -148,22 +289,23 @@ class ActivityAlertDispatcher
 
     /**
      * @param  array<string, mixed>  $payload
+     * @param  array<string, string>  $headers
      */
-    protected function sendWebhook(?string $url, array $payload): bool
+    protected function sendWebhook(?string $url, array $payload, array $headers = []): bool
     {
         if (blank($url)) {
             return false;
         }
 
         if ($this->shouldQueue()) {
-            $job = new SendActivityAlertWebhook($url, $payload, $this->webhookTimeout());
+            $job = new SendActivityAlertWebhook($url, $payload, $this->webhookTimeout(), $headers);
 
             dispatch($job->onConnection($this->queueConnection())->onQueue($this->queueName()));
 
             return true;
         }
 
-        $response = Http::timeout($this->webhookTimeout())->post($url, $payload);
+        $response = Http::withHeaders($headers)->timeout($this->webhookTimeout())->post($url, $payload);
 
         // Laravel does not throw on 4xx/5xx by default. Reporting success for a
         // rejected webhook would burn the cooldown and hide the failure.
@@ -192,37 +334,6 @@ class ActivityAlertDispatcher
     protected function webhookTimeout(): int
     {
         return max(1, (int) config('filament-logger.alerts.webhook_timeout', 5));
-    }
-
-    /**
-     * @return array{text: string}
-     */
-    protected function formatWebhookMessage(ActivityContract $activity, string $title): array
-    {
-        $subjectType = data_get($activity, 'subject_type');
-        $subjectId = data_get($activity, 'subject_id');
-        $causerType = data_get($activity, 'causer_type');
-        $causerId = data_get($activity, 'causer_id');
-
-        $subject = $subjectType
-            ? class_basename((string) $subjectType).' #'.$subjectId
-            : 'None';
-
-        $causer = $causerType
-            ? class_basename((string) $causerType).' #'.$causerId
-            : 'Anonymous';
-
-        return [
-            'text' => implode("\n", array_filter([
-                $title,
-                data_get($activity, 'description'),
-                'Event: '.(data_get($activity, 'event') ?? '-'),
-                'Log: '.(data_get($activity, 'log_name') ?? '-'),
-                'Risk: '.($this->riskResolver->resolveForActivity($activity) ?? '-'),
-                'Subject: '.$subject,
-                'Causer: '.$causer,
-            ])),
-        ];
     }
 
     /**

@@ -58,18 +58,7 @@ class ActivityExporter
                 return;
             }
 
-            if ($embed) {
-                fwrite($handle, '#METADATA:'.$this->encode($metadata)."\n");
-            }
-
-            fputcsv($handle, $columns, ',', '"', '');
-
-            $this->streamRows($query, function (array $row) use ($handle, $columns): void {
-                fputcsv($handle, array_map(
-                    fn (string $column): mixed => $this->escapeCsvValue($row[$column] ?? null),
-                    $columns,
-                ), ',', '"', '');
-            });
+            $this->writeCsv($handle, $query, $columns, $metadata, $embed);
 
             fclose($handle);
         }, $this->fileName('csv'), [
@@ -77,6 +66,95 @@ class ActivityExporter
         ]);
 
         return $this->withMetadataHeader($response, $metadata);
+    }
+
+    /**
+     * Write an export to an open stream and report how many rows it contained.
+     *
+     * This is the path queued exports use; the streamed download methods share
+     * the same writers so both formats stay identical.
+     *
+     * @param  resource  $handle
+     * @param  Builder<Model>  $query
+     * @param  array<int, string>|null  $columns
+     * @param  array<string, mixed>|null  $metadata
+     */
+    public function writeTo(
+        mixed $handle,
+        string $format,
+        Builder $query,
+        ?array $columns = null,
+        ?array $metadata = null,
+    ): int {
+        $columns = $this->resolveColumns($columns);
+        $metadata = $this->resolveMetadata($metadata, $columns);
+        $embed = $this->shouldEmbedMetadata($metadata);
+
+        return $format === 'json'
+            ? $this->writeJson($handle, $query, $columns, $metadata, $embed)
+            : $this->writeCsv($handle, $query, $columns, $metadata, $embed);
+    }
+
+    /**
+     * @param  resource  $handle
+     * @param  Builder<Model>  $query
+     * @param  array<int, string>  $columns
+     * @param  array<string, mixed>  $metadata
+     */
+    protected function writeCsv(mixed $handle, Builder $query, array $columns, array $metadata, bool $embed): int
+    {
+        if ($embed) {
+            fwrite($handle, '#METADATA:'.$this->encode($metadata)."\n");
+        }
+
+        fputcsv($handle, $columns, ',', '"', '');
+
+        $rows = 0;
+
+        $this->streamRows($query, function (array $row) use ($handle, $columns, &$rows): void {
+            fputcsv($handle, array_map(
+                fn (string $column): mixed => $this->escapeCsvValue($row[$column] ?? null),
+                $columns,
+            ), ',', '"', '');
+
+            $rows++;
+        });
+
+        return $rows;
+    }
+
+    /**
+     * @param  resource  $handle
+     * @param  Builder<Model>  $query
+     * @param  array<int, string>  $columns
+     * @param  array<string, mixed>  $metadata
+     */
+    protected function writeJson(mixed $handle, Builder $query, array $columns, array $metadata, bool $embed): int
+    {
+        // With metadata the payload is an object wrapping the rows; without it
+        // the payload stays a bare array for backwards compatibility.
+        fwrite($handle, $embed
+            ? '{"metadata":'.$this->encode($metadata).',"rows":['
+            : '[');
+
+        $rows = 0;
+
+        $this->streamRows($query, function (array $row) use ($handle, $columns, &$rows): void {
+            if ($rows > 0) {
+                fwrite($handle, ',');
+            }
+
+            fwrite($handle, (string) json_encode(
+                array_intersect_key($row, array_flip($columns)),
+                JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+            ));
+
+            $rows++;
+        });
+
+        fwrite($handle, $embed ? ']}' : ']');
+
+        return $rows;
     }
 
     /**
@@ -91,28 +169,15 @@ class ActivityExporter
         $embed = $this->shouldEmbedMetadata($metadata);
 
         $response = response()->streamDownload(function () use ($query, $columns, $metadata, $embed): void {
-            // With metadata the payload is an object wrapping the rows; without
-            // it the payload stays a bare array for backwards compatibility.
-            echo $embed
-                ? '{"metadata":'.$this->encode($metadata).',"rows":['
-                : '[';
+            $handle = fopen('php://output', 'wb');
 
-            $first = true;
+            if (! is_resource($handle)) {
+                return;
+            }
 
-            $this->streamRows($query, function (array $row) use (&$first, $columns): void {
-                if (! $first) {
-                    echo ',';
-                }
+            $this->writeJson($handle, $query, $columns, $metadata, $embed);
 
-                $first = false;
-
-                echo json_encode(
-                    array_intersect_key($row, array_flip($columns)),
-                    JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-                );
-            });
-
-            echo $embed ? ']}' : ']';
+            fclose($handle);
         }, $this->fileName('json'), [
             'Content-Type' => 'application/json; charset=UTF-8',
         ]);

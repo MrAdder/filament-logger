@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
 use MrAdder\FilamentLogger\Commands\PruneActivitiesCommand;
+use MrAdder\FilamentLogger\Commands\PruneActivityExportsCommand;
+use MrAdder\FilamentLogger\Commands\SendAlertDigestsCommand;
 use MrAdder\FilamentLogger\FilamentLogger as FilamentLoggerManager;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
 use MrAdder\FilamentLogger\Models\ExportPreset;
@@ -60,11 +62,16 @@ class FilamentLoggerServiceProvider extends PackageServiceProvider
             ->hasTranslations()
             ->hasConfigFile()
             ->hasViews()
+            ->hasRoute('web')
             ->hasMigrations([
                 '2026_05_26_000000_create_export_presets_table',
                 '2026_05_26_000001_add_filament_logger_indexes_to_activity_log_table',
             ])
-            ->hasCommand(PruneActivitiesCommand::class)
+            ->hasCommands([
+                PruneActivitiesCommand::class,
+                PruneActivityExportsCommand::class,
+                SendAlertDigestsCommand::class,
+            ])
             ->hasInstallCommand(function (InstallCommand $installCommand) {
                 $installCommand
                     ->publishConfigFile()

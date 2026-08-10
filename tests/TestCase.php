@@ -45,6 +45,10 @@ class TestCase extends Orchestra
 
     public function getEnvironmentSetUp($app)
     {
+        // Signed routes (queued export downloads) need an encryption key.
+        config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+        config()->set('auth.providers.users.model', Fixtures\Models\TestUser::class);
+
         config()->set('database.default', 'testing');
         config()->set('database.connections.testing', [
             'driver' => 'sqlite',

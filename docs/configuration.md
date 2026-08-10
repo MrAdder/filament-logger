@@ -188,6 +188,139 @@ With `queue` enabled, mail alerts are queued and webhooks are dispatched as `MrA
 
 Webhook responses are checked. A non-2xx response counts as a failed delivery, which releases the rule cooldown so the next matching activity retries rather than being silently suppressed.
 
+## Alert Channels
+
+Four channels ship with the package: `mail`, `slack`, `discord`, and `webhook`.
+
+`webhook` is the generic channel for anything that is not Slack or Discord. It receives a structured JSON payload rather than a service-specific shape:
+
+```php
+'alerts' => [
+    'webhook' => [
+        'url' => env('AUDIT_WEBHOOK_URL'),
+        'headers' => [
+            'Authorization' => 'Bearer '.env('AUDIT_WEBHOOK_TOKEN'),
+        ],
+    ],
+],
+```
+
+```json
+{
+    "title": "Destructive activity detected",
+    "message": "Record deleted\nEvent: Deleted\nLog: Resource\n...",
+    "rule": "Destructive Activity",
+    "count": 1,
+    "activity": {
+        "id": 4213,
+        "log_name": "Resource",
+        "event": "Deleted",
+        "description": "Order Deleted by Dan",
+        "risk": "high",
+        "risk_reasons": "destructive",
+        "subject_type": "App\\Models\\Order",
+        "subject_id": 42,
+        "causer_type": "App\\Models\\User",
+        "causer_id": 1,
+        "logged_at": "2026-08-10 14:03:11"
+    }
+}
+```
+
+Any rule can override the endpoint for a channel with `webhook_url`, `slack_url`, or `discord_url`, which is useful for routing high-risk rules to a different destination.
+
+## Alert Message Templates
+
+A rule can define `title` and `message` templates. Both accept `:placeholder` tokens:
+
+```php
+'rules' => [
+    'role_changes' => [
+        'channels' => ['slack'],
+        'risk_reasons' => ['role_change', 'permission_change'],
+        'title' => '[:risk] :rule on :subject',
+        'message' => ':causer changed :subject at :logged_at (:risk_reasons)',
+    ],
+],
+```
+
+| Placeholder | Value |
+|---|---|
+| `:rule` | Rule name, headline-cased |
+| `:event` | Activity event |
+| `:log_name` | Activity log name |
+| `:description` | Activity description |
+| `:risk` | Resolved risk level |
+| `:risk_reasons` | Comma-separated risk reasons |
+| `:subject` / `:subject_type` / `:subject_id` | Subject label and parts |
+| `:causer` / `:causer_type` / `:causer_id` | Causer label and parts |
+| `:logged_at` | When the activity was recorded |
+| `:count` | Matching activities (always `1` outside a digest) |
+| `:window` | Digest window in minutes |
+| `:threshold` | Threshold for threshold rules |
+
+Rules without templates keep the built-in wording, and the existing `label` key still works as the title.
+
+## Digest Alerts
+
+A busy rule can batch its matches into one alert instead of firing per event:
+
+```php
+'rules' => [
+    'destructive_activity' => [
+        'channels' => ['slack'],
+        'events' => ['Deleted', 'Force Deleted'],
+        'digest' => true,
+        'digest_minutes' => 60,
+        'digest_title' => ':count deletions in the last :window minutes',
+        'digest_message' => 'Latest: :description',
+    ],
+],
+```
+
+The first matching activity opens a window. Everything matching during that window is counted, and one alert is sent when it closes, carrying `:count`.
+
+Digests are released two ways. Schedule the command for reliable, on-time delivery:
+
+```php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('filament-logger:send-alert-digests')->everyFiveMinutes();
+```
+
+As a fallback, an expired window is also released when the next matching activity arrives, so digests still work without a scheduler — they just wait for the next event. Run `filament-logger:send-alert-digests --force` to flush everything pending immediately.
+
+Digest rules ignore `cooldown_minutes`: the window already provides the throttling.
+
+## Risk Heuristics
+
+Beyond the `risk.high` events and change keys, the package detects named risk reasons that alert rules can filter on with `risk_reasons`:
+
+| Reason | Default level | Triggered by |
+|---|---|---|
+| `destructive` | high | `Deleted`, `Force Deleted` |
+| `auth_failure` | high | `Failed Login`, `Lockout` |
+| `role_change` | high | `risk.high.change_keys` |
+| `permission_change` | high | `ability`, `abilities`, `scope`, `scopes`, `is_admin`, `is_super_admin` |
+| `credential_change` | high | `password`, `email`, `username`, `Password Reset` |
+| `two_factor_change` | high | `two_factor_*` keys, `Two Factor Recovery` |
+| `account_status_change` | medium | `status`, `active`, `is_active`, `blocked_at`, `banned_at`, `suspended_at`, `email_verified_at` |
+
+When several match, the most severe level wins. Each is configurable under `risk.heuristics`; set one to an empty array to disable it, or add your own:
+
+```php
+'risk' => [
+    'heuristics' => [
+        'billing_change' => [
+            'level' => 'medium',
+            'change_keys' => ['plan', 'billing_email', 'card_last_four'],
+        ],
+    ],
+],
+```
+
+An explicitly supplied risk level is never overridden by a heuristic.
+
 ## Custom Log Names
 
 You can define your own log names and colors:
@@ -312,6 +445,74 @@ To embed metadata in the file itself, enable `exports.embed_metadata`. This chan
 - **JSON** becomes an object, `{"metadata": {...}, "rows": [...]}`, instead of a bare array.
 
 With `embed_metadata` disabled (the default), JSON exports remain a bare array.
+
+## Queued Exports
+
+Building a large export inside a request is slow and prone to timing out. With queued exports enabled, anything above a row threshold is handed to the queue and the user is told when the file is ready; smaller exports keep streaming straight back as a download.
+
+```php
+'exports' => [
+    'queue' => [
+        'enabled' => true,
+        'threshold' => 5000,   // rows above which an export is queued; 0 always queues
+        'connection' => null,
+        'name' => null,
+        'disk' => 'local',
+        'path' => 'filament-logger/exports',
+        'notify' => 'mail',   // 'mail' | 'database' | null
+        'routes' => true,
+        'route_prefix' => 'filament-logger',
+        'route_middleware' => ['web', 'signed'],
+        'link_minutes' => 1440,
+        'retention_days' => 7,
+    ],
+],
+```
+
+With `enabled` set to `false` (the default) nothing changes: every export streams directly, exactly as before.
+
+### How the user gets the file
+
+`notify` controls the feedback:
+
+- **`mail`** (default) — emails the requesting user a download link. Chosen as the default because it needs nothing beyond the mail configuration every Laravel app already has.
+- **`database`** — a Filament in-panel notification with a Download action. Nicer inside the panel, but it uses Filament's database notifications, so the host application needs Laravel's `notifications` table:
+
+  ```bash
+  php artisan make:notifications-table   # or: php artisan notifications:table
+  php artisan migrate
+  ```
+
+- **`null`** — no notification; the generated path is written to the log for you to serve yourself.
+
+Either way, the user gets an immediate "Export queued" notification when they trigger it, so nothing looks broken while the job runs. If the job fails, the failure is reported back on the same channel rather than only reaching the log.
+
+### Download security
+
+Download links are signed and expire after `link_minutes`. The signature alone is not treated as sufficient authority — the controller also requires that:
+
+- a user is authenticated,
+- that user is the one the export was generated for (a forwarded link fails),
+- the `exports.ability` gate passes,
+- the resolved path stays inside that user's export directory.
+
+Files are written to `{path}/{user id}/`, so one user's export is never reachable through another's link. Set `routes` to `false` to skip route registration entirely and serve the files from the disk yourself.
+
+### Retention
+
+Generated files stay on the disk until pruned. Schedule the cleanup command:
+
+```php
+Schedule::command('filament-logger:prune-exports')->daily();
+```
+
+```bash
+php artisan filament-logger:prune-exports --days=7 --dry-run
+```
+
+### Filters
+
+A queued export reproduces the filters that were applied in the table when it was requested — search term, log name, subject type, risk, date filter and preset, and the old/new property filters — along with any selected export preset. The filter state is serialised into the job rather than the query itself, because an Eloquent builder cannot cross the queue.
 
 ### CSV and spreadsheet formulas
 

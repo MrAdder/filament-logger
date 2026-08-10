@@ -11,15 +11,15 @@ This backlog is focused on improvements that can land during the `1.x` series wi
 
 ## Alerts and integrations
 
-- [ ] Add a generic webhook alert channel for services beyond mail, Slack, and Discord.
-- [ ] Add digest or summary alerts to reduce noise from repeated events.
-- [ ] Add richer alert message customization with per-rule titles and message templates.
-- [ ] Add more built-in risk heuristics for permission changes, role changes, and auth anomalies.
+- [x] Add a generic webhook alert channel for services beyond mail, Slack, and Discord.
+- [x] Add digest or summary alerts to reduce noise from repeated events.
+- [x] Add richer alert message customization with per-rule titles and message templates.
+- [x] Add more built-in risk heuristics for permission changes, role changes, and auth anomalies.
 - [x] Deliver alerts through the queue so webhooks cannot block the audited action.
 
 ## Exports and scale
 
-- [ ] Add queued exports for large activity datasets.
+- [x] Add queued exports for large activity datasets.
 - [x] Add reusable export presets and saved column sets.
 - [x] Improve export metadata so generated files include filter and date-range context.
 - [ ] Expand pruning feedback with clearer dry-run summaries and reporting.

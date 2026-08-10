@@ -8,8 +8,11 @@ use Filament\Forms\Components\Select as FormSelect;
 use Filament\Forms\Components\TextInput as FormTextInput;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use MrAdder\FilamentLogger\Jobs\GenerateActivityExport;
 use MrAdder\FilamentLogger\Models\ExportPreset;
+use MrAdder\FilamentLogger\Support\ActivityExportCriteria;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
 use MrAdder\FilamentLogger\Support\ActivityExportPresetManager;
 use MrAdder\FilamentLogger\Support\ActivityFilterPresetManager;
@@ -193,24 +196,110 @@ abstract class BaseListActivities extends ListRecords
         ];
     }
 
-    public function exportCsv(): StreamedResponse
+    public function exportCsv(): ?StreamedResponse
+    {
+        return $this->export('csv');
+    }
+
+    public function exportJson(): ?StreamedResponse
+    {
+        return $this->export('json');
+    }
+
+    /**
+     * Run an export, handing it to the queue when it is large enough to warrant
+     * it. Returns null when the export was queued, because there is no file to
+     * stream back yet.
+     *
+     * @param  array<int, string>|null  $columns
+     * @param  array<string, mixed>  $metadataOverrides
+     */
+    protected function export(string $format, ?array $columns = null, array $metadataOverrides = []): ?StreamedResponse
     {
         // Public Livewire methods are reachable from the browser regardless of
         // which actions are rendered, so the gate is enforced here too.
         abort_unless(config('filament-logger.exports.enabled', true) && static::canExport(), 403);
 
-        $columns = config('filament-logger.exports.columns');
+        $columns ??= config('filament-logger.exports.columns');
+        $metadata = $this->buildExportMetadata($metadataOverrides);
+        $query = $this->getTableQueryForExport();
 
-        return app(ActivityExporter::class)->toCsv($this->getTableQueryForExport(), $columns, $this->buildExportMetadata());
+        if ($this->shouldQueueExport($query)) {
+            $this->dispatchQueuedExport($format, $columns, $metadata);
+
+            return null;
+        }
+
+        $exporter = app(ActivityExporter::class);
+
+        return $format === 'json'
+            ? $exporter->toJson($query, $columns, $metadata)
+            : $exporter->toCsv($query, $columns, $metadata);
     }
 
-    public function exportJson(): StreamedResponse
+    /**
+     * @param  Builder<Model>  $query
+     */
+    protected function shouldQueueExport(Builder $query): bool
     {
-        abort_unless(config('filament-logger.exports.enabled', true) && static::canExport(), 403);
+        if (! config('filament-logger.exports.queue.enabled', false)) {
+            return false;
+        }
 
-        $columns = config('filament-logger.exports.columns');
+        $threshold = (int) config('filament-logger.exports.queue.threshold', 5000);
 
-        return app(ActivityExporter::class)->toJson($this->getTableQueryForExport(), $columns, $this->buildExportMetadata());
+        // A threshold of zero means always queue, which avoids paying for a
+        // count on installs that never want a synchronous export.
+        if ($threshold <= 0) {
+            return true;
+        }
+
+        return (clone $query)->count() > $threshold;
+    }
+
+    /**
+     * @param  array<int, string>|null  $columns
+     * @param  array<string, mixed>  $metadata
+     * @param  array<string, mixed>|null  $criteria
+     */
+    protected function dispatchQueuedExport(string $format, ?array $columns, array $metadata, ?array $criteria = null): void
+    {
+        $user = auth()->user();
+
+        $job = new GenerateActivityExport(
+            format: $format,
+            criteria: $criteria ?? ActivityExportCriteria::fromTableFilters($this->tableFilters ?? [])->toArray(),
+            columns: $columns,
+            metadata: $metadata,
+            userId: $user?->getAuthIdentifier(),
+            userClass: $user ? $user::class : null,
+        );
+
+        dispatch(
+            $job->onConnection(config('filament-logger.exports.queue.connection'))
+                ->onQueue(config('filament-logger.exports.queue.name')),
+        );
+
+        $this->notifyExportQueued();
+    }
+
+    /**
+     * Immediate in-panel feedback that the export is running, so the user is
+     * not left wondering why no download started.
+     */
+    protected function notifyExportQueued(): void
+    {
+        $class = 'Filament\\Notifications\\Notification';
+
+        if (! class_exists($class)) {
+            return;
+        }
+
+        $class::make()
+            ->title(__('filament-logger::filament-logger.export.queued_title'))
+            ->body(__('filament-logger::filament-logger.export.queued_body'))
+            ->success()
+            ->send();
     }
 
     /**
@@ -242,15 +331,15 @@ abstract class BaseListActivities extends ListRecords
                     ->options($presetOptions),
             ],
         )
-            ->action(fn (array $data): StreamedResponse => $this->runPresetExport($format, $data));
+            ->action(fn (array $data): ?StreamedResponse => $this->runPresetExport($format, $data));
     }
 
     /**
      * @param  array<string, mixed>  $data
      */
-    protected function runPresetExport(string $format, array $data): StreamedResponse
+    protected function runPresetExport(string $format, array $data): ?StreamedResponse
     {
-        abort_unless(static::canExport(), 403);
+        abort_unless(config('filament-logger.exports.enabled', true) && static::canExport(), 403);
 
         $key = $data['preset'] ?? null;
         $preset = ActivityExportPresetManager::saved()[$key] ?? null;
@@ -266,11 +355,23 @@ abstract class BaseListActivities extends ListRecords
             'embed' => config('filament-logger.exports.embed_metadata', false),
         ]);
 
-        if ($format === 'json') {
-            return app(ActivityExporter::class)->toJson($query, $columns, $metadata);
+        if ($this->shouldQueueExport($query)) {
+            // Preset filters are folded into the criteria so the queued run
+            // reproduces the same slice.
+            $criteria = ActivityExportCriteria::fromTableFilters($this->tableFilters ?? [])->toArray();
+
+            $this->dispatchQueuedExport($format, $columns, $metadata + ['preset' => $key], $criteria + [
+                'preset' => $key,
+            ]);
+
+            return null;
         }
 
-        return app(ActivityExporter::class)->toCsv($query, $columns, $metadata);
+        $exporter = app(ActivityExporter::class);
+
+        return $format === 'json'
+            ? $exporter->toJson($query, $columns, $metadata)
+            : $exporter->toCsv($query, $columns, $metadata);
     }
 
     /**

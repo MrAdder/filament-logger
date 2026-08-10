@@ -25,16 +25,20 @@ class SendActivityAlertWebhook implements ShouldQueue
 
     /**
      * @param  array<string, mixed>  $payload
+     * @param  array<string, string>  $headers
      */
     public function __construct(
         public string $url,
         public array $payload,
         public int $timeout = 5,
+        public array $headers = [],
     ) {}
 
     public function handle(): void
     {
-        $response = Http::timeout($this->timeout)->post($this->url, $this->payload);
+        $response = Http::withHeaders($this->headers)
+            ->timeout($this->timeout)
+            ->post($this->url, $this->payload);
 
         if (! $response->successful()) {
             throw new RuntimeException(

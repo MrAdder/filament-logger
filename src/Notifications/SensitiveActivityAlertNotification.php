@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use MrAdder\FilamentLogger\Support\ActivityAlertMessage;
 use Spatie\Activitylog\Contracts\Activity as ActivityContract;
 
 /**
@@ -19,6 +20,7 @@ class SensitiveActivityAlertNotification extends Notification implements ShouldQ
     public function __construct(
         protected ActivityContract $activity,
         protected string $title,
+        protected ?ActivityAlertMessage $message = null,
     ) {}
 
     /**
@@ -47,12 +49,32 @@ class SensitiveActivityAlertNotification extends Notification implements ShouldQ
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject($this->title)
-            ->line((string) data_get($this->activity, 'description'))
-            ->line('Event: '.(data_get($this->activity, 'event') ?? '-'))
-            ->line('Log: '.(data_get($this->activity, 'log_name') ?? '-'))
-            ->line('Risk: '.(data_get($this->activity, 'properties.risk') ?? '-'))
-            ->line('Logged at: '.optional(data_get($this->activity, 'created_at'))?->toDateTimeString());
+        $mail = (new MailMessage)->subject($this->title);
+
+        foreach ($this->bodyLines() as $line) {
+            $mail->line($line);
+        }
+
+        return $mail;
+    }
+
+    /**
+     * Rendered rule template when one is present, otherwise the built-in lines.
+     *
+     * @return array<int, string>
+     */
+    protected function bodyLines(): array
+    {
+        if ($this->message instanceof ActivityAlertMessage) {
+            return $this->message->lines();
+        }
+
+        return array_values(array_filter([
+            (string) data_get($this->activity, 'description'),
+            'Event: '.(data_get($this->activity, 'event') ?? '-'),
+            'Log: '.(data_get($this->activity, 'log_name') ?? '-'),
+            'Risk: '.(data_get($this->activity, 'properties.risk') ?? '-'),
+            'Logged at: '.(optional(data_get($this->activity, 'created_at'))?->toDateTimeString() ?? '-'),
+        ]));
     }
 }

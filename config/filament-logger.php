@@ -77,6 +77,64 @@ return [
                 'permissions',
             ],
         ],
+
+        'medium' => [
+            'events' => [],
+        ],
+
+        // Additional heuristics, each producing a named risk reason that alert
+        // rules can filter on. Match on changed attribute keys, on the event
+        // name, or both. Set a heuristic to an empty array to disable it.
+        'heuristics' => [
+            'permission_change' => [
+                'level' => 'high',
+                'change_keys' => [
+                    'ability',
+                    'abilities',
+                    'scope',
+                    'scopes',
+                    'is_admin',
+                    'is_super_admin',
+                ],
+            ],
+
+            'credential_change' => [
+                'level' => 'high',
+                'change_keys' => [
+                    'password',
+                    'email',
+                    'username',
+                ],
+                'events' => [
+                    'Password Reset',
+                ],
+            ],
+
+            'two_factor_change' => [
+                'level' => 'high',
+                'change_keys' => [
+                    'two_factor_secret',
+                    'two_factor_recovery_codes',
+                    'two_factor_confirmed_at',
+                ],
+                'events' => [
+                    'Two Factor Recovery',
+                ],
+            ],
+
+            'account_status_change' => [
+                'level' => 'medium',
+                'change_keys' => [
+                    'status',
+                    'active',
+                    'is_active',
+                    'blocked_at',
+                    'banned_at',
+                    'suspended_at',
+                    'email_verified_at',
+                ],
+            ],
+        ],
     ],
 
     'pruning' => [
@@ -113,6 +171,49 @@ return [
         // the resource from pulling the whole audit trail. Set to null to allow
         // every viewer of the resource to export.
         'ability' => 'exportActivity',
+
+        // Queued exports. Large exports are slow and fragile to build inside a
+        // request, so above `threshold` rows the export is handed to the queue
+        // and the user is notified when the file is ready. Below it, the direct
+        // download is used exactly as before.
+        'queue' => [
+            'enabled' => false,
+
+            // Rows above which an export is queued. 0 queues every export and
+            // skips the counting query entirely.
+            'threshold' => 5000,
+
+            'connection' => null,
+            'name' => null,
+
+            // Where generated files are written.
+            'disk' => 'local',
+            'path' => 'filament-logger/exports',
+
+            // How the user is told the export is ready, and how a failure is
+            // reported back to them.
+            //   'mail'     - email containing the download link. The default,
+            //                because it needs nothing beyond the mail config
+            //                every Laravel app already has.
+            //   'database' - Filament in-panel notification with a download
+            //                action. Nicer in the panel, but requires the host
+            //                app to have Laravel's `notifications` table.
+            //   null       - no notification; the path is written to the log.
+            'notify' => 'mail',
+
+            // Registers the signed download route. Disable to serve the files
+            // yourself from the configured disk.
+            'routes' => true,
+            'route_prefix' => 'filament-logger',
+            'route_middleware' => ['web', 'signed'],
+
+            // How long a download link stays valid.
+            'link_minutes' => 1440,
+
+            // Generated files older than this are removed by
+            // `filament-logger:prune-exports`.
+            'retention_days' => 7,
+        ],
     ],
 
     'dashboard' => [
@@ -198,6 +299,21 @@ return [
         'discord' => [
             'webhook_url' => null,
         ],
+
+        // Generic webhook channel for services other than Slack and Discord.
+        // Receives a structured JSON payload rather than a service-specific
+        // shape. Add the 'webhook' channel to a rule to use it.
+        'webhook' => [
+            'url' => null,
+            'headers' => [
+                // 'Authorization' => 'Bearer ...',
+            ],
+        ],
+
+        // How many activity ids a digest keeps as a sample. The reported count
+        // is not capped by this.
+        'digest_sample_size' => 25,
+
         'rules' => [
             'destructive_activity' => [
                 'enabled' => true,
@@ -221,6 +337,29 @@ return [
                 'threshold' => 5,
                 'window_minutes' => 10,
             ],
+
+            // Example of the optional extras, disabled by default.
+            //
+            // 'title' and 'message' are templates. Available placeholders:
+            //   :rule :event :log_name :description :risk :risk_reasons
+            //   :subject :subject_type :subject_id
+            //   :causer :causer_type :causer_id
+            //   :logged_at :count :window :threshold
+            //
+            // 'digest' batches matching activity for :window minutes and sends
+            // one alert. Schedule filament-logger:send-alert-digests to release
+            // digests on time.
+            //
+            // 'account_changes' => [
+            //     'enabled' => true,
+            //     'channels' => ['webhook'],
+            //     'risk_reasons' => ['credential_change', 'two_factor_change'],
+            //     'title' => '[:risk] :rule on :subject',
+            //     'message' => ':causer changed :subject at :logged_at (:risk_reasons)',
+            //     'digest' => true,
+            //     'digest_minutes' => 60,
+            //     'digest_title' => ':count account changes in the last hour',
+            // ],
         ],
     ],
 
