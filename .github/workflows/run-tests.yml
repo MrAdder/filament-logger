@@ -226,7 +226,7 @@ jobs:
       # is configured.
       - name: Publish analysis to SonarQube Cloud
         if: ${{ env.SONAR_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           SONAR_HOST_URL: https://sonarcloud.io
 
