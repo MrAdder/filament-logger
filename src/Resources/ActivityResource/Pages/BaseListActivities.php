@@ -104,13 +104,13 @@ abstract class BaseListActivities extends ListRecords
      */
     protected function getHeaderWidgets(): array
     {
-        return ActivityDisplay::resolveWidgets($this->defaultHeaderWidgets());
+        return ActivityDisplay::resolveWidgets($this->defaultDashboardWidgets());
     }
 
     /**
      * @return array<int, mixed>
      */
-    protected function defaultHeaderWidgets(): array
+    protected function defaultDashboardWidgets(): array
     {
         if (! config('filament-logger.dashboard.enabled', true)) {
             return [];
