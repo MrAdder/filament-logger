@@ -2,6 +2,22 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.6.1 - 2026-08-14
+
+## Summary
+
+- fix the defaultHeaderWidgets conflict with the Filament framework by @dieterwarson in #75
+
+## Maintenance
+
+- chore(deps): bump SonarSource/sonarqube-scan-action from 6 to 8 by @[dependabot[bot]](https://github.com/apps/dependabot) in #74
+
+## Contributors
+
+@dieterwarson, [@dependabot[bot]](https://github.com/apps/dependabot) and @MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.6.0...v1.6.1
+
 ## v1.6.0 - 2026-08-10
 
 ## Summary
