@@ -80,13 +80,17 @@ abstract class BaseListActivities extends ListRecords
      */
     public function getTabs(): array
     {
-        return ActivityDisplay::resolveTabs($this->defaultTabs());
+        return ActivityDisplay::resolveTabs($this->baseTabs());
     }
 
     /**
+     * Not named defaultTabs() — see the comment on baseHeaderWidgets() below.
+     * Filament does not currently expose a schema named "tabs", so this is not
+     * an active collision, but the same hazard would apply the moment it did.
+     *
      * @return array<string, mixed>
      */
-    protected function defaultTabs(): array
+    protected function baseTabs(): array
     {
         $tabs = [];
 
@@ -104,13 +108,26 @@ abstract class BaseListActivities extends ListRecords
      */
     protected function getHeaderWidgets(): array
     {
-        return ActivityDisplay::resolveWidgets($this->defaultDashboardWidgets());
+        return ActivityDisplay::resolveWidgets($this->baseHeaderWidgets());
     }
 
     /**
+     * Deliberately not named defaultHeaderWidgets(). Filament's InteractsWithSchemas
+     * discovers "headerWidgets" as a schema name from Page::headerWidgets(Schema
+     * $schema): Schema, and — purely by matching the literal string "default" plus
+     * the ucfirst'd name, with no check of what the method actually does — calls
+     * $this->{'default'.ucfirst($name)}($schema) if such a method exists on this
+     * class at all. A method here called defaultHeaderWidgets() gets that Schema
+     * silently handed to it and its array return value fed back into Page's real
+     * headerWidgets(), which throws a TypeError expecting a Schema. This is
+     * triggered by {{ $this->headerWidgets }} in Filament's page Blade view, so it
+     * only surfaces on a real render — never in a test that calls getHeaderWidgets()
+     * directly, which is how this shipped once already. Do not rename this back to
+     * default*(); baseTabs() above carries the same rule for the same reason.
+     *
      * @return array<int, mixed>
      */
-    protected function defaultDashboardWidgets(): array
+    protected function baseHeaderWidgets(): array
     {
         if (! config('filament-logger.dashboard.enabled', true)) {
             return [];
