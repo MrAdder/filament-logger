@@ -2,6 +2,18 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.6.2 - 2026-09-26
+
+## Summary
+
+- Add activitylog v5 compatibility support by @MrAdder in #77
+
+## Contributors
+
+@MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.6.1...v1.6.2
+
 ## v1.6.1 - 2026-08-14
 
 ## Summary
