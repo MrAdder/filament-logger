@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use MrAdder\FilamentLogger\Resources\ActivityResource\Support\ActivityResourceTableOptions;
+use MrAdder\FilamentLogger\Support\ActivityChanges;
 use MrAdder\FilamentLogger\Support\ActivityChangesFormatter;
 use MrAdder\FilamentLogger\Support\ActivityDatePreset;
 use MrAdder\FilamentLogger\Support\ActivityDisplay;
@@ -262,7 +263,7 @@ abstract class BaseActivityResource extends AbstractActivityResource
                         return $query;
                     }
 
-                    return $query->where($propertyPath, 'like', "%{$value}%");
+                    return ActivityChanges::whereJsonPathLike($query, $propertyPath, (string) $value);
                 }),
             [
                 TextInput::make($field)

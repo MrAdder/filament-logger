@@ -2,6 +2,7 @@
 
 use MrAdder\FilamentLogger\Loggers\ModelLogger;
 use MrAdder\FilamentLogger\Loggers\ResourceLogger;
+use MrAdder\FilamentLogger\Support\ActivityChanges;
 use MrAdder\FilamentLogger\Support\ObserverRegistrar;
 use MrAdder\FilamentLogger\Support\ReplicationContextStore;
 use MrAdder\FilamentLogger\Tests\Fixtures\Models\TestRecord;
@@ -27,7 +28,7 @@ it('stores old and new values while respecting ignored model fields', function (
     ]);
 
     $activity = Activity::query()->latest('id')->firstOrFail();
-    $properties = $activity->properties->toArray();
+    $properties = ActivityChanges::properties($activity);
 
     expect($activity->event)->toBe('Updated')
         ->and(data_get($properties, 'old.name'))->toBe('Before')
@@ -58,7 +59,7 @@ it('supports per-resource ignored fields', function () {
     ]);
 
     $activity = Activity::query()->latest('id')->firstOrFail();
-    $properties = $activity->properties->toArray();
+    $properties = ActivityChanges::properties($activity);
 
     expect($activity->log_name)->toBe(config('filament-logger.resources.log_name'))
         ->and(data_get($properties, 'attributes.name'))->toBe('After')

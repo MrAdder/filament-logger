@@ -29,7 +29,9 @@ env:
 
 jobs:
   test:
-    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }} / Filament ${{ matrix.filament }} / ${{ matrix.stability }} / ${{ matrix.os }}
+    # The Activitylog suffix only appears on rows that name a version, so the
+    # existing job names, and any branch protection that requires them, stay put.
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }} / Filament ${{ matrix.filament }} / ${{ matrix.stability }} / ${{ matrix.os }}${{ matrix.activitylog && format(' / Activitylog {0}', matrix.activitylog) || '' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     permissions:
@@ -118,6 +120,54 @@ jobs:
             filament: '5.*'
             stability: prefer-stable
 
+          # spatie/laravel-activitylog v5 needs PHP 8.4+ and Laravel 12+, and
+          # keeps tracked changes in an `attribute_changes` column instead of
+          # `properties`. Rows without an `activitylog` key are pinned to ^4.5 in
+          # the install step, so every row above keeps testing v4 on the PHP
+          # versions it always did; these rows add v5 alongside them.
+          - os: ubuntu-latest
+            php: '8.4'
+            laravel: '12.*'
+            testbench: '10.*'
+            filament: '^4.3.1'
+            activitylog: '^5.0'
+            stability: prefer-stable
+          - os: ubuntu-latest
+            php: '8.4'
+            laravel: '12.*'
+            testbench: '10.*'
+            filament: '5.*'
+            activitylog: '^5.0'
+            stability: prefer-lowest
+          - os: ubuntu-latest
+            php: '8.4'
+            laravel: '12.*'
+            testbench: '10.*'
+            filament: '5.*'
+            activitylog: '^5.0'
+            stability: prefer-stable
+          - os: ubuntu-latest
+            php: '8.4'
+            laravel: '13.*'
+            testbench: '11.*'
+            filament: '^4.3.1'
+            activitylog: '^5.0'
+            stability: prefer-stable
+          - os: ubuntu-latest
+            php: '8.5'
+            laravel: '13.*'
+            testbench: '11.*'
+            filament: '5.*'
+            activitylog: '^5.0'
+            stability: prefer-stable
+          - os: windows-latest
+            php: '8.4'
+            laravel: '12.*'
+            testbench: '10.*'
+            filament: '5.*'
+            activitylog: '^5.0'
+            stability: prefer-stable
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -155,8 +205,16 @@ jobs:
         run: composer validate --strict
 
       - name: Install dependencies
+        # Explicit bash: the default shell on windows-latest is PowerShell,
+        # which calls composer.bat through cmd.exe. cmd.exe treats `^` as its
+        # escape character even inside a quoted argument, so a caret range
+        # such as ^4.5 arrives at Composer as a literal, too-strict "4.5" and
+        # fails to resolve. Git Bash (preinstalled on windows-latest) passes
+        # the argument through untouched.
+        shell: bash
         run: |
           composer require "filament/filament:${{ matrix.filament }}" --no-update
+          composer require "spatie/laravel-activitylog:${{ matrix.activitylog || '^4.5' }}" --no-update
           composer require --dev "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-update
           composer update --${{ matrix.stability }} --prefer-dist --with-all-dependencies --no-progress
 

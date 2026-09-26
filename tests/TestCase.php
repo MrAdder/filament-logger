@@ -14,6 +14,7 @@ use MrAdder\FilamentLogger\FilamentLogger;
 use MrAdder\FilamentLogger\FilamentLoggerServiceProvider;
 use MrAdder\FilamentLogger\Support\ActivityAlertRules;
 use MrAdder\FilamentLogger\Support\ActivityDisplay;
+use MrAdder\FilamentLogger\Support\ActivitylogCompat;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\Activitylog\ActivitylogServiceProvider as SpatieActivitylogServiceProvider;
 
@@ -86,7 +87,14 @@ class TestCase extends Orchestra
             $table->nullableMorphs('subject');
             $table->nullableMorphs('causer');
             $table->string('event')->nullable();
-            $table->uuid('batch_uuid')->nullable();
+
+            // v5 replaced the batch system with a column for tracked changes.
+            if (ActivitylogCompat::usesAttributeChanges()) {
+                $table->json('attribute_changes')->nullable();
+            } else {
+                $table->uuid('batch_uuid')->nullable();
+            }
+
             $table->json('properties')->nullable();
             $table->timestamps();
         });

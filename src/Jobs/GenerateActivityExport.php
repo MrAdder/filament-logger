@@ -14,7 +14,7 @@ use MrAdder\FilamentLogger\Exceptions\ActivityExportFailed;
 use MrAdder\FilamentLogger\Support\ActivityExportCriteria;
 use MrAdder\FilamentLogger\Support\ActivityExporter;
 use MrAdder\FilamentLogger\Support\ActivityExportNotifier;
-use Spatie\Activitylog\ActivitylogServiceProvider;
+use MrAdder\FilamentLogger\Support\ActivitylogCompat;
 
 /**
  * Builds an activity export on the queue and writes it to the configured disk,
@@ -102,7 +102,7 @@ class GenerateActivityExport implements ShouldQueue
      */
     protected function baseQuery()
     {
-        $model = ActivitylogServiceProvider::determineActivityModel();
+        $model = ActivitylogCompat::activityModel();
 
         return $model::query()->latest('created_at');
     }

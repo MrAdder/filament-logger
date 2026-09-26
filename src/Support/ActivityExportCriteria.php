@@ -82,8 +82,8 @@ final class ActivityExportCriteria implements Arrayable
                 'subject_type' => $query->where('subject_type', $value),
                 'risk' => $query->where('properties->risk', $value),
                 'logged_at' => $query->whereDate('created_at', $value),
-                'old' => $query->where('properties->old', 'like', '%'.$value.'%'),
-                'new' => $query->where('properties->attributes', 'like', '%'.$value.'%'),
+                'old' => ActivityChanges::whereJsonPathLike($query, 'properties->old', (string) $value),
+                'new' => ActivityChanges::whereJsonPathLike($query, 'properties->attributes', (string) $value),
                 'date_preset' => ActivityDatePreset::apply($query, (string) $value),
                 'preset' => $this->applyExportPreset($query, (string) $value),
                 default => null,
@@ -131,6 +131,12 @@ final class ActivityExportCriteria implements Arrayable
             // it is opt-out for large activity tables.
             if (config('filament-logger.search.include_properties', true)) {
                 $nested->orWhere('properties', 'like', "%{$search}%");
+
+                // spatie/laravel-activitylog v5 keeps the old and new values of
+                // a change in their own column, so search that one as well.
+                if (ActivitylogCompat::usesAttributeChanges()) {
+                    $nested->orWhere('attribute_changes', 'like', "%{$search}%");
+                }
             }
         });
     }

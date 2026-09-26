@@ -7,7 +7,6 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
-use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\Activitylog\Contracts\Activity as ActivityContract;
 
 /**
@@ -188,7 +187,7 @@ class ActivityAlertDigest
             return null;
         }
 
-        $model = ActivitylogServiceProvider::determineActivityModel();
+        $model = ActivitylogCompat::activityModel();
         $activity = $model::query()->find(end($ids));
 
         return $activity instanceof ActivityContract ? $activity : null;

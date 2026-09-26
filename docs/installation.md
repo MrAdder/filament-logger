@@ -7,6 +7,9 @@
 | PHP | `^8.2` |
 | Filament | `^3.0`, `^4.3.1`, or `^5.0` |
 | Laravel contracts | `^11.0`, `^12.0`, or `^13.0` |
+| spatie/laravel-activitylog | `^4.5` or `^5.0` |
+
+`spatie/laravel-activitylog` v5 itself needs PHP `8.4+` and Laravel `12+`. On PHP 8.2 and 8.3, or on Laravel 11, Composer keeps you on v4, which this package continues to support in full.
 
 Filament 4 support starts at `4.3.1` because earlier `4.x` releases were affected by an upstream security issue fixed in `4.3.1`. See the [Filament security advisory](https://github.com/filamentphp/filament/security/advisories/GHSA-pvcv-q3q7-266g) and the [v4.3.1 release notes](https://github.com/filamentphp/filament/releases/tag/v4.3.1).
 
@@ -53,6 +56,16 @@ public function panel(Panel $panel): Panel
 The Filament resource resolves the activity model from `activitylog.activity_model` in `config/activitylog.php`.
 
 If you use a custom activity model, the resource and authorization checks will follow that model automatically.
+
+## Using spatie/laravel-activitylog v5
+
+Nothing needs configuring: the package detects which major version is installed.
+
+v5 stores the old and new values of a change in a new `attribute_changes` column instead of inside `properties`, so an existing install has to follow Spatie's [upgrade guide](https://github.com/spatie/laravel-activitylog/blob/main/UPGRADING.md#from-v4-to-v5) and add that column before it starts logging.
+
+- New activity is written the way v5 expects: model changes and the `old` / `attributes` of a [custom event](custom-events.md) go to `attribute_changes`, and everything else stays in `properties`.
+- Rows written before the upgrade, and any you have not moved into `attribute_changes`, still work. The detail view, exports, risk detection, the old and new value filters and search all read both places.
+- Filter and export preset keys such as `properties->old` are unchanged, so saved presets keep working.
 
 ## Translations
 

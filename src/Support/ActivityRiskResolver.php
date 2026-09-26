@@ -65,15 +65,10 @@ class ActivityRiskResolver
             return $risk;
         }
 
-        $properties = data_get($activity, 'properties', []);
-
-        if (is_object($properties) && method_exists($properties, 'toArray')) {
-            $properties = $properties->toArray();
-        }
-
         return $this->enrich(
             event: (string) data_get($activity, 'event'),
-            properties: is_array($properties) ? $properties : [],
+            properties: ActivityChanges::properties($activity),
+            context: ['changed_keys' => ActivityChanges::changedKeys($activity)],
         )['risk'] ?? null;
     }
 

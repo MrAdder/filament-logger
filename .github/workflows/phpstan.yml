@@ -62,8 +62,50 @@ jobs:
       - name: Validate composer.json
         run: composer validate --strict
 
+      # This job runs on PHP 8.4, where composer would otherwise pick v5. Pin it so
+      # v4 stays analysed here and v5 has its own job below.
+      - name: Pin spatie/laravel-activitylog to v4
+        run: composer require "spatie/laravel-activitylog:^4.5" --no-update
+
       - name: Install composer dependencies
         uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan analyse --memory-limit=512M --error-format=github
+
+  phpstan-activitylog5:
+    name: phpstan (activitylog 5)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
+        with:
+          php-version: '8.4'
+          extensions: none, curl, dom, fileinfo, intl, mbstring, openssl, pdo_sqlite, simplexml, sqlite, tokenizer, xml, xmlreader, xmlwriter, zip
+          tools: composer:v2
+          coverage: none
+
+      - name: Resolve Composer cache directory
+        id: composer-cache
+        shell: bash
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-8.4-activitylog5-phpstan-composer-${{ hashFiles('composer.json') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.4-activitylog5-phpstan-composer-
+            ${{ runner.os }}-composer-
+
+      - name: Install spatie/laravel-activitylog v5 dependencies
+        run: |
+          composer require "spatie/laravel-activitylog:^5.0" --no-update
+          composer update --prefer-stable --prefer-dist --with-all-dependencies --no-progress
 
       - name: Run PHPStan
         run: ./vendor/bin/phpstan analyse --memory-limit=512M --error-format=github

@@ -24,6 +24,8 @@ FilamentLogger::log(
 );
 ```
 
+`old` and `attributes` are the before and after values. They drive the diff view and risk detection, and are stored in the `attribute_changes` column on `spatie/laravel-activitylog` v5 or in `properties` on v4. The call is the same on both.
+
 Custom events can include:
 
 - a custom log name

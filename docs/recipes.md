@@ -152,9 +152,9 @@ class Activity extends BaseActivity
 }
 ```
 
-Point Spatie at it — the package reads the model through
-`ActivitylogServiceProvider::determineActivityModel()`, so this one key is
-enough for the resource, exports, alerts, and pruning to follow:
+Point Spatie at it — the package reads the model from Spatie's
+`activity_model` setting, so this one key is enough for the resource, exports,
+alerts, and pruning to follow:
 
 ```php
 // config/activitylog.php
@@ -232,7 +232,9 @@ class RefundOrder
 ```
 
 Using `old` and `attributes` is what makes the entry render in the structured
-diff view rather than as a flat blob.
+diff view rather than as a flat blob. On `spatie/laravel-activitylog` v5 they are
+stored in the `attribute_changes` column rather than in `properties`; you write
+the same call either way.
 
 ### Make it visible in the review UI
 

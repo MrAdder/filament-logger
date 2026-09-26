@@ -5,7 +5,7 @@ namespace MrAdder\FilamentLogger\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\ActivitylogServiceProvider;
+use MrAdder\FilamentLogger\Support\ActivitylogCompat;
 
 class PruneActivitiesCommand extends Command
 {
@@ -38,7 +38,7 @@ class PruneActivitiesCommand extends Command
             $this->option('except-log-name'),
         ));
 
-        $activityModel = ActivitylogServiceProvider::determineActivityModel();
+        $activityModel = ActivitylogCompat::activityModel();
         $query = $activityModel::query()
             ->where('created_at', '<', now()->subDays($days));
 
