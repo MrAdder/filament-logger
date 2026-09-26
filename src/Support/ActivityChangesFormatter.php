@@ -21,7 +21,7 @@ class ActivityChangesFormatter
             ];
         }
 
-        $properties = ActivityViewerPrivacy::sanitizeProperties($activity->properties ?? [], $activity);
+        $properties = ActivityViewerPrivacy::sanitizeProperties(ActivityChanges::properties($activity), $activity);
         $old = self::flattenSection(self::normalizeSection($properties['old'] ?? []));
         $attributes = self::flattenSection(self::normalizeSection($properties['attributes'] ?? []));
         $metadata = self::flattenSection(self::normalizeSection(collect($properties)->except(['old', 'attributes'])->all()));

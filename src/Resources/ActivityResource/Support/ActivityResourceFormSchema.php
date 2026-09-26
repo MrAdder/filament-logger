@@ -5,6 +5,7 @@ namespace MrAdder\FilamentLogger\Resources\ActivityResource\Support;
 use Filament\Forms\Components\KeyValue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use MrAdder\FilamentLogger\Support\ActivityChanges;
 use MrAdder\FilamentLogger\Support\ActivityChangesFormatter;
 use MrAdder\FilamentLogger\Support\ActivityViewerPrivacy;
 use Spatie\Activitylog\Contracts\Activity;
@@ -42,10 +43,7 @@ final class ActivityResourceFormSchema
             return collect();
         }
 
-        /** @var Activity&ActivityModel $record */
-        $properties = $record->properties;
-
-        return $properties instanceof Collection ? $properties : collect();
+        return collect(ActivityChanges::properties($record));
     }
 
     /**

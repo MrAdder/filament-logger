@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use MrAdder\FilamentLogger\Resources\ActivityResource\Pages;
-use Spatie\Activitylog\ActivitylogServiceProvider;
+use MrAdder\FilamentLogger\Support\ActivitylogCompat;
 
 abstract class AbstractActivityResource extends Resource
 {
@@ -56,7 +56,7 @@ abstract class AbstractActivityResource extends Resource
 
     public static function getModel(): string
     {
-        return ActivitylogServiceProvider::determineActivityModel();
+        return ActivitylogCompat::activityModel();
     }
 
     /**

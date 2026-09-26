@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use MrAdder\FilamentLogger\Facades\FilamentLogger;
 use MrAdder\FilamentLogger\Resources\ActivityResource;
+use MrAdder\FilamentLogger\Support\ActivityChanges;
 use MrAdder\FilamentLogger\Support\ActivityDisplay;
 use MrAdder\FilamentLogger\Tests\Fixtures\Models\TenantActivity;
 use MrAdder\FilamentLogger\Tests\Fixtures\Models\TestRecord;
@@ -143,7 +144,7 @@ it('records a custom domain event with risk, tags and a diff', function () {
     );
 
     $activity = ActivityModel::latest('id')->first();
-    $properties = $activity->properties->toArray();
+    $properties = ActivityChanges::properties($activity);
 
     expect($activity->log_name)->toBe('Billing')
         ->and($activity->event)->toBe('Refund Issued')

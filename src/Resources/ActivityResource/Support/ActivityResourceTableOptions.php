@@ -6,7 +6,7 @@ use Filament\Facades\Filament;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Spatie\Activitylog\ActivitylogServiceProvider;
+use MrAdder\FilamentLogger\Support\ActivitylogCompat;
 use Throwable;
 
 final class ActivityResourceTableOptions
@@ -182,6 +182,6 @@ final class ActivityResourceTableOptions
 
     protected static function getModel(): string
     {
-        return ActivitylogServiceProvider::determineActivityModel();
+        return ActivitylogCompat::activityModel();
     }
 }

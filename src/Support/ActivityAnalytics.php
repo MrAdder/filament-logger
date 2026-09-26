@@ -4,7 +4,6 @@ namespace MrAdder\FilamentLogger\Support;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityAnalytics
@@ -106,7 +105,7 @@ class ActivityAnalytics
      */
     protected function baseQuery(int $days)
     {
-        return ActivitylogServiceProvider::determineActivityModel()::query()
+        return ActivitylogCompat::activityModel()::query()
             ->where('created_at', '>=', now()->subDays(max($days - 1, 0))->startOfDay());
     }
 

@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Spatie\Activitylog\ActivitylogServiceProvider;
+use MrAdder\FilamentLogger\Support\ActivitylogCompat;
 
 /**
  * Optional indexes for the activity log table.
@@ -46,7 +46,7 @@ return new class extends Migration
 
     protected function tableName(): string
     {
-        $model = ActivitylogServiceProvider::determineActivityModel();
+        $model = ActivitylogCompat::activityModel();
 
         return (new $model)->getTable();
     }

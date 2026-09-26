@@ -289,7 +289,7 @@ class ActivityExporter
      */
     protected function formatRow(mixed $activity): array
     {
-        $properties = ActivityViewerPrivacy::sanitizeProperties($activity->properties?->toArray() ?? [], $activity);
+        $properties = ActivityViewerPrivacy::sanitizeProperties(ActivityChanges::properties($activity), $activity);
 
         return [
             'id' => $activity->getKey(),

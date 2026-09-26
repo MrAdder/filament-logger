@@ -5,10 +5,10 @@ namespace MrAdder\FilamentLogger;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use MrAdder\FilamentLogger\Support\ActivityAlertDispatcher;
+use MrAdder\FilamentLogger\Support\ActivityChanges;
+use MrAdder\FilamentLogger\Support\ActivitylogCompat;
 use MrAdder\FilamentLogger\Support\ActivityRiskResolver;
 use MrAdder\FilamentLogger\Support\LogDataSanitizer;
-use Spatie\Activitylog\ActivityLogger;
-use Spatie\Activitylog\ActivityLogStatus;
 use Spatie\Activitylog\Contracts\Activity as ActivityContract;
 
 class FilamentLogger
@@ -85,9 +85,17 @@ class FilamentLogger
             riskReasons: $riskReasons,
         );
 
-        $logger = app(ActivityLogger::class)
+        // Risk detection above needs old/attributes inside the properties. Only
+        // then are they moved to where spatie/laravel-activitylog v5 keeps them.
+        $changes = [];
+
+        if (ActivitylogCompat::usesAttributeChanges()) {
+            [$properties, $changes] = ActivityChanges::split($properties);
+        }
+
+        $logger = app(ActivitylogCompat::loggerClass())
             ->useLog($logName ?? config('filament-logger.custom_events.default_log_name', 'Custom'))
-            ->setLogStatus(app(ActivityLogStatus::class))
+            ->setLogStatus(app(ActivitylogCompat::logStatusClass()))
             ->event($event);
 
         if ($subject instanceof Model && $subject->exists) {
@@ -102,6 +110,10 @@ class FilamentLogger
 
         if ($createdAt !== null) {
             $logger->createdAt($createdAt);
+        }
+
+        if ($changes !== []) {
+            $logger->withChanges($changes);
         }
 
         if ($properties !== []) {
