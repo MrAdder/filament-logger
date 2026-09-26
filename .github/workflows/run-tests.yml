@@ -205,6 +205,13 @@ jobs:
         run: composer validate --strict
 
       - name: Install dependencies
+        # Explicit bash: the default shell on windows-latest is PowerShell,
+        # which calls composer.bat through cmd.exe. cmd.exe treats `^` as its
+        # escape character even inside a quoted argument, so a caret range
+        # such as ^4.5 arrives at Composer as a literal, too-strict "4.5" and
+        # fails to resolve. Git Bash (preinstalled on windows-latest) passes
+        # the argument through untouched.
+        shell: bash
         run: |
           composer require "filament/filament:${{ matrix.filament }}" --no-update
           composer require "spatie/laravel-activitylog:${{ matrix.activitylog || '^4.5' }}" --no-update
