@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Event;
 use MrAdder\FilamentLogger\Support\ActivityAnalytics;
+use MrAdder\FilamentLogger\Support\ActivitylogCompat;
 use MrAdder\FilamentLogger\Tests\Fixtures\Models\TestUser;
 use Spatie\Activitylog\Models\Activity as ActivityModel;
 
@@ -156,3 +158,125 @@ it('excludes anonymous activity from top users', function () {
 
     expect(analytics()->topUsers(30, 5))->toBe(['labels' => [], 'values' => []]);
 });
+
+/**
+ * One three day window, 2026-08-08 to 2026-08-10, with every edge the
+ * aggregation has to get right: a row exactly on the window start and one just
+ * before it, blank and NULL events, a causer with an empty type, a JSON array
+ * in `properties`, and a tie at the top-N cut-off.
+ */
+function seedAnalyticsFixture(): void
+{
+    $alice = TestUser::create(['name' => 'Alice', 'email' => 'alice@example.test']);
+    $bob = TestUser::create(['name' => 'Bob', 'email' => 'bob@example.test']);
+    $carol = TestUser::create(['name' => 'Carol', 'email' => 'carol@example.test']);
+
+    $causedBy = fn (TestUser $user): array => ['causer_type' => $user::class, 'causer_id' => $user->getKey()];
+    $highRisk = ['properties' => ['risk' => 'high']];
+
+    logActivityAt('2026-08-08 00:00:00', ['event' => 'Updated']);
+    logActivityAt('2026-08-08 09:00:00', ['event' => 'Updated'] + $causedBy($alice));
+    logActivityAt('2026-08-09 09:00:00', ['event' => 'Deleted'] + $highRisk + $causedBy($alice));
+    logActivityAt('2026-08-09 10:00:00', ['event' => 'Deleted'] + $highRisk + $causedBy($bob));
+    logActivityAt('2026-08-09 11:00:00', ['event' => 'Failed Login', 'log_name' => 'Access'] + $highRisk + $causedBy($bob));
+    logActivityAt('2026-08-10 08:00:00', ['event' => ''] + $highRisk + $causedBy($alice));
+    logActivityAt('2026-08-10 09:00:00', ['event' => null, 'properties' => [['risk' => 'high']]]);
+    logActivityAt('2026-08-10 10:00:00', ['event' => 'Viewed', 'causer_type' => '', 'causer_id' => 7, 'properties' => ['risk' => 'low']]);
+    logActivityAt('2026-08-10 11:00:00', ['event' => 'Updated'] + $causedBy($alice));
+
+    logActivityAt('2026-08-07 23:59:59', ['event' => 'Deleted'] + $highRisk + $causedBy($carol));
+    logActivityAt('2026-07-01 09:00:00', ['event' => 'Created'] + $causedBy($carol));
+}
+
+function countRetrieved(string $modelClass, Closure $callback): int
+{
+    $retrieved = 0;
+
+    Event::listen("eloquent.retrieved: {$modelClass}", function () use (&$retrieved): void {
+        $retrieved++;
+    });
+
+    $callback();
+
+    return $retrieved;
+}
+
+it('counts the overview of a window with blanks, a JSON array and edge rows', function () {
+    seedAnalyticsFixture();
+
+    // The blank event still counts as high risk; the JSON array does not carry
+    // the flag; the empty causer type is not an actor.
+    expect(analytics()->overview(3))->toBe([
+        'total' => 9,
+        'high_risk' => 4,
+        'failed_logins' => 1,
+        'unique_actors' => 2,
+    ]);
+});
+
+it('counts the trend of a window including the row on its start', function () {
+    seedAnalyticsFixture();
+
+    expect(analytics()->trend(3))->toBe([
+        'labels' => ['2026-08-08', '2026-08-09', '2026-08-10'],
+        'values' => [2, 3, 4],
+    ]);
+});
+
+it('ranks events without blank or NULL events and breaks ties by first appearance', function () {
+    seedAnalyticsFixture();
+
+    expect(analytics()->topEvents(3, 5))->toBe([
+        'labels' => ['Updated', 'Deleted', 'Failed Login', 'Viewed'],
+        'values' => [3, 2, 1, 1],
+    ])->and(analytics()->topEvents(3, 3))->toBe([
+        'labels' => ['Updated', 'Deleted', 'Failed Login'],
+        'values' => [3, 2, 1],
+    ]);
+});
+
+it('ranks high risk events without the blank event or the JSON array', function () {
+    seedAnalyticsFixture();
+
+    expect(analytics()->highRiskActions(3, 5))->toBe([
+        'labels' => ['Deleted', 'Failed Login'],
+        'values' => [2, 1],
+    ]);
+});
+
+it('ranks top users, skipping only NULL causers', function () {
+    seedAnalyticsFixture();
+
+    // Unlike the overview, top users has only ever skipped NULL causers, so the
+    // empty causer type ranks under the fallback label.
+    expect(analytics()->topUsers(3, 5))->toBe([
+        'labels' => ['Alice', 'Bob', ' #7'],
+        'values' => [4, 2, 1],
+    ]);
+});
+
+it('looks up causer names only for the users it returns', function () {
+    seedAnalyticsFixture();
+
+    $lookups = countRetrieved(TestUser::class, function (): void {
+        expect(analytics()->topUsers(3, 1))->toBe(['labels' => ['Alice'], 'values' => [4]]);
+    });
+
+    expect($lookups)->toBe(1);
+});
+
+it('aggregates in the database without hydrating activity models', function (string $method, array $arguments) {
+    seedAnalyticsFixture();
+
+    $hydrated = countRetrieved(ActivitylogCompat::activityModel(), function () use ($method, $arguments): void {
+        analytics()->{$method}(...$arguments);
+    });
+
+    expect($hydrated)->toBe(0);
+})->with([
+    'overview' => ['overview', [3]],
+    'trend' => ['trend', [3]],
+    'top events' => ['topEvents', [3, 5]],
+    'high risk actions' => ['highRiskActions', [3, 5]],
+    'top users' => ['topUsers', [3, 5]],
+]);
