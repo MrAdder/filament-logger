@@ -2,6 +2,18 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.6.3 - 2026-09-29
+
+## Summary
+
+- Aggregate dashboard analytics in the database instead of hydrating every activity by @ppra in #78
+
+## Contributors
+
+@ppra
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.6.2...v1.6.3
+
 ## v1.6.2 - 2026-09-26
 
 ## Summary
