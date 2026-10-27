@@ -109,7 +109,7 @@ jobs:
 
       - name: Publish GitHub release
         id: release
-        uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9
+        uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0
         with:
           publish: true
           name: ${{ inputs.version }}
@@ -165,7 +165,7 @@ jobs:
           PY
 
       - name: Commit updated changelog
-        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d
+        uses: stefanzweifel/git-auto-commit-action@d0b01107b5db882071f96de5dd4b54961ea93f4c
         with:
           branch: ${{ inputs.target }}
           commit_message: "docs: update changelog for ${{ inputs.version }}"
