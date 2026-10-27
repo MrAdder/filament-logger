@@ -22,6 +22,17 @@ outside this range will be assessed but may not receive a fix.
 Filament `4.0`–`4.3.0` are not supported because of an upstream advisory fixed
 in [`4.3.1`](https://github.com/filamentphp/filament/security/advisories/GHSA-pvcv-q3q7-266g).
 
+PHP itself must be on a patched release for CVE-2026-109618 and CVE-2026-109619
+("PHP2Shell"): `8.2.35`, `8.3.36`, `8.4.27`, `8.5.12` or later, or a
+distribution build carrying the backported fix. These are interpreter flaws
+that can be triggered before any application code runs, so nothing in this
+package can mitigate them. Restart PHP-FPM, Apache, FrankenPHP and queue
+workers after upgrading, since running processes keep the old binary. Until a
+fix for CVE-2026-115560 ships, set `session.upload_progress.enabled=0`; the
+package does not rely on session upload progress, so disabling it is safe.
+The `composer.json` constraint stays at `^8.2` so distribution builds with
+backported fixes remain installable.
+
 ## Reporting a Vulnerability
 
 **Please do not open a public issue for a security vulnerability.**
