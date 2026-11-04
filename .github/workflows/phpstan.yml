@@ -10,14 +10,10 @@ on:
       - 'composer.lock'
       - 'phpstan.neon.dist'
       - '.github/workflows/phpstan.yml'
+  # No path filter on pull requests: the phpstan jobs are required checks on
+  # main, and a filtered-out workflow never reports, which blocks the merge.
   pull_request:
     branches: [main]
-    paths:
-      - '**/*.php'
-      - 'composer.json'
-      - 'composer.lock'
-      - 'phpstan.neon.dist'
-      - '.github/workflows/phpstan.yml'
 
 permissions:
   contents: read

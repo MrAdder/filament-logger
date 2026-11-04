@@ -10,14 +10,10 @@ on:
       - 'LICENSE*'
       - 'art/**'
       - 'docs/**'
+  # No path filter on pull requests: "Tests passed" is a required check on
+  # main, and a filtered-out workflow never reports, which blocks the merge.
   pull_request:
     branches: [main]
-    paths-ignore:
-      - 'README.md'
-      - 'CHANGELOG.md'
-      - 'LICENSE*'
-      - 'art/**'
-      - 'docs/**'
 
 concurrency:
   group: run-tests-${{ github.event.pull_request.number || github.ref }}
