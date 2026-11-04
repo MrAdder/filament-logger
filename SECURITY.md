@@ -16,7 +16,7 @@ outside this range will be assessed but may not receive a fix.
 | Dependency | Supported versions |
 |------------|--------------------|
 | PHP        | `8.2` and above |
-| Laravel    | `11.x`, `12.x`, `13.x` |
+| Laravel    | `12.x`, `13.x` |
 | Filament   | `3.x`, `4.3.1` and above, `5.x` |
 
 Filament `4.0`–`4.3.0` are not supported because of an upstream advisory fixed
@@ -32,6 +32,13 @@ fix for CVE-2026-115560 ships, set `session.upload_progress.enabled=0`; the
 package does not rely on session upload progress, so disabling it is safe.
 The `composer.json` constraint stays at `^8.2` so distribution builds with
 backported fixes remain installable.
+
+Laravel `11.x` is no longer supported. It has stopped receiving security fixes,
+and every `11.x` release is affected by unpatched advisories, including the
+critical TokenGuard authentication bypass CVE-2026-114509 (fixed in `12.68.0`
+and `13.29.0`). Composer refuses to install it by default. See the
+[installation guide](https://mradder.github.io/filament-logger/installation#why-laravel-11-is-no-longer-supported)
+for the full reasoning and upgrade path.
 
 ## Reporting a Vulnerability
 
