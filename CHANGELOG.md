@@ -2,6 +2,18 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.7.1 - 2026-11-04
+
+## Summary
+
+- Push the release changelog commit with an admin token by @MrAdder in #86
+
+## Contributors
+
+@MrAdder
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.7.0...v1.7.1
+
 ## v1.7.0 - 2026-11-04
 
 ## Summary
