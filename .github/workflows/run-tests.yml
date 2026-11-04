@@ -43,28 +43,16 @@ jobs:
         include:
           - os: ubuntu-latest
             php: '8.2'
-            laravel: '11.*'
-            testbench: '9.*'
+            laravel: '12.*'
+            testbench: '10.*'
             filament: '3.*'
             stability: prefer-stable
           - os: ubuntu-latest
             php: '8.2'
-            laravel: '11.*'
-            testbench: '9.*'
+            laravel: '12.*'
+            testbench: '10.*'
             filament: '^4.3.1'
             stability: prefer-lowest
-          - os: ubuntu-latest
-            php: '8.2'
-            laravel: '11.*'
-            testbench: '9.*'
-            filament: '^4.3.1'
-            stability: prefer-stable
-          - os: ubuntu-latest
-            php: '8.2'
-            laravel: '11.*'
-            testbench: '9.*'
-            filament: '5.*'
-            stability: prefer-stable
           - os: ubuntu-latest
             php: '8.2'
             laravel: '12.*'
@@ -334,3 +322,19 @@ jobs:
 
       - name: Execute tests
         run: vendor/bin/pest --no-coverage
+
+  # The single check branch protection requires. A job skipped because a job it
+  # needs failed counts as passing for a required check, so this one always
+  # runs and fails itself unless every test job succeeded.
+  tests-passed:
+    name: Tests passed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ always() }}
+    needs: [test, coverage, laravel13-filament5-required]
+    permissions: {}
+
+    steps:
+      - name: Check test job results
+        if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}
+        run: exit 1

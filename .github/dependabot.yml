@@ -23,3 +23,9 @@ updates:
       - "dependencies"
     allow:
       - dependency-name: "laravel/pint"
+    # Pint 1.30.5 and later require PHP 8.3, but the package still supports
+    # PHP 8.2 and every dev dependency must install there. Drop this ignore
+    # when PHP 8.2 support is dropped.
+    ignore:
+      - dependency-name: "laravel/pint"
+        versions: [">=1.30.5"]
