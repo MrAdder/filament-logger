@@ -15,57 +15,73 @@ template: |
 
   **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
 
+# Categories use the unified model from release-drafter 7.10
+# (release-drafter/release-drafter#1558): changelog sections, the
+# skip-changelog exclusion and version resolution are all categories.
 categories:
+  - type: pre-exclude
+    when:
+      label: skip-changelog
+
   - title: Features
-    labels:
-      - feature
-      - enhancement
+    when:
+      labels:
+        - feature
+        - enhancement
   - title: Fixes
-    labels:
-      - fix
-      - bug
-      - bugfix
+    when:
+      labels:
+        - fix
+        - bug
+        - bugfix
   - title: Security
-    labels:
-      - security
+    when:
+      label: security
   - title: Documentation
-    labels:
-      - documentation
-      - docs
+    when:
+      labels:
+        - documentation
+        - docs
   - title: Testing and CI
-    labels:
-      - tests
-      - ci
+    when:
+      labels:
+        - tests
+        - ci
   - title: Maintenance
-    labels:
-      - chore
-      - dependencies
-      - refactor
+    when:
+      labels:
+        - chore
+        - dependencies
+        - refactor
 
-exclude-labels:
-  - skip-changelog
-
-version-resolver:
-  major:
-    labels:
-      - major
-  minor:
-    labels:
-      - minor
-      - feature
-      - enhancement
-  patch:
-    labels:
-      - patch
-      - fix
-      - bug
-      - bugfix
-      - security
-      - documentation
-      - docs
-      - tests
-      - ci
-      - chore
-      - dependencies
-      - refactor
-  default: patch
+  # Version resolution. The highest matching increment wins; the last entry,
+  # with no `when`, is the patch fallback for unlabelled pull requests.
+  - type: version-resolver
+    semver-increment: major
+    when:
+      label: major
+  - type: version-resolver
+    semver-increment: minor
+    when:
+      labels:
+        - minor
+        - feature
+        - enhancement
+  - type: version-resolver
+    semver-increment: patch
+    when:
+      labels:
+        - patch
+        - fix
+        - bug
+        - bugfix
+        - security
+        - documentation
+        - docs
+        - tests
+        - ci
+        - chore
+        - dependencies
+        - refactor
+  - type: version-resolver
+    semver-increment: patch
