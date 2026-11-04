@@ -2,6 +2,26 @@
 
 All notable changes to `filament-logger` will be documented in this file.
 
+## v1.7.0 - 2026-11-04
+
+## Summary
+
+- Fix CI: pin Pint for PHP 8.2 and drop Laravel 11 by @MrAdder in #85
+
+## Maintenance
+
+- chore(deps-dev): update laravel/pint requirement from 1.30.4 to 1.32.1 by @[dependabot[bot]](https://github.com/apps/dependabot) in #83
+- chore(deps): bump stefanzweifel/git-auto-commit-action from 7.2.0 to 7.2.1 by @[dependabot[bot]](https://github.com/apps/dependabot) in #82
+- chore(deps): bump release-drafter/release-drafter from 7.9.0 to 7.10.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #81
+- chore(deps): bump the npm\_and\_yarn group across 1 directory with 2 updates by @[dependabot[bot]](https://github.com/apps/dependabot) in #80
+- chore(deps): bump release-drafter/release-drafter from 7.7.0 to 7.9.0 by @[dependabot[bot]](https://github.com/apps/dependabot) in #79
+
+## Contributors
+
+@MrAdder, [@dependabot[bot]](https://github.com/apps/dependabot) and [@github-actions[bot]](https://github.com/apps/github-actions)
+
+**Full Changelog**: https://github.com/MrAdder/filament-logger/compare/v1.6.3...v1.7.0
+
 ## v1.6.3 - 2026-09-29
 
 ## Summary
