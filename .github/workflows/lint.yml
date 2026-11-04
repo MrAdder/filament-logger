@@ -9,13 +9,10 @@ on:
       - 'composer.json'
       - 'pint.json'
       - '.github/workflows/lint.yml'
+  # No path filter on pull requests: pint is a required check on
+  # main, and a filtered-out workflow never reports, which blocks the merge.
   pull_request:
     branches: [main]
-    paths:
-      - '**/*.php'
-      - 'composer.json'
-      - 'pint.json'
-      - '.github/workflows/lint.yml'
 
 permissions:
   contents: read
