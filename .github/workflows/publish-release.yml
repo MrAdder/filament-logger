@@ -44,11 +44,26 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      # main requires status checks, which GITHUB_TOKEN cannot bypass, so the
+      # changelog commit at the end is pushed with an admin's token instead.
+      # Fail here, before anything is published, if it is not configured.
+      - name: Ensure release token is configured
+        shell: bash
+        run: |
+          if [[ -z "$RELEASE_TOKEN" ]]; then
+            echo "::error::The RELEASE_TOKEN secret is not set. It must be a repository admin's token with contents: write, so the changelog commit can be pushed to the protected branch."
+            exit 1
+          fi
+        env:
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
       - name: Checkout code
         uses: actions/checkout@v7
         with:
           ref: ${{ inputs.target }}
           fetch-depth: 0
+          # git-auto-commit-action pushes with the credentials checkout persists.
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@d59004228537ca90c8dca680592a08a675bf52b6
