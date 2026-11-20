@@ -157,7 +157,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@9a96576163ad88ed6f6f2cbf381c5229baf95677
+        uses: shivammathur/setup-php@e8d43d139fbfbe401c32ef3a3a32e14075f20122
         with:
           php-version: ${{ matrix.php }}
           extensions: none, curl, dom, fileinfo, intl, mbstring, openssl, pdo_sqlite, simplexml, sqlite, tokenizer, xml, xmlreader, xmlwriter, zip
@@ -224,7 +224,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@9a96576163ad88ed6f6f2cbf381c5229baf95677
+        uses: shivammathur/setup-php@e8d43d139fbfbe401c32ef3a3a32e14075f20122
         with:
           php-version: '8.3'
           extensions: none, curl, dom, fileinfo, intl, mbstring, openssl, pdo_sqlite, simplexml, sqlite, tokenizer, xml, xmlreader, xmlwriter, zip
@@ -285,7 +285,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@9a96576163ad88ed6f6f2cbf381c5229baf95677
+        uses: shivammathur/setup-php@e8d43d139fbfbe401c32ef3a3a32e14075f20122
         with:
           php-version: '8.3'
           extensions: none, curl, dom, fileinfo, intl, mbstring, openssl, pdo_sqlite, simplexml, sqlite, tokenizer, xml, xmlreader, xmlwriter, zip
